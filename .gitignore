@@ -1,0 +1,45 @@
+# Gradle
+.gradle/
+build/
+
+# Android
+*.apk
+*.aab
+*.apks
+local.properties
+*.keystore
+*.jks
+key.properties
+
+# Secrets / credentials
+*.env
+secrets.properties
+secrets.json
+*.key
+*.pem
+*.p12
+
+# Model binaries (large, never in Git)
+*.gguf
+*.bin
+*.safetensors
+*.model
+**/models/**
+**/assets/**/*.gguf
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Lint
+lint/
+
+# Outputs
+out/
