@@ -3,7 +3,10 @@ package com.pocketqwen.app.ui.screens
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
@@ -11,22 +14,22 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextAlign
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.icons.filled.Chat
+import androidx.compose.material3.icons.filled.Code
+import androidx.compose.material3.icons.filled.Lightbulb
+import androidx.compose.material3.icons.filled.Summarize
+import androidx.compose.material3.icons.filled.Settings
 import androidx.compose.material3.icons.filled.Menu
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pocketqwen.app.ui.components.MessageBubble
 import com.pocketqwen.app.ui.components.MessageComposer
 import com.pocketqwen.app.ui.components.SuggestionCard
-import com.pocketqwen.app.ui.components.Spacer
 import com.pocketqwen.app.model.ChatMessage
-import com.pocketqwen.app.model.MessageStatus
-import com.pocketqwen.app.ui.theme.PocketQwenTheme
-import androidx.compose.material3.icons.filled.Chat
-import androidx.compose.material3.icons.filled.Code
-import androidx.compose.material3.icons.filled.Lightbulb
-import androidx.compose.material3.icons.filled.Summarize
 
 @Composable
 fun EmptyChatScreen(
@@ -51,7 +54,7 @@ fun EmptyChatScreen(
                 endIcon = {
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(
-                            imageVector = androidx.compose.material3.icons.filled.Settings,
+                            imageVector = Settings,
                             contentDescription = "Settings"
                         )
                     }
@@ -74,21 +77,21 @@ fun EmptyChatScreen(
                     .fillMaxWidth()
                     .height(0f)
                     .weight(1f),
-                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     text = "PocketQwen",
                     style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.align(alignment = androidx.compose.ui.Alignment.CenterHorizontally)
+                    modifier = Modifier.align(alignment = Alignment.CenterHorizontally)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "What can I help you with?",
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.align(alignment = androidx.compose.ui.Alignment.CenterHorizontally)
+                    modifier = Modifier.align(alignment = Alignment.CenterHorizontally)
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
@@ -96,37 +99,37 @@ fun EmptyChatScreen(
                         "Your data stays on your device.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = androidx.compose.ui.text.TextAlign.Center,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth(0.7f)
-                        .align(alignment = androidx.compose.ui.Alignment.CenterHorizontally)
+                        .align(alignment = Alignment.CenterHorizontally)
                 )
                 Spacer(modifier = Modifier.height(32.dp))
             }
 
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 items(
                     listOf(
                         SuggestionItem(
-                            icon = androidx.compose.material3.icons.filled.Lightbulb,
+                            icon = Lightbulb,
                             title = "Explain a difficult concept",
                             description = "Get clear explanations of complex topics"
                         ),
                         SuggestionItem(
-                            icon = androidx.compose.material3.icons.filled.Code,
+                            icon = Code,
                             title = "Help me write some code",
                             description = "Write, review, and debug code snippets"
                         ),
                         SuggestionItem(
-                            icon = androidx.compose.material3.icons.filled.Summarize,
+                            icon = Summarize,
                             title = "Summarize a long text",
                             description = "Get concise summaries of lengthy content"
                         ),
                         SuggestionItem(
-                            icon = androidx.compose.material3.icons.filled.Chat,
+                            icon = Chat,
                             title = "Brainstorm ideas",
                             description = "Generate creative ideas together"
                         )

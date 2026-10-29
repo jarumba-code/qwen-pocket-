@@ -3,6 +3,7 @@ package com.pocketqwen.app.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pocketqwen.app.model.ChatMessage
+import com.pocketqwen.app.model.MessageStatus
 import com.pocketqwen.app.repository.AiRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
