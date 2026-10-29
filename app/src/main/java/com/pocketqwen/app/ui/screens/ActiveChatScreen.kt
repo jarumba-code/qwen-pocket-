@@ -2,21 +2,21 @@ package com.pocketqwen.app.ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pocketqwen.app.model.ChatMessage
 import com.pocketqwen.app.model.MessageStatus
-import com.pocketqwen.app.ui.components.MessageBubble
-import com.pocketqwen.app.ui.components.MessageComposer
 import com.pocketqwen.app.viewmodel.ChatViewModel
 
 @Composable
@@ -29,31 +29,60 @@ fun ActiveChatScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(text = "PocketQwen") })
-        },
-        modifier = modifier.fillMaxSize()
-    ) { paddingValues ->
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(vertical = 8.dp),
+                .weight(1f),
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
         ) {
             items(messages) { message ->
-                MessageBubble(message = message)
-            }
-            if (isLoading) {
-                MessageBubble(
-                    message = ChatMessage(
-                        id = "loading",
-                        text = "Thinking...",
-                        isUser = false,
-                        status = MessageStatus.SENDING
-                    )
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                ) {
+                    if (message.isUser) {
+                        Column(
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text(
+                                text = message.text,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier
+                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                        shape = androidx.compose.foundation.shape.RoundedShape(12.dp)
+                                    )
+                            )
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier.align(Alignment.Start)
+                        ) {
+                            Text(
+                                text = message.text,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier
+                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surfaceContainer,
+                                        shape = androidx.compose.foundation.shape.RoundedShape(12.dp)
+                                    )
+                            )
+                            if (message.status == MessageStatus.SENDING) {
+                                Text(
+                                    text = "...",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
             if (error != null) {
                 Text(
@@ -64,8 +93,28 @@ fun ActiveChatScreen(
             }
         }
 
-        MessageComposer(onSend = { msg ->
-            viewModel.sendMessage(msg)
-        }, modifier = Modifier.fillMaxWidth())
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            androidx.compose.material3.TextField(
+                value = "",
+                onValueChange = {},
+                placeholder = {
+                    Text(text = "Message PocketQwen...")
+                },
+                singleLine = false,
+                maxLines = 5,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = {},
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Send")
+            }
+        }
     }
 }
