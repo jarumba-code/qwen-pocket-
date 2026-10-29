@@ -1,89 +1,85 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.22.1)
 
 project(PocketQwenNative LANGUAGES C CXX)
 
-# ---- llama.cpp pinned commit ------------------------------------------------
-# Pin to a specific commit for reproducibility. Update this SHA when upgrading.
-set(LLAMA_COMMIT "d1b2a1e4e9c7a5b3d1e2f3a4b5c6d7e8f9a0b1c2" CACHE STRING "llama.cpp git commit")
+# The source is fetched on CI (or prepared locally) at the full SHA in
+# native/llama.cpp.commit. This avoids a recursive/local submodule clone.
+set(LLAMA_CPP_DEFAULT_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/llama.cpp")
+set(LLAMA_CPP_SOURCE_DIR "${LLAMA_CPP_DEFAULT_SOURCE_DIR}" CACHE PATH
+    "Path to the pinned llama.cpp source checkout")
 
-set(LLAMA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp")
-set(LLAMA_BUILD_DIR "${CMAKE_BINARY_DIR}/llama.cpp")
-
-# Fetch llama.cpp at configure time. Requires network access on the CI runner.
-include(FetchContent)
-FetchContent_Declare(
-    llama_cpp
-    GIT_REPOSITORY https://github.com/ggerganov/llama.cpp.git
-    GIT_TAG ${LLAMA_COMMIT}
-    GIT_SHALLOW TRUE
-    GIT_SHALLOW_SUBMODULES TRUE
-)
-FetchContent_GetProperties(llama_cpp)
-if(NOT llama_config_POPULATED)
-    message(FATAL_ERROR "Failed to fetch llama.cpp from GitHub. Check network connectivity and the pinned commit ${LLAMA_COMMIT}.")
+set(LLAMA_CPP_PIN_FILE "${CMAKE_CURRENT_LIST_DIR}/native/llama.cpp.commit")
+if(NOT EXISTS "${LLAMA_CPP_PIN_FILE}")
+    message(FATAL_ERROR "Missing llama.cpp pin file: ${LLAMA_CPP_PIN_FILE}")
 endif()
-FetchContent_Populate(llama_cpp)
-
-# ---- Android NDK configuration ---------------------------------------------
-if(NOT ANDROID_NDK)
-    message(FATAL_ERROR "ANDROID_NDK is not defined. Set it to your NDK root directory.")
+file(READ "${LLAMA_CPP_PIN_FILE}" LLAMA_CPP_PIN)
+string(STRIP "${LLAMA_CPP_PIN}" LLAMA_CPP_PIN)
+string(LENGTH "${LLAMA_CPP_PIN}" LLAMA_CPP_PIN_LENGTH)
+if(NOT LLAMA_CPP_PIN_LENGTH EQUAL 40 OR NOT LLAMA_CPP_PIN MATCHES "^[0-9a-f]+$")
+    message(FATAL_ERROR "native/llama.cpp.commit must contain one full 40-character lowercase Git SHA.")
 endif()
 
-set(ANDROID_ABI "${ANDROID_ABI}" CACHE STRING "Target Android ABI" FORCE)
-if(NOT ANDROID_ABI STREQUAL "arm64-v8a" AND NOT ANDROID_ABI STREQUAL "armeabi-v7a")
-    message(FATAL_ERROR "Unsupported ANDROID_ABI '${ANDROID_ABI}'. Use arm64-v8a or armeabi-v7a.")
+if(NOT EXISTS "${LLAMA_CPP_SOURCE_DIR}/CMakeLists.txt")
+    message(FATAL_ERROR
+        "Pinned llama.cpp source is missing at '${LLAMA_CPP_SOURCE_DIR}'. "
+        "See docs/native-build.md for the exact pinned-source setup. "
+        "GitHub Actions fetches the source into RUNNER_TEMP automatically.")
 endif()
 
-set(ANDROID_PLATFORM "android-24" CACHE STRING "Minimum Android API level")
-
-include(android.toolchain.cmake)
-
-# ---- Build llama.cpp native library -----------------------------------------
-add_library(llama STATIC
-    ${LLAMA_DIR}/ggml.c
-    ${LLAMA_DIR}/ggml-alloc.c
-    ${LLAMA_DIR}/ggml-quant.c
-    ${LLAMA_DIR}/ggml-backend.c
-    ${LLAMA_DIR}/llama.cpp
+execute_process(
+    COMMAND git -C "${LLAMA_CPP_SOURCE_DIR}" rev-parse HEAD
+    RESULT_VARIABLE LLAMA_CPP_GIT_RESULT
+    OUTPUT_VARIABLE LLAMA_CPP_CHECKED_OUT_SHA
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
 )
+if(NOT LLAMA_CPP_GIT_RESULT EQUAL 0)
+    message(FATAL_ERROR
+        "Cannot verify the llama.cpp checkout at '${LLAMA_CPP_SOURCE_DIR}'. "
+        "It must be a Git checkout at the exact SHA in native/llama.cpp.commit.")
+endif()
+if(NOT LLAMA_CPP_CHECKED_OUT_SHA STREQUAL LLAMA_CPP_PIN)
+    message(FATAL_ERROR
+        "llama.cpp revision mismatch: expected ${LLAMA_CPP_PIN}, found ${LLAMA_CPP_CHECKED_OUT_SHA}. "
+        "Fetch the exact pinned SHA described in docs/native-build.md.")
+endif()
 
-target_include_directories(llama PRIVATE
-    ${LLAMA_DIR}
-)
+if(NOT ANDROID)
+    message(FATAL_ERROR "Configure this project with the Android NDK CMake toolchain.")
+endif()
+if(NOT ANDROID_ABI STREQUAL "arm64-v8a")
+    message(FATAL_ERROR "Stage 1 supports only arm64-v8a; received '${ANDROID_ABI}'.")
+endif()
 
-target_compile_options(llama PRIVATE
-    -O3
-    -DNDEBUG
-    -DCMAKE_BUILD_TYPE=Release
-)
+message(STATUS "PocketQwen: building llama.cpp ${LLAMA_CPP_PIN} for ${ANDROID_ABI}")
 
-target_link_options(llama PRIVATE
-    -llog
-)
+# Keep this first-stage build CPU-only, portable, and focused on libraries.
+# The JNI bridge will be enabled in the next integration stage after this
+# upstream library build passes CI.
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries" FORCE)
+set(LLAMA_BUILD_COMMON OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_SERVER OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_APP OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_UI OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_MTMD OFF CACHE BOOL "" FORCE)
+set(LLAMA_OPENSSL OFF CACHE BOOL "" FORCE)
+set(LLAMA_SUBPROCESS OFF CACHE BOOL "" FORCE)
+set(LLAMA_CONNECT OFF CACHE BOOL "" FORCE)
 
-# ---- PocketQwen native library (JNI bridge) ---------------------------------
-add_library(pocketqwen_native SHARED
-    src/main/cpp/native_inference.cpp
-)
+set(GGML_NATIVE OFF CACHE BOOL "" FORCE)
+set(GGML_OPENMP OFF CACHE BOOL "" FORCE)
+set(GGML_LLAMAFILE OFF CACHE BOOL "" FORCE)
+set(GGML_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GGML_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GGML_CUDA OFF CACHE BOOL "" FORCE)
+set(GGML_METAL OFF CACHE BOOL "" FORCE)
+set(GGML_VULKAN OFF CACHE BOOL "" FORCE)
+set(GGML_SYCL OFF CACHE BOOL "" FORCE)
+set(GGML_OPENVINO OFF CACHE BOOL "" FORCE)
+set(GGML_RPC OFF CACHE BOOL "" FORCE)
 
-target_include_directories(pocketqwen_native PRIVATE
-    ${LLAMA_DIR}
-    ${ANDROID_NDK}/sources/android/native_app_glue
-)
-
-target_link_libraries(pocketqwen_native PRIVATE
-    llama
-    android
-    log
-)
-
-# Set visibility to hidden except JNI entry points
-set_target_properties(pocketqwen_native PROPERTIES
-    CXX_VISIBILITY_PRESET hidden
-    CXX_VISIBILITY_PRESET hidden
-)
-
-# Output APK-ready libraries
-set_target_properties(pocketqwen_native PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/libs/${ANDROID_ABI}"
-)
+add_subdirectory("${LLAMA_CPP_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/llama.cpp")
