@@ -17,11 +17,11 @@ fun MainScreen(
     modifier: Modifier = Modifier
 ) {
     val showChatState = remember { mutableStateOf(true) }
-    var showChat: Boolean
+    var showChat: Boolean = showChatState.value
         get() = showChatState.value
         set(value) { showChatState.value = value }
     val showSettingsState = remember { mutableStateOf(false) }
-    var showSettings: Boolean
+    var showSettings: Boolean = showSettingsState.value
         get() = showSettingsState.value
         set(value) { showSettingsState.value = value }
 
