@@ -31,7 +31,7 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
                     "Note: AI inference is not yet connected — this is a UI preview. " +
                     "Ask me anything to see the chat interface in action.",
                 isUser = false,
-                status = ChatMessage.MessageStatus.SENT
+                status = MessageStatus.SENT
             )
         )
     }
@@ -44,7 +44,7 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
             id = UUID.randomUUID().toString(),
             text = trimmed,
             isUser = true,
-            status = ChatMessage.MessageStatus.SENT
+            status = MessageStatus.SENT
         )
 
         _messages.value = _messages.value + userMessage

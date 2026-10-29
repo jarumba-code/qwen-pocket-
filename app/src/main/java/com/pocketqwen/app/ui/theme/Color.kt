@@ -5,7 +5,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
 val PocketQwenLightColorScheme = lightColorScheme(
-    background = Color(0xFFF7FAF7),
     surface = Color(0xFFFFFFFF),
     primary = Color(0xFF16803D),
     onPrimary = Color(0xFFFFFFFF),
@@ -15,7 +14,6 @@ val PocketQwenLightColorScheme = lightColorScheme(
     onTertiary = Color(0xFF000000),
     error = Color(0xFFBA1A1A),
     onError = Color(0xFFFFFFFF),
-    background = Color(0xFFF7FAF7),
     onBackground = Color(0xFF172019),
     surfaceVariant = Color(0xFFE7EEC9),
     onSurfaceVariant = Color(0xFF4C574D),
@@ -44,7 +42,6 @@ val PocketQwenLightColorScheme = lightColorScheme(
 )
 
 val PocketQwenDarkColorScheme = darkColorScheme(
-    background = Color(0xFF0D120F),
     surface = Color(0xFF151C17),
     primary = Color(0xFF4ADE80),
     onPrimary = Color(0xFF000000),
@@ -54,7 +51,6 @@ val PocketQwenDarkColorScheme = darkColorScheme(
     onTertiary = Color(0xFF000000),
     error = Color(0xFFFFB4AB),
     onError = Color(0xFF690005),
-    background = Color(0xFF0D120F),
     onBackground = Color(0xFFF0F5F0),
     surfaceVariant = Color(0xFF2E3934),
     onSurfaceVariant = Color(0xFFCED4CE),
