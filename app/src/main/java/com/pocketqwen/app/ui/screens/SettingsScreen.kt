@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +28,7 @@ import com.pocketqwen.app.viewmodel.SettingsViewModel
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     onNavigateBack: () -> Unit,
+    onSelectModel: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val themeMode by viewModel.themeMode.collectAsState()
@@ -86,7 +88,7 @@ fun SettingsScreen(
             }
             item {
                 Text(
-                    text = "Model",
+                    text = "Local model",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp)
@@ -97,10 +99,15 @@ fun SettingsScreen(
                     headlineContent = { Text(text = "Model status") },
                     supportingContent = {
                         Text(
-                            text = modelStatus ?: "Local model not installed",
+                            text = modelStatus ?: "No model selected — choose a local .gguf file.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    },
+                    trailingContent = {
+                        Button(onClick = onSelectModel) {
+                            Text(text = "Choose GGUF")
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -109,10 +116,10 @@ fun SettingsScreen(
             }
             item {
                 ListItem(
-                    headlineContent = { Text(text = "AI Inference") },
+                    headlineContent = { Text(text = "AI inference") },
                     supportingContent = {
                         Text(
-                            text = "Not connected — local inference is not integrated yet.",
+                            text = "Inference runs on this device after a local GGUF model is loaded. Prompts are not sent to a cloud AI service.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -143,7 +150,7 @@ fun SettingsScreen(
                     headlineContent = { Text(text = "Privacy") },
                     supportingContent = {
                         Text(
-                            text = "This preview does not send prompts to a cloud AI service.",
+                            text = "The selected model is stored in app-private storage. No cloud inference is used.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

@@ -16,6 +16,7 @@ import com.pocketqwen.app.viewmodel.SettingsViewModel
 fun MainScreen(
     chatViewModel: ChatViewModel,
     settingsViewModel: SettingsViewModel,
+    onSelectModel: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showChat by remember { mutableStateOf(false) }
@@ -29,6 +30,7 @@ fun MainScreen(
             showSettings -> SettingsScreen(
                 viewModel = settingsViewModel,
                 onNavigateBack = { showSettings = false },
+                onSelectModel = onSelectModel,
                 modifier = Modifier.fillMaxSize()
             )
 

@@ -8,7 +8,6 @@ import com.pocketqwen.app.repository.AiRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -27,9 +26,8 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
         _messages.value = listOf(
             ChatMessage(
                 id = UUID.randomUUID().toString(),
-                text = "Hello! I'm PocketQwen, your private on-device AI assistant. " +
-                    "Note: AI inference is not yet connected — this is a UI preview. " +
-                    "Ask me anything to see the chat interface in action.",
+                text = "Welcome to PocketQwen. Choose a local GGUF model in Settings if one is not loaded yet. " +
+                    "Once loaded, responses are generated on this device.",
                 isUser = false,
                 status = MessageStatus.SENT
             )
@@ -54,23 +52,27 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
         viewModelScope.launch {
             try {
                 aiRepository.generateResponse(trimmed).collect { response ->
-                    if (response == "[Thinking...]") {
-                        _isLoading.value = true
-                    } else if (response.startsWith("[End of placeholder")) {
-                        _isLoading.value = false
-                    } else {
-                        val assistantMessage = ChatMessage(
-                            id = UUID.randomUUID().toString(),
-                            text = response,
-                            isUser = false,
-                            status = MessageStatus.SENT
-                        )
-                        _messages.value = _messages.value + assistantMessage
-                        _isLoading.value = false
+                    when {
+                        response == "[Thinking...]" -> {
+                            _isLoading.value = true
+                        }
+                        response.startsWith("[End of") -> {
+                            _isLoading.value = false
+                        }
+                        else -> {
+                            val assistantMessage = ChatMessage(
+                                id = UUID.randomUUID().toString(),
+                                text = response,
+                                isUser = false,
+                                status = MessageStatus.SENT
+                            )
+                            _messages.value = _messages.value + assistantMessage
+                            _isLoading.value = false
+                        }
                     }
                 }
-            } catch (e: Exception) {
-                _error.value = e.message
+            } catch (error: Exception) {
+                _error.value = error.message ?: "An unexpected inference error occurred."
                 _isLoading.value = false
             }
         }

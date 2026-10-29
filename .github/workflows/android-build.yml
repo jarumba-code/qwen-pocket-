@@ -129,7 +129,7 @@ jobs:
           cmake --build "$BUILD_DIR" --config Release --parallel 2
 
           echo "Native build outputs:"
-          find -L "$BUILD_DIR" -type f \( -name 'libllama.so*' -o -name 'libggml*.so*' \) -print
+          find -L "$BUILD_DIR" -type f \( -name 'libllama.so*' -o -name 'libggml*.so*' -o -name 'libpocketqwen_native.so*' \) -print
 
       - name: Stage native shared libraries for APK packaging
         shell: bash
@@ -140,7 +140,7 @@ jobs:
 
           mapfile -d '' LIBRARIES < <(
             find -L "$RUNNER_TEMP/pocketqwen-native-build" -type f \
-              \( -name 'libllama.so*' -o -name 'libggml*.so*' \) -print0 | sort -z
+              \( -name 'libllama.so*' -o -name 'libggml*.so*' -o -name 'libpocketqwen_native.so*' \) -print0 | sort -z
           )
           if [ "${#LIBRARIES[@]}" -eq 0 ]; then
             echo "::error::The native build produced no llama.cpp/ggml shared libraries."
@@ -151,8 +151,8 @@ jobs:
             cp -Lf "$LIBRARY" "$DEST/$(basename "$LIBRARY")"
           done
 
-          if [ ! -s "$DEST/libllama.so" ]; then
-            echo "::error::libllama.so was not produced; refusing to package an incomplete native build."
+          if [ ! -s "$DEST/libllama.so" ] || [ ! -s "$DEST/libpocketqwen_native.so" ]; then
+            echo "::error::Required llama.cpp or JNI shared library was not produced."
             ls -la "$DEST"
             exit 1
           fi
@@ -180,6 +180,7 @@ jobs:
           test -s "$APK"
           unzip -Z1 "$APK" > "$RUNNER_TEMP/apk-contents.txt"
           grep -Fxq "lib/arm64-v8a/libllama.so" "$RUNNER_TEMP/apk-contents.txt"
+          grep -Fxq "lib/arm64-v8a/libpocketqwen_native.so" "$RUNNER_TEMP/apk-contents.txt"
           if ! grep -Eq '^lib/arm64-v8a/libggml.*\.so$' "$RUNNER_TEMP/apk-contents.txt"; then
             echo "::error::No ggml shared library was packaged into the APK."
             exit 1

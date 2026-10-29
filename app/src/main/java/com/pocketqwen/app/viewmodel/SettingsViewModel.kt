@@ -9,8 +9,8 @@ import com.pocketqwen.app.settings.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
@@ -20,10 +20,10 @@ class SettingsViewModel(
 
     private val appSettings = AppSettings(context)
 
-    private val _themeMode = MutableStateFlow<ThemeMode>(ThemeMode.SYSTEM)
+    private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
 
-    private val _isFirstLaunch = MutableStateFlow<Boolean>(true)
+    private val _isFirstLaunch = MutableStateFlow(true)
     val isFirstLaunch: StateFlow<Boolean> = _isFirstLaunch.asStateFlow()
 
     private val _modelStatus = MutableStateFlow<String?>(null)
@@ -33,7 +33,11 @@ class SettingsViewModel(
         viewModelScope.launch {
             _themeMode.value = appSettings.getThemeModeFlow().first()
             _isFirstLaunch.value = appSettings.isFirstLaunch()
-            _modelStatus.value = aiRepository.getModelStatus()
+        }
+        viewModelScope.launch {
+            aiRepository.observeModelStatus().collect { status ->
+                _modelStatus.value = status
+            }
         }
     }
 
@@ -48,6 +52,27 @@ class SettingsViewModel(
         viewModelScope.launch {
             appSettings.setFirstLaunch(false)
             _isFirstLaunch.value = false
+        }
+    }
+
+    fun setModelStatus(message: String) {
+        _modelStatus.value = message
+    }
+
+    fun loadModel(modelPath: String) {
+        viewModelScope.launch {
+            _modelStatus.value = "Loading selected model…"
+            val loaded = runCatching { aiRepository.loadModel(modelPath) }
+                .getOrElse { error ->
+                    _modelStatus.value = "Model load failed: ${error.message ?: error.javaClass.simpleName}"
+                    false
+                }
+            if (!loaded) {
+                val repositoryStatus = aiRepository.getModelStatus()
+                if (!_modelStatus.value.orEmpty().startsWith("Model load failed:")) {
+                    _modelStatus.value = repositoryStatus
+                }
+            }
         }
     }
 

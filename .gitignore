@@ -47,3 +47,6 @@ lint/
 
 # Outputs
 out/
+
+# Generated Android native libraries staged by CI/local native builds
+app/src/main/jniLibs/

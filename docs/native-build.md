@@ -53,8 +53,14 @@ repeatedly deleting Git metadata.
 
 ## Current scope and limitation
 
-This stage proves the pinned upstream source can be fetched and its shared CPU
-libraries can be compiled and packaged. It does **not yet** connect the
-PocketQwen Kotlin repository to the JNI bridge, load a GGUF model, or claim
-real inference. Those are separate next milestones and must be validated
-before the app is described as a working local AI assistant.
+The workflow fetches the pinned source and builds its CPU shared libraries plus
+PocketQwen's JNI bridge for arm64-v8a. The APK contains those libraries and the
+Kotlin repository exposes a local GGUF model picker. The app copies selected
+GGUFs to app-private storage and remembers the selected path.
+
+Real inference is connected through the pinned llama.cpp C API. The initial
+implementation uses a conservative 1,024-token context and up to 160 generated
+tokens; each request resets the native KV memory and currently uses the current
+user message only (it does not yet feed earlier chat turns back into the model).
+The model weights are not bundled into the APK. Device testing with an actual
+GGUF file is still required before claiming validated performance on a Redmi A5.

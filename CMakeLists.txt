@@ -54,8 +54,7 @@ endif()
 message(STATUS "PocketQwen: building llama.cpp ${LLAMA_CPP_PIN} for ${ANDROID_ABI}")
 
 # Keep this first-stage build CPU-only, portable, and focused on libraries.
-# The JNI bridge will be enabled in the next integration stage after this
-# upstream library build passes CI.
+# Compile the app JNI bridge against headers and targets from the exact pinned revision.
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries" FORCE)
 set(LLAMA_BUILD_COMMON OFF CACHE BOOL "" FORCE)
@@ -83,3 +82,21 @@ set(GGML_OPENVINO OFF CACHE BOOL "" FORCE)
 set(GGML_RPC OFF CACHE BOOL "" FORCE)
 
 add_subdirectory("${LLAMA_CPP_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/llama.cpp")
+
+
+find_library(ANDROID_LOG_LIBRARY log REQUIRED)
+
+add_library(pocketqwen_native SHARED
+    "${CMAKE_CURRENT_LIST_DIR}/app/src/main/cpp/native_inference.cpp"
+)
+target_include_directories(pocketqwen_native PRIVATE
+    "${LLAMA_CPP_SOURCE_DIR}/include"
+    "${LLAMA_CPP_SOURCE_DIR}/ggml/include"
+)
+target_compile_features(pocketqwen_native PRIVATE cxx_std_17)
+target_compile_options(pocketqwen_native PRIVATE -O2 -fvisibility=hidden)
+target_link_libraries(pocketqwen_native PRIVATE llama ${ANDROID_LOG_LIBRARY})
+set_target_properties(pocketqwen_native PROPERTIES
+    OUTPUT_NAME "pocketqwen_native"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pocketqwen-jni/${ANDROID_ABI}"
+)
