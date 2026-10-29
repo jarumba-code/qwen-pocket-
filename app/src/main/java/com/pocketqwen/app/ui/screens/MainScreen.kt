@@ -1,6 +1,8 @@
 package com.pocketqwen.app.ui.screens
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -17,24 +19,18 @@ fun MainScreen(
     modifier: Modifier = Modifier
 ) {
     val showChatState = remember { mutableStateOf(true) }
-    var showChat: Boolean
-        get() = showChatState.value
-        set(value) { showChatState.value = value }
     val showSettingsState = remember { mutableStateOf(false) }
-    var showSettings: Boolean
-        get() = showSettingsState.value
-        set(value) { showSettingsState.value = value }
 
-    if (showSettings) {
+    if (showSettingsState.value) {
         SettingsScreen(
             viewModel = settingsViewModel,
-            onNavigateBack = { showSettings = false },
+            onNavigateBack = { showSettingsState.value = false },
             modifier = modifier
         )
     } else {
         EmptyChatScreen(
             viewModel = chatViewModel,
-            onNavigateToSettings = { showSettings = true },
+            onNavigateToSettings = { showSettingsState.value = true },
             modifier = modifier
         )
     }
