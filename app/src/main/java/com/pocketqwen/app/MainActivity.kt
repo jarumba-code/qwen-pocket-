@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.material3.ExperimentalMaterialApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,7 +28,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun PocketQwenApp() {
     Scaffold(
@@ -71,7 +69,6 @@ fun PocketQwenApp() {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(0f)
                     .weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
