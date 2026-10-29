@@ -16,8 +16,14 @@ fun MainScreen(
     settingsViewModel: SettingsViewModel,
     modifier: Modifier = Modifier
 ) {
-    var showChat by remember { mutableStateOf(true) }
-    var showSettings by remember { mutableStateOf(false) }
+    val showChatState = remember { mutableStateOf(true) }
+    var showChat: Boolean
+        get() = showChatState.value
+        set(value) { showChatState.value = value }
+    val showSettingsState = remember { mutableStateOf(false) }
+    var showSettings: Boolean
+        get() = showSettingsState.value
+        set(value) { showSettingsState.value = value }
 
     if (showSettings) {
         SettingsScreen(

@@ -25,9 +25,12 @@ fun ActiveChatScreen(
     onNavigateToSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val messages by viewModel.messages.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
+    val messagesState = viewModel.messages.collectAsState()
+    val messages = messagesState.value
+    val isLoadingState = viewModel.isLoading.collectAsState()
+    val isLoading = isLoadingState.value
+    val errorState = viewModel.error.collectAsState()
+    val error = errorState.value
 
     Column(
         modifier = Modifier.fillMaxSize()
