@@ -42,6 +42,13 @@ jobs:
         with:
           gradle-version: 8.4
 
+      - name: Inspect manifest bytes
+        run: |
+          echo "=== First 20 bytes of AndroidManifest.xml ==="
+          xxd -l 20 app/src/main/AndroidManifest.xml || od -A x -t x1z -N 20 app/src/main/AndroidManifest.xml
+          echo "=== File encoding ==="
+          file app/src/main/AndroidManifest.xml
+
       - name: Make gradlew executable
         run: chmod +x gradlew
 
