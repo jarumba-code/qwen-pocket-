@@ -54,8 +54,9 @@ class MainActivity : ComponentActivity() {
                     // Keep the explicit placeholder repository active until the JNI bridge
                     // and model-loading path are connected and validated in a later stage.
                     val repository: AiRepository = MockAiRepository()
-                    val chatViewModel = viewModel(factory = ChatViewModelFactory(repository))
-                    val settingsViewModel = viewModel(
+                    val chatViewModel: ChatViewModel =
+                        viewModel(factory = ChatViewModelFactory(repository))
+                    val settingsViewModel: SettingsViewModel = viewModel(
                         factory = SettingsViewModelFactory(
                             context = this@MainActivity,
                             repository = repository
