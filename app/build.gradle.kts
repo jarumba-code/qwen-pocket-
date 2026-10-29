@@ -41,8 +41,6 @@ android {
 
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.5"
-
-    buildToolsVersion = "33.0.0"
     }
 
     packaging {
