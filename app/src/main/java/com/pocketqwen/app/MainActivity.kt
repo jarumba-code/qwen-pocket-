@@ -1,65 +1,98 @@
 package com.pocketqwen.app
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.pocketqwen.app.repository.MockAiRepository
-import com.pocketqwen.app.repository.AiRepository
-import com.pocketqwen.app.ui.theme.PocketQwenTheme
-import com.pocketqwen.app.ui.screens.MainScreen
-import com.pocketqwen.app.viewmodel.ChatViewModel
-import com.pocketqwen.app.viewmodel.SettingsViewModel
-
-class ChatViewModelFactory(private val repository: AiRepository) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ChatViewModel::class.java)) {
-            return ChatViewModel(repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: $modelClass")
-    }
-}
-
-class SettingsViewModelFactory(
-    private val context: Context,
-    private val repository: AiRepository
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
-            return SettingsViewModel(context, repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: $modelClass")
-    }
-}
+import androidx.compose.ui.unit.dp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            PocketQwenTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    val repository = MockAiRepository()
-                    val chatViewModel = viewModel(factory = ChatViewModelFactory(repository))
-                    val settingsViewModel = viewModel(
-                        factory = SettingsViewModelFactory(context = this@MainActivity, repository = repository)
-                    )
-                    MainScreen(
-                        chatViewModel = chatViewModel,
-                        settingsViewModel = settingsViewModel,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+            PocketQwenApp()
+        }
+    }
+}
+
+@Composable
+fun PocketQwenApp() {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "PocketQwen") },
+                colors = MaterialTheme.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+                )
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        } {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "PocketQwen",
+                style = MaterialTheme.typography.displayMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.align(androidx.compose.ui.Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "What can I help you with?",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.align(androidx.compose.ui.Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "PocketQwen is designed for private, on-device AI conversations. Your data stays on your device.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .align(androidx.compose.ui.Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(0f)
+                    .weight(1f),
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "AI inference is not yet connected.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "This is a UI preview. Message sending is disabled until llama.cpp integration.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
