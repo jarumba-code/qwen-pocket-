@@ -1,0 +1,95 @@
+package com.pocketqwen.app.ui.screens
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawer
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.icons.filled.Settings
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun NavigationDrawer(
+    drawerState: androidx.compose.material3.ModalDrawerState,
+    onNewChat: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ModalDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                modifier = Modifier
+                    .width(280.dp)
+                    .fillMaxHeight()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp, vertical = 24.dp)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = androidx.compose.material3.icons.filled.Chat,
+                            contentDescription = "PocketQwen logo",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Text(
+                            text = "PocketQwen",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    androidx.compose.material3.ListItem(
+                        headlineContent = { Text(text = "New chat") },
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            onNewChat()
+                            drawerState.close()
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Conversation history",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    Text(
+                        text = "No conversations yet",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    androidx.compose.material3.ListItem(
+                        headlineContent = { Text(text = "Settings") },
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            onNavigateToSettings()
+                            drawerState.close()
+                        }
+                    )
+                }
+            }
+        },
+        content = { }
+    )
+}
