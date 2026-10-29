@@ -4,14 +4,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ListItem
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -28,99 +25,81 @@ fun SettingsScreen(
     val themeMode = viewModel.themeMode.collectAsState().value
     val modelStatus = viewModel.modelStatus.collectAsState().value
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = "Settings") }
-            )
-        },
-        modifier = modifier.fillMaxSize()
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp)
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp)
+    ) {
+        Text(
+            text = "Settings",
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Appearance",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Column(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = "Appearance",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            items(
-                listOf(ThemeMode.LIGHT, ThemeMode.DARK, ThemeMode.SYSTEM)
-            ) { mode ->
-                ListItem(
-                    headlineContent = {
-                        Text(
-                            text = when (mode) {
-                                ThemeMode.LIGHT -> "Light"
-                                ThemeMode.DARK -> "Dark"
-                                ThemeMode.SYSTEM -> "System default"
-                            }
-                        )
-                    },
-                    trailingContent = {
-                        RadioButton(
-                            selected = themeMode == mode,
-                            onClick = { viewModel.setThemeMode(mode) }
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            Button(
+                onClick = { viewModel.setThemeMode(ThemeMode.LIGHT) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Light",
+                    color = if (themeMode == ThemeMode.LIGHT) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = { viewModel.setThemeMode(ThemeMode.DARK) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Dark",
+                    color = if (themeMode == ThemeMode.DARK) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = { viewModel.setThemeMode(ThemeMode.SYSTEM) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "System default",
+                    color = if (themeMode == ThemeMode.SYSTEM) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
 
-            Text(
-                text = "Model",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            ListItem(
-                headlineContent = { Text(text = "Model status") },
-                supportingContent = {
-                    Text(
-                        text = modelStatus ?: "Local model not installed",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-            )
-            ListItem(
-                headlineContent = { Text(text = "AI Inference") },
-                supportingContent = {
-                    Text(
-                        text = "Not connected",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-            )
+        Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "About PocketQwen",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            ListItem(
-                headlineContent = { Text(text = "Version 1.0.0") },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-            )
-            ListItem(
-                headlineContent = { Text(text = "Privacy") },
-                supportingContent = {
-                    Text(
-                        text = "All processing happens on your device.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-            )
+        Text(
+            text = "Model status",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = modelStatus ?: "Local model not installed",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = onNavigateBack,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Back")
         }
     }
 }

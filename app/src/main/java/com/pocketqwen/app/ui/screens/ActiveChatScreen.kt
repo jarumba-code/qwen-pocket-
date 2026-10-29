@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -50,10 +49,6 @@ fun ActiveChatScreen(
                                 text = message.text,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 modifier = androidx.compose.foundation.layout.padding(horizontal = 12.dp, vertical = 10.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.primaryContainer,
-                                        shape = androidx.compose.foundation.shape.RoundedShape(12.dp)
-                                    )
                             )
                         }
                     } else {
@@ -64,10 +59,6 @@ fun ActiveChatScreen(
                                 text = message.text,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 modifier = androidx.compose.foundation.layout.padding(horizontal = 12.dp, vertical = 10.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.surfaceContainer,
-                                        shape = androidx.compose.foundation.shape.RoundedShape(12.dp)
-                                    )
                             )
                             if (message.status == MessageStatus.SENDING) {
                                 Text(
