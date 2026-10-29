@@ -1,18 +1,24 @@
 package com.pocketqwen.app.ui.components
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pocketqwen.app.model.ChatMessage
+import com.pocketqwen.app.model.MessageStatus
 
 @Composable
 fun MessageBubble(
@@ -25,50 +31,37 @@ fun MessageBubble(
     } else {
         MaterialTheme.colorScheme.surfaceContainer
     }
-    val textColor = MaterialTheme.colorScheme.onSurface
 
-    Column(
-        modifier = Modifier.fillMaxWidth()
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
+        verticalAlignment = Alignment.Top
     ) {
-        if (isUser) {
-            Column(
-                modifier = Modifier.align(Alignment.End)
+        Surface(
+            modifier = Modifier.widthIn(max = 320.dp),
+            color = bubbleColor,
+            shape = RoundedCornerShape(
+                topStart = 16.dp,
+                topEnd = 16.dp,
+                bottomEnd = if (isUser) 4.dp else 16.dp,
+                bottomStart = if (isUser) 16.dp else 4.dp
+            )
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Surface(
-                    color = bubbleColor,
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.padding(
-                        start = 8.dp,
-                        end = 0.dp,
-                        top = 8.dp,
-                        bottom = 8.dp
-                    )
-                ) {
-                    Text(
-                        text = message.text,
-                        color = textColor,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
-                    )
-                }
-            }
-        } else {
-            Column(
-                modifier = Modifier.align(Alignment.Start)
-            ) {
-                Surface(
-                    color = bubbleColor,
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.padding(
-                        start = 0.dp,
-                        end = 8.dp,
-                        top = 8.dp,
-                        bottom = 8.dp
-                    )
-                ) {
-                    Text(
-                        text = message.text,
-                        color = textColor,
-                        modifier = androidx.compose.foundation.layout.padding(horizontal = 12.dp, vertical = 10.dp)
+                Text(
+                    text = message.text,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                if (message.status == MessageStatus.SENDING) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
                     )
                 }
             }

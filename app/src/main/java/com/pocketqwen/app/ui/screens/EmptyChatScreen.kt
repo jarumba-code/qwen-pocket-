@@ -1,115 +1,90 @@
 package com.pocketqwen.app.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.material3.Button
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextAlign
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.pocketqwen.app.ui.components.MessageComposer
+import com.pocketqwen.app.ui.components.SuggestionCard
 import com.pocketqwen.app.viewmodel.ChatViewModel
 
 @Composable
 fun EmptyChatScreen(
     viewModel: ChatViewModel,
     onNavigateToSettings: () -> Unit,
+    onMessageSent: (String) -> Unit = { viewModel.sendMessage(it) },
     modifier: Modifier = Modifier
 ) {
-    val inputTextState = remember { mutableStateOf("") }
-
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp)
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
             text = "PocketQwen",
             style = MaterialTheme.typography.displayMedium,
             color = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "What can I help you with?",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
-        Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "PocketQwen is designed for private, on-device AI conversations. Your data stays on your device.",
+            text = "Private, on-device AI conversations. Your data stays on your device.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(0.8f).align(Alignment.CenterHorizontally)
+            textAlign = TextAlign.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.CenterHorizontally)
         )
-        Spacer(modifier = Modifier.height(32.dp))
 
-        Button(
-            onClick = { viewModel.sendMessage("Explain a difficult concept") },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Explain a difficult concept")
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            onClick = { viewModel.sendMessage("Help me write some code") },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Help me write some code")
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            onClick = { viewModel.sendMessage("Summarize a long text") },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Summarize a long text")
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            onClick = { viewModel.sendMessage("Brainstorm ideas") },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Brainstorm ideas")
-        }
+        Spacer(modifier = Modifier.height(16.dp))
+        SuggestionCard(
+            title = "Explain a difficult concept",
+            description = "Break a topic down into clear, simple steps.",
+            onClick = { onMessageSent("Explain a difficult concept") }
+        )
+        SuggestionCard(
+            title = "Help me write some code",
+            description = "Work through a programming problem.",
+            onClick = { onMessageSent("Help me write some code") }
+        )
+        SuggestionCard(
+            title = "Summarize a long text",
+            description = "Find the key ideas and important details.",
+            onClick = { onMessageSent("Summarize a long text") }
+        )
+        SuggestionCard(
+            title = "Brainstorm ideas",
+            description = "Explore ideas and possible approaches.",
+            onClick = { onMessageSent("Brainstorm ideas") }
+        )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
+        Spacer(modifier = Modifier.height(12.dp))
+        MessageComposer(onSend = onMessageSent)
+        TextButton(
             onClick = onNavigateToSettings,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.align(Alignment.End)
         ) {
             Text(text = "Settings")
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        androidx.compose.material3.TextField(
-            value = inputTextState.value,
-            onValueChange = { inputTextState.value = it },
-            placeholder = {
-                Text(text = "Message PocketQwen...")
-            },
-            singleLine = false,
-            maxLines = 3,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            onClick = {
-                if (inputTextState.value.isNotBlank()) {
-                    viewModel.sendMessage(inputTextState.value)
-                    inputTextState.value = ""
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Send")
         }
     }
 }

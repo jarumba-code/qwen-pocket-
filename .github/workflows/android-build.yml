@@ -50,7 +50,7 @@ jobs:
 
       - name: Run unit tests
         if: always()
-        run: ./gradlew testDebugUnitTest --no-daemon || true
+        run: ./gradlew testDebugUnitTest --no-daemon
 
       - name: Upload debug APK artifact
         if: always()
