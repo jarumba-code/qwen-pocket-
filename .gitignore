@@ -27,6 +27,10 @@ secrets.json
 **/models/**
 **/assets/**/*.gguf
 
+# llama.cpp is fetched at a pinned revision for local/CI native builds.
+# Keep upstream source out of this app repository's history.
+third_party/llama.cpp/
+
 # IDE
 .idea/
 *.iml
