@@ -13,6 +13,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextAlign
 import androidx.compose.ui.unit.dp
@@ -25,9 +26,6 @@ fun EmptyChatScreen(
     modifier: Modifier = Modifier
 ) {
     val inputTextState = remember { mutableStateOf("") }
-    var inputText: String
-        get() = inputTextState.value
-        set(value) { inputTextState.value = value }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp)
@@ -91,8 +89,8 @@ fun EmptyChatScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         androidx.compose.material3.TextField(
-            value = inputText,
-            onValueChange = { inputText = it },
+            value = inputTextState.value,
+            onValueChange = { inputTextState.value = it },
             placeholder = {
                 Text(text = "Message PocketQwen...")
             },
@@ -103,9 +101,9 @@ fun EmptyChatScreen(
         Spacer(modifier = Modifier.height(8.dp))
         Button(
             onClick = {
-                if (inputText.isNotBlank()) {
-                    viewModel.sendMessage(inputText)
-                    inputText = ""
+                if (inputTextState.value.isNotBlank()) {
+                    viewModel.sendMessage(inputTextState.value)
+                    inputTextState.value = ""
                 }
             },
             modifier = Modifier.fillMaxWidth()

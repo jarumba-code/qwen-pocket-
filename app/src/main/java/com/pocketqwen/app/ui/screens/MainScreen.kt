@@ -17,24 +17,18 @@ fun MainScreen(
     modifier: Modifier = Modifier
 ) {
     val showChatState = remember { mutableStateOf(true) }
-    var showChat: Boolean = showChatState.value
-        get() = showChatState.value
-        set(value) { showChatState.value = value }
     val showSettingsState = remember { mutableStateOf(false) }
-    var showSettings: Boolean = showSettingsState.value
-        get() = showSettingsState.value
-        set(value) { showSettingsState.value = value }
 
-    if (showSettings) {
+    if (showSettingsState.value) {
         SettingsScreen(
             viewModel = settingsViewModel,
-            onNavigateBack = { showSettings = false },
+            onNavigateBack = { showSettingsState.value = false },
             modifier = modifier
         )
     } else {
         EmptyChatScreen(
             viewModel = chatViewModel,
-            onNavigateToSettings = { showSettings = true },
+            onNavigateToSettings = { showSettingsState.value = true },
             modifier = modifier
         )
     }
