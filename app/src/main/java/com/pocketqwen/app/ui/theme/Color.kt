@@ -1,0 +1,73 @@
+package com.pocketqwen.app.ui.theme
+
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
+
+val PocketQwenLightColorScheme = lightColorScheme(
+    surface = Color(0xFFF7FAF7),
+    primary = Color(0xFF16803D),
+    onPrimary = Color(0xFFFFFFFF),
+    secondary = Color(0xFF68736B),
+    onSecondary = Color(0xFFFFFFFF),
+    tertiary = Color(0xFF22C55E),
+    onTertiary = Color(0xFF000000),
+    error = Color(0xFFBA1A1A),
+    onError = Color(0xFFFFFFFF),
+    inversePrimary = Color(0xFF4ADE80),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF0F5F0),
+    surfaceContainer = Color(0xFFEAEFF0),
+    surfaceContainerHigh = Color(0xFFE4E9E9),
+    surfaceContainerHighest = Color(0xFFDFE4E4),
+    inverseSurface = Color(0xFF172019),
+    inverseOnSurface = Color(0xFFF0F5F0),
+    outline = Color(0xFF7C8C80),
+    outlineVariant = Color(0xFFC7D2C8),
+    scrim = Color(0xFF000000),
+    surfaceTint = Color(0xFF16803D),
+    primaryContainer = Color(0xFFD4EBD6),
+    onPrimaryContainer = Color(0xFF004A21),
+    secondaryContainer = Color(0xFFE9EFE9),
+    onSecondaryContainer = Color(0xFF4F5A52),
+    tertiaryContainer = Color(0xFFD4FBD9),
+    onTertiaryContainer = Color(0xFF004A21),
+    errorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = Color(0xFF410002),
+    surfaceVariant = Color(0xFFE7EEC9),
+    onSurfaceVariant = Color(0xFF4C574D)
+)
+
+val PocketQwenDarkColorScheme = darkColorScheme(
+    surface = Color(0xFF151C17),
+    primary = Color(0xFF4ADE80),
+    onPrimary = Color(0xFF000000),
+    secondary = Color(0xFFA0ADA2),
+    onSecondary = Color(0xFF1C2622),
+    tertiary = Color(0xFF22C55E),
+    onTertiary = Color(0xFF000000),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+    inversePrimary = Color(0xFF16803D),
+    surfaceContainerLowest = Color(0xFF080C0A),
+    surfaceContainerLow = Color(0xFF16201B),
+    surfaceContainer = Color(0xFF202A25),
+    surfaceContainerHigh = Color(0xFF28342F),
+    surfaceContainerHighest = Color(0xFF333F3A),
+    inverseSurface = Color(0xFFF0F5F0),
+    inverseOnSurface = Color(0xFF0D120F),
+    outline = Color(0xFF8A988F),
+    outlineVariant = Color(0xFF4C574D),
+    scrim = Color(0xFF000000),
+    surfaceTint = Color(0xFF4ADE80),
+    primaryContainer = Color(0xFF006933),
+    onPrimaryContainer = Color(0xFFD4FBD9),
+    secondaryContainer = Color(0xFF2E3934),
+    onSecondaryContainer = Color(0xFFCED4CE),
+    tertiaryContainer = Color(0xFF006933),
+    onTertiaryContainer = Color(0xFFD4FBD9),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
+    surfaceVariant = Color(0xFF2E3934),
+    onSurfaceVariant = Color(0xFFCED4CE)
+)
