@@ -1,19 +1,17 @@
 package com.pocketqwen.app.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawer
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.icons.filled.Add
 import androidx.compose.material3.icons.filled.Chat
-import androidx.compose.material3.icons.filled.Settings
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -64,12 +62,6 @@ fun NavigationDrawer(
 
                     ListItem(
                         headlineContent = { Text(text = "New chat") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Add,
-                                contentDescription = null
-                            )
-                        },
                         onClick = {
                             onNewChat()
                             drawerState.close()
@@ -99,12 +91,6 @@ fun NavigationDrawer(
 
                     ListItem(
                         headlineContent = { Text(text = "Settings") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Settings,
-                                contentDescription = null
-                            )
-                        },
                         onClick = {
                             onNavigateToSettings()
                             drawerState.close()

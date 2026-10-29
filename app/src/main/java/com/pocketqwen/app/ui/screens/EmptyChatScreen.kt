@@ -40,23 +40,7 @@ fun EmptyChatScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "PocketQwen") },
-                startIcon = {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Menu,
-                            contentDescription = "Open navigation drawer"
-                        )
-                    }
-                },
-                endIcon = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            imageVector = Settings,
-                            contentDescription = "Settings"
-                        )
-                    }
-                }
+                title = { Text(text = "PocketQwen") }
             )
         },
         modifier = modifier.fillMaxSize()
@@ -69,7 +53,6 @@ fun EmptyChatScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(0f)
                     .weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -94,7 +77,7 @@ fun EmptyChatScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
-                        .fillMaxWidth(0.8f)
+                        .fillMaxWidth()
                         .align(Alignment.CenterHorizontally)
                 )
                 Spacer(modifier = Modifier.height(32.dp))

@@ -5,19 +5,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.icons.filled.Menu
-import androidx.compose.material3.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pocketqwen.app.model.ChatMessage
+import com.pocketqwen.app.model.MessageStatus
 import com.pocketqwen.app.ui.components.MessageBubble
 import com.pocketqwen.app.ui.components.MessageComposer
 import com.pocketqwen.app.viewmodel.ChatViewModel
@@ -34,25 +31,7 @@ fun ActiveChatScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = "PocketQwen") },
-                startIcon = {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Menu,
-                            contentDescription = "Open navigation drawer"
-                        )
-                    }
-                },
-                endIcon = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            imageVector = Settings,
-                            contentDescription = "Settings"
-                        )
-                    }
-                }
-            )
+            TopAppBar(title = { Text(text = "PocketQwen") })
         },
         modifier = modifier.fillMaxSize()
     ) { paddingValues ->
@@ -72,12 +51,12 @@ fun ActiveChatScreen(
                         id = "loading",
                         text = "Thinking...",
                         isUser = false,
-                        status = ChatMessage.MessageStatus.SENDING
+                        status = MessageStatus.SENDING
                     )
                 )
             }
             if (error != null) {
-                androidx.compose.material3.Text(
+                Text(
                     text = "Error: $error",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(horizontal = 16.dp)
