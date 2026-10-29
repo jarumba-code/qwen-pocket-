@@ -2,13 +2,17 @@ package com.pocketqwen.app.ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawer
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.icons.filled.Chat
 import androidx.compose.material3.icons.filled.Settings
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -23,6 +27,16 @@ fun NavigationDrawer(
     onNavigateToSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    IconButton(
+        onClick = { drawerState.open() },
+        modifier = modifier
+    ) {
+        Icon(
+            imageVector = androidx.compose.material3.icons.filled.Menu,
+            contentDescription = "Open navigation drawer"
+        )
+    }
+
     ModalDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -41,7 +55,7 @@ fun NavigationDrawer(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
-                            imageVector = androidx.compose.material3.icons.filled.Chat,
+                            imageVector = Chat,
                             contentDescription = "PocketQwen logo",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(48.dp)
@@ -56,8 +70,14 @@ fun NavigationDrawer(
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    androidx.compose.material3.ListItem(
+                    ListItem(
                         headlineContent = { Text(text = "New chat") },
+                        leading = {
+                            Icon(
+                                imageVector = androidx.compose.material3.icons.filled.Add,
+                                contentDescription = null
+                            )
+                        },
                         modifier = Modifier.fillMaxWidth().clickable {
                             onNewChat()
                             drawerState.close()
@@ -80,8 +100,14 @@ fun NavigationDrawer(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    androidx.compose.material3.ListItem(
+                    ListItem(
                         headlineContent = { Text(text = "Settings") },
+                        leading = {
+                            Icon(
+                                imageVector = Settings,
+                                contentDescription = null
+                            )
+                        },
                         modifier = Modifier.fillMaxWidth().clickable {
                             onNavigateToSettings()
                             drawerState.close()

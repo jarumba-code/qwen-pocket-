@@ -63,7 +63,7 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
                             id = UUID.randomUUID().toString(),
                             text = response,
                             isUser = false,
-                            status = ChatMessage.MessageStatus.SENT
+                            status = MessageStatus.SENT
                         )
                         _messages.value = _messages.value + assistantMessage
                         _isLoading.value = false

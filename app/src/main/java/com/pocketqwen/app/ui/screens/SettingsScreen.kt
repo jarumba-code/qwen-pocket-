@@ -25,8 +25,8 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val themeMode by viewModel.themeMode.collectAsState()
-    val modelStatus by viewModel.modelStatus.collectAsState()
+    val themeMode = viewModel.themeMode.collectAsState().value
+    val modelStatus = viewModel.modelStatus.collectAsState().value
 
     Scaffold(
         topBar = {
