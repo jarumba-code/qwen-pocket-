@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextAlign
 import androidx.compose.ui.unit.dp
@@ -48,13 +50,33 @@ fun EmptyChatScreen(
         )
         Spacer(modifier = Modifier.height(32.dp))
 
-        suggestionButton("Explain a difficult concept", "Get clear explanations of complex topics", viewModel)
+        Button(
+            onClick = { viewModel.sendMessage("Explain a difficult concept") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Explain a difficult concept")
+        }
         Spacer(modifier = Modifier.height(8.dp))
-        suggestionButton("Help me write some code", "Write, review, and debug code snippets", viewModel)
+        Button(
+            onClick = { viewModel.sendMessage("Help me write some code") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Help me write some code")
+        }
         Spacer(modifier = Modifier.height(8.dp))
-        suggestionButton("Summarize a long text", "Get concise summaries of lengthy content", viewModel)
+        Button(
+            onClick = { viewModel.sendMessage("Summarize a long text") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Summarize a long text")
+        }
         Spacer(modifier = Modifier.height(8.dp))
-        suggestionButton("Brainstorm ideas", "Generate creative ideas together", viewModel)
+        Button(
+            onClick = { viewModel.sendMessage("Brainstorm ideas") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Brainstorm ideas")
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -88,22 +110,6 @@ fun EmptyChatScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = "Send")
-        }
-    }
-}
-
-@Composable
-private fun suggestionButton(title: String, description: String, viewModel: ChatViewModel) {
-    Button(
-        onClick = { viewModel.sendMessage(title) },
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = androidx.compose.foundation.layout.padding(horizontal = 12.dp, vertical = 10.dp)
-        ) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
