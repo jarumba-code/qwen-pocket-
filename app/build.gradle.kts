@@ -14,6 +14,14 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++17 -fexceptions -fPIE -fPIC"
+                arguments "-DANDROID_STL=c++_shared"
+            }
+        }
+        ndkVersion = "25.1.8937393"
     }
 
     buildTypes {
@@ -48,6 +56,14 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    externalNativeBuild {
+        cmake {
+            path = "CMakeLists.txt"
+        }
+    }
+
+    ndkVersion = "25.1.8937393"
 }
 
 dependencies {
@@ -65,11 +81,6 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.8")
 
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     androidTestImplementation("androidx.test.ext:junit:1.2.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-}
-
-android {
-    namespace = "com.pocketqwen.app"
 }

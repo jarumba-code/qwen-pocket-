@@ -3,23 +3,21 @@ package com.pocketqwen.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pocketqwen.app.repository.NativeAiRepository
 import com.pocketqwen.app.repository.AiRepository
-import com.pocketqwen.app.repository.MockAiRepository
-import com.pocketqwen.app.ui.screens.MainScreen
 import com.pocketqwen.app.ui.theme.PocketQwenTheme
+import com.pocketqwen.app.ui.screens.MainScreen
 import com.pocketqwen.app.viewmodel.ChatViewModel
 import com.pocketqwen.app.viewmodel.SettingsViewModel
 
-class ChatViewModelFactory(
-    private val repository: AiRepository
-) : androidx.lifecycle.ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
+class ChatViewModelFactory(private val repository: AiRepository) : androidx.lifecycle.ViewModelProvider.Factory {
     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ChatViewModel::class.java)) {
             return ChatViewModel(repository) as T
@@ -32,7 +30,6 @@ class SettingsViewModelFactory(
     private val context: android.content.Context,
     private val repository: AiRepository
 ) : androidx.lifecycle.ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
             return SettingsViewModel(context, repository) as T
@@ -50,15 +47,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val repository = remember { MockAiRepository() }
-                    val chatViewModel: ChatViewModel = viewModel(
-                        factory = ChatViewModelFactory(repository)
-                    )
-                    val settingsViewModel: SettingsViewModel = viewModel(
-                        factory = SettingsViewModelFactory(
-                            context = applicationContext,
-                            repository = repository
-                        )
+                    val repository: AiRepository = NativeAiRepository(applicationContext)
+                    val chatViewModel = viewModel(factory = ChatViewModelFactory(repository))
+                    val settingsViewModel = viewModel(
+                        factory = SettingsViewModelFactory(context = this@MainActivity, repository = repository)
                     )
                     MainScreen(
                         chatViewModel = chatViewModel,
