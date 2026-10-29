@@ -2,7 +2,12 @@ name: Android Build
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - feature/native-llama-inference
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -10,12 +15,14 @@ permissions:
 
 jobs:
   build:
-    name: Build debug APK
-    runs-on: ubuntu-latest
+    name: Build PocketQwen and pinned llama.cpp (Android ARM64)
+    runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout repository
+      - name: Checkout PocketQwen
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -23,37 +30,129 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Android SDK
+      - name: Install CMake and Ninja
         run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          cd $HOME/android-sdk/cmdline-tools
-          curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o cmdline-tools.zip
-          unzip -q cmdline-tools.zip
-          mv cmdline-tools latest
-          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+          set -e
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build unzip
+          cmake --version
+          ninja --version
 
-      - name: Install Android NDK
+      - name: Set up Android SDK and NDK
+        shell: bash
         run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;25.1.8937393"
-          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.1.8937393" >> $GITHUB_ENV
-          echo "NDK_HOME=$ANDROID_HOME/ndk/25.1.8937393" >> $GITHUB_ENV
+          set -e
+          export ANDROID_HOME="$RUNNER_TEMP/android-sdk"
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          curl -fsSL "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" \
+            -o "$RUNNER_TEMP/android-commandline-tools.zip"
+          unzip -q "$RUNNER_TEMP/android-commandline-tools.zip" -d "$ANDROID_HOME/cmdline-tools"
+          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" \
+            "platforms;android-34" \
+            "build-tools;34.0.0" \
+            "platform-tools" \
+            "ndk;29.0.14206865"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/29.0.14206865" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/29.0.14206865" >> "$GITHUB_ENV"
 
-      - name: Install CMake
+      - name: Fetch pinned llama.cpp source (bounded retries)
+        shell: bash
         run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "cmake;3.22.1"
-          echo "ANDROID_CMAKE=$ANDROID_HOME/cmake/3.22.1/bin/cmake" >> $GITHUB_ENV
+          set -euo pipefail
+          LLAMA_CPP_COMMIT="$(tr -d '\r\n' < native/llama.cpp.commit)"
+          if [[ ! "$LLAMA_CPP_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::native/llama.cpp.commit must contain a full 40-character lowercase commit SHA."
+            exit 1
+          fi
 
-      - name: Fetch llama.cpp source
+          SOURCE_DIR="$RUNNER_TEMP/llama.cpp-src"
+          mkdir -p "$SOURCE_DIR"
+          git -C "$SOURCE_DIR" init
+          git -C "$SOURCE_DIR" remote add origin https://github.com/ggml-org/llama.cpp.git
+
+          FETCHED=0
+          for ATTEMPT in 1 2 3; do
+            echo "Fetching pinned llama.cpp revision (attempt $ATTEMPT of 3)"
+            if git -C "$SOURCE_DIR" -c http.version=HTTP/1.1 fetch --depth=1 origin "$LLAMA_CPP_COMMIT"; then
+              FETCHED=1
+              break
+            fi
+            if [ "$ATTEMPT" -lt 3 ]; then
+              sleep "$((ATTEMPT * 5))"
+            fi
+          done
+
+          if [ "$FETCHED" -ne 1 ]; then
+            echo "::error::Could not fetch llama.cpp revision $LLAMA_CPP_COMMIT after three attempts."
+            exit 1
+          fi
+
+          git -C "$SOURCE_DIR" checkout --detach FETCH_HEAD
+          ACTUAL_SHA="$(git -C "$SOURCE_DIR" rev-parse HEAD)"
+          if [ "$ACTUAL_SHA" != "$LLAMA_CPP_COMMIT" ]; then
+            echo "::error::llama.cpp revision mismatch: expected $LLAMA_CPP_COMMIT, got $ACTUAL_SHA."
+            exit 1
+          fi
+
+          echo "Verified llama.cpp revision: $ACTUAL_SHA"
+          git -C "$SOURCE_DIR" log -1 --format='%H %s'
+          echo "LLAMA_CPP_SOURCE_DIR=$SOURCE_DIR" >> "$GITHUB_ENV"
+          echo "LLAMA_CPP_COMMIT=$ACTUAL_SHA" >> "$GITHUB_ENV"
+
+      - name: Cross-compile llama.cpp CPU libraries for Android arm64-v8a
+        shell: bash
         run: |
-          mkdir -p $HOME/llama.cpp-src
-          cd $HOME/llama.cpp-src
-          git clone --depth 1 --branch master https://github.com/ggerganov/llama.cpp.git llama.cpp
-          cd llama.cpp
-          git checkout 6c05e69237044bf2d321f31af7ff42c546d597d3 2>/dev/null || true
-          ls -la
+          set -euo pipefail
+          BUILD_DIR="$RUNNER_TEMP/pocketqwen-native-build"
+
+          cmake -S . -B "$BUILD_DIR" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-24 \
+            -DLLAMA_CPP_SOURCE_DIR="$LLAMA_CPP_SOURCE_DIR" \
+            -DBUILD_SHARED_LIBS=ON \
+            -DGGML_NATIVE=OFF \
+            -DGGML_OPENMP=OFF \
+            -DGGML_LLAMAFILE=OFF \
+            -DLLAMA_OPENSSL=OFF
+          cmake --build "$BUILD_DIR" --config Release --parallel 2
+
+          echo "Native build outputs:"
+          find -L "$BUILD_DIR" -type f \( -name 'libllama.so*' -o -name 'libggml*.so*' \) -print
+
+      - name: Stage native shared libraries for APK packaging
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST="app/src/main/jniLibs/arm64-v8a"
+          mkdir -p "$DEST"
+
+          mapfile -d '' LIBRARIES < <(
+            find -L "$RUNNER_TEMP/pocketqwen-native-build" -type f \
+              \( -name 'libllama.so*' -o -name 'libggml*.so*' \) -print0 | sort -z
+          )
+          if [ "${#LIBRARIES[@]}" -eq 0 ]; then
+            echo "::error::The native build produced no llama.cpp/ggml shared libraries."
+            exit 1
+          fi
+
+          for LIBRARY in "${LIBRARIES[@]}"; do
+            cp -Lf "$LIBRARY" "$DEST/$(basename "$LIBRARY")"
+          done
+
+          if [ ! -s "$DEST/libllama.so" ]; then
+            echo "::error::libllama.so was not produced; refusing to package an incomplete native build."
+            ls -la "$DEST"
+            exit 1
+          fi
+          ls -lh "$DEST"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -67,22 +166,36 @@ jobs:
         run: ./gradlew assembleDebug --no-daemon
 
       - name: Run unit tests
-        if: always()
-        run: ./gradlew testDebugUnitTest --no-daemon || true
+        run: ./gradlew testDebugUnitTest --no-daemon
+
+      - name: Verify APK includes the Android native libraries
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          unzip -Z1 "$APK" > "$RUNNER_TEMP/apk-contents.txt"
+          grep -Fxq "lib/arm64-v8a/libllama.so" "$RUNNER_TEMP/apk-contents.txt"
+          if ! grep -Eq '^lib/arm64-v8a/libggml.*\.so$' "$RUNNER_TEMP/apk-contents.txt"; then
+            echo "::error::No ggml shared library was packaged into the APK."
+            exit 1
+          fi
+          echo "Verified APK native libraries:"
+          grep -E '^lib/arm64-v8a/lib(llama|ggml.*)\.so$' "$RUNNER_TEMP/apk-contents.txt"
 
       - name: Upload debug APK artifact
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: pocketqwen-debug-apk
+          name: pocketqwen-stage1-debug-apk
           path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: ignore
+          if-no-files-found: error
 
-      - name: Upload test report on failure
+      - name: Upload build reports on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: build-failure-reports
+          name: pocketqwen-build-failure-reports
           path: |
             app/build/reports/
             app/build/test-results/
