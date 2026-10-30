@@ -1,226 +1,139 @@
-/*
- * PocketQwen - Native inference bridge
- *
- * JNI bridge between Kotlin and llama.cpp C API.
- * All model loading and generation runs off the main thread via Kotlin coroutines.
- */
-
 #include <jni.h>
+#include <android/log.h>
 #include <string>
-#include <cstring>
 #include <vector>
 #include <mutex>
-
 #include "llama.h"
 
-static pthread_mutex_t g_llama_mutex = PTHREAD_MUTEX_INITIALIZER;
+#define LOG_TAG "PocketQwenNative"
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
-// Native context handle (opaque pointer to llama_context)
-static llama_context *g_ctx = nullptr;
+static std::mutex g_mutex;
 static llama_model *g_model = nullptr;
-static bool g_model_loaded = false;
+static llama_context *g_ctx = nullptr;
+static llama_sampler *g_sampler = nullptr;
+static bool g_initialized = false;
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-static void throw_java_exception(JNIEnv *env, const char *msg) {
-    jclass exc = env->FindClass("java/lang/RuntimeException");
-    if (exc != nullptr) {
-        env->ThrowNew(exc, msg);
-    }
+static void release_locked() {
+    if (g_sampler) { llama_sampler_free(g_sampler); g_sampler = nullptr; }
+    if (g_ctx) { llama_free(g_ctx); g_ctx = nullptr; }
+    if (g_model) { llama_model_free(g_model); g_model = nullptr; }
+    g_initialized = false;
 }
 
-// ---------------------------------------------------------------------------
-// JNI EXPORTED FUNCTIONS
-// ---------------------------------------------------------------------------
-
-extern "C" JNIEXPORT jboolean JNICALL
-Java_com_pocketqwen_app_repository_NativeLlamaRepository_nativeIsAvailable(
-        JNIEnv *env, jobject /* thiz */) {
-    pthread_mutex_lock(&g_llama_mutex);
-    bool available = g_model_loaded && g_model != nullptr && g_ctx != nullptr;
-    pthread_mutex_unlock(&g_llama_mutex);
-    return static_cast<jboolean>(available);
-}
-
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_pocketqwen_app_repository_NativeLlamaRepository_nativeGetModelStatus(
-        JNIEnv *env, jobject /* thiz */) {
-    pthread_mutex_lock(&g_llama_mutex);
-    const char *status;
-    if (g_model_loaded && g_model != nullptr && g_ctx != nullptr) {
-        status = "loaded";
-    } else if (g_model != nullptr || g_ctx != nullptr) {
-        status = "partial";
-    } else {
-        status = "not_installed";
-    }
-    pthread_mutex_unlock(&g_llama_mutex);
-    return env->NewStringUTF(status);
-}
-
-extern "C" JNIEXPORT jboolean JNICALL
-Java_com_pocketqwen_app_repository_NativeLlamaRepository_nativeLoadModel(
-        JNIEnv *env, jobject /* thiz */, jstring modelPath) {
-    if (modelPath == nullptr) {
-        throw_java_exception(env, "model path is null");
-        return JNI_FALSE;
-    }
-
-    const char *path_cstr = env->GetStringUTFChars(modelPath, nullptr);
-    if (path_cstr == nullptr) {
-        return JNI_FALSE;
-    }
-
-    pthread_mutex_lock(&g_llama_mutex);
-
-    // Release any existing model
-    if (g_ctx != nullptr) {
-        llama_free(g_ctx);
-        g_ctx = nullptr;
-    }
-    if (g_model != nullptr) {
-        llama_free_model(g_model);
-        g_model = nullptr;
-    }
-    g_model_loaded = false;
-
-    // Load model
-    llama_model_params model_params = llama_model_default_params();
-    g_model = llama_load_model_from_file(path_cstr, model_params);
-
-    if (g_model == nullptr) {
-        env->ReleaseStringUTFChars(modelPath, path_cstr);
-        pthread_mutex_unlock(&g_llama_mutex);
-        throw_java_exception(env, "failed to load model from file");
-        return JNI_FALSE;
-    }
-
-    // Create context
-    llama_context_params ctx_params = llama_context_default_params();
-    ctx_params.n_ctx = 1024;           // Conservative context size for budget phones
-    ctx_params.n_threads = 4;          // Conservative thread count
-    ctx_params.n_gpu_layers = 0;       // CPU only for maximum compatibility
-    ctx_params.seed = 42;
-    ctx_params.embedding = false;
-
-    g_ctx = llama_new_context_with_model(g_model, ctx_params);
-
-    if (g_ctx == nullptr) {
-        llama_free_model(g_model);
-        g_model = nullptr;
-        env->ReleaseStringUTFChars(modelPath, path_cstr);
-        pthread_mutex_unlock(&g_llama_mutex);
-        throw_java_exception(env, "failed to create llama context");
-        return JNI_FALSE;
-    }
-
-    g_model_loaded = true;
-    env->ReleaseStringUTFChars(modelPath, path_cstr);
-    pthread_mutex_unlock(&g_llama_mutex);
+static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path) {
+    if (!path) return JNI_FALSE;
+    const char *p = env->GetStringUTFChars(path, nullptr);
+    if (!p) return JNI_FALSE;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    release_locked();
+    llama_backend_init();
+    llama_model_params mp = llama_model_default_params();
+    mp.n_gpu_layers = 0;
+    g_model = llama_model_load_from_file(p, mp);
+    env->ReleaseStringUTFChars(path, p);
+    if (!g_model) { LOGE("Model load failed"); return JNI_FALSE; }
+    llama_context_params cp = llama_context_default_params();
+    cp.n_ctx = 1024;
+    cp.n_batch = 256;
+    cp.n_threads = 4;
+    cp.n_threads_batch = 4;
+    g_ctx = llama_init_from_model(g_model, cp);
+    if (!g_ctx) { release_locked(); LOGE("Context creation failed"); return JNI_FALSE; }
+    g_sampler = llama_sampler_init_greedy();
+    if (!g_sampler) { release_locked(); return JNI_FALSE; }
+    g_initialized = true;
     return JNI_TRUE;
 }
 
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_pocketqwen_app_repository_NativeLlamaRepository_nativeGenerate(
-        JNIEnv *env, jobject /* thiz */, jstring prompt) {
-    if (prompt == nullptr) {
-        throw_java_exception(env, "prompt is null");
-        return env->NewStringUTF("");
-    }
-
-    const char *prompt_cstr = env->GetStringUTFChars(prompt, nullptr);
-    if (prompt_cstr == nullptr) {
-        return env->NewStringUTF("");
-    }
-
-    pthread_mutex_lock(&g_llama_mutex);
-
-    if (!g_model_loaded || g_model == nullptr || g_ctx == nullptr) {
-        env->ReleaseStringUTFChars(prompt, path_cstr);
-        pthread_mutex_unlock(&g_llama_mutex);
-        throw_java_exception(env, "model not loaded");
-        return env->NewStringUTF("");
-    }
-
-    // Tokenize input
-    std::vector<llama_token> tokens(2048);
-    int n_tokens = llama_tokenize(g_model, prompt_cstr, tokens.data(), tokens.size(), true);
-    if (n_tokens < 0) {
-        env->ReleaseStringUTFChars(prompt, path_cstr);
-        pthread_mutex_unlock(&g_llama_mutex);
-        throw_java_exception(env, "tokenization failed");
-        return env->NewStringUTF("");
-    }
-
-    // Generate
-    int n_predict = 256;
-    llama_token new_token = 0;
-    std::string generated_text;
-
-    for (int i = 0; i < n_predict; ++i) {
-        llama_token new_token_id = llama_sample_token(g_ctx);
-        if (new_token_id == llama_token_eos(g_model)) {
-            break;
-        }
-
-        char buf[256];
-        int n = llama_token_to_text(g_model, new_token_id, buf, sizeof(buf));
-        if (n > 0) {
-            generated_text.append(buf, n);
-        }
-
-        llama_token new_token_arr[1] = {new_token_id};
-        llama_decode(g_ctx, &new_token_arr[0], 1, i + n_tokens);
-    }
-
-    pthread_mutex_unlock(&g_llama_mutex);
-    env->ReleaseStringUTFChars(prompt, path_cstr);
-
-    return env->NewStringUTF(generated_text.c_str());
+static jboolean nativeIsModelAvailable(JNIEnv *, jobject) {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    return g_initialized ? JNI_TRUE : JNI_FALSE;
 }
 
-extern "C" JNIEXPORT void JNICALL
-Java_com_pocketqwen_app_repository_NativeLlamaRepository_nativeRelease(
-        JNIEnv *env, jobject /* thiz */) {
-    pthread_mutex_lock(&g_llama_mutex);
-    if (g_ctx != nullptr) {
-        llama_free(g_ctx);
-        g_ctx = nullptr;
-    }
-    if (g_model != nullptr) {
-        llama_free_model(g_model);
-        g_model = nullptr;
-    }
-    g_model_loaded = false;
-    pthread_mutex_unlock(&g_llama_mutex);
+static jstring nativeGetModelStatus(JNIEnv *env, jobject) {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    return env->NewStringUTF(g_initialized ? "loaded" : "not_loaded");
 }
 
-// JNI method registration table
-static JNINativeMethod g_methods[] = {
-    {"nativeIsAvailable", "()Z", reinterpret_cast<void *>(nativeIsAvailable)},
-    {"nativeGetModelStatus", "()Ljava/lang/String;", reinterpret_cast<void *>(nativeGetModelStatus)},
-    {"nativeLoadModel", "(Ljava/lang/String;)Z", reinterpret_cast<void *>(nativeLoadModel)},
-    {"nativeGenerate", "(Ljava/lang/String;)Ljava/lang/String;", reinterpret_cast<void *>(nativeGenerate)},
-    {"nativeRelease", "()V", reinterpret_cast<void *>(nativeRelease)},
+static jstring nativeGenerateResponse(JNIEnv *env, jobject, jstring input) {
+    if (!input) return env->NewStringUTF("");
+    const char *raw = env->GetStringUTFChars(input, nullptr);
+    if (!raw) return env->NewStringUTF("");
+    std::string prompt = std::string("<|im_start|>system\nYou are PocketQwen, a helpful offline assistant.\n<|im_end|>\n<|im_start|>user\n") + raw + "\n<|im_end|>\n<|im_start|>assistant\n";
+    env->ReleaseStringUTFChars(input, raw);
+
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (!g_initialized || !g_model || !g_ctx || !g_sampler) {
+        return env->NewStringUTF("The local model is not loaded yet. Please try again.");
+    }
+    llama_memory_clear(llama_get_memory(g_ctx), true);
+    const llama_vocab *vocab = llama_model_get_vocab(g_model);
+    std::vector<llama_token> tokens(prompt.size() + 16);
+    int32_t count = llama_tokenize(vocab, prompt.c_str(), (int32_t)prompt.size(),
+                                   tokens.data(), (int32_t)tokens.size(), true, true);
+    if (count < 0) {
+        tokens.resize((size_t)(-count));
+        count = llama_tokenize(vocab, prompt.c_str(), (int32_t)prompt.size(),
+                               tokens.data(), (int32_t)tokens.size(), true, true);
+    }
+    if (count <= 0 || count > (int32_t)llama_n_ctx(g_ctx) - 2) {
+        return env->NewStringUTF("That message is too long for the current local context.");
+    }
+    tokens.resize((size_t)count);
+    llama_batch batch = llama_batch_init((int32_t)tokens.size() + 1, 0, 1);
+    for (int32_t i = 0; i < count; ++i) {
+        batch.token[i] = tokens[(size_t)i];
+        batch.pos[i] = i;
+        batch.n_seq_id[i] = 1;
+        batch.seq_id[i][0] = 0;
+        batch.logits[i] = (i == count - 1);
+    }
+    batch.n_tokens = count;
+    if (llama_decode(g_ctx, batch) != 0) {
+        llama_batch_free(batch);
+        return env->NewStringUTF("Local inference failed while processing the prompt.");
+    }
+
+    std::string output;
+    const llama_token eos = llama_vocab_eos(vocab);
+    for (int i = 0; i < 160; ++i) {
+        llama_token token = llama_sampler_sample(g_sampler, g_ctx, -1);
+        if (token == eos || token == llama_vocab_eot(vocab)) break;
+        char piece[512];
+        int32_t n = llama_token_to_piece(vocab, token, piece, sizeof(piece), 0, true);
+        if (n > 0) output.append(piece, (size_t)n);
+        batch.token[0] = token;
+        batch.pos[0] = count + i;
+        batch.n_seq_id[0] = 1;
+        batch.seq_id[0][0] = 0;
+        batch.logits[0] = true;
+        batch.n_tokens = 1;
+        if (llama_decode(g_ctx, batch) != 0) break;
+    }
+    llama_batch_free(batch);
+    if (output.empty()) output = "I couldn't generate a response. Please try again.";
+    return env->NewStringUTF(output.c_str());
+}
+
+static void nativeRelease(JNIEnv *, jobject) {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    release_locked();
+}
+
+static JNINativeMethod methods[] = {
+    {const_cast<char*>("nativeLoadModel"), const_cast<char*>("(Ljava/lang/String;)Z"), (void*)nativeLoadModel},
+    {const_cast<char*>("nativeGenerateResponse"), const_cast<char*>("(Ljava/lang/String;)Ljava/lang/String;"), (void*)nativeGenerateResponse},
+    {const_cast<char*>("nativeIsModelAvailable"), const_cast<char*>("()Z"), (void*)nativeIsModelAvailable},
+    {const_cast<char*>("nativeGetModelStatus"), const_cast<char*>("()Ljava/lang/String;"), (void*)nativeGetModelStatus},
+    {const_cast<char*>("nativeRelease"), const_cast<char*>("()V"), (void*)nativeRelease}
 };
 
-extern "C" JNIEXPORT jint JNICALL
-JNI_OnLoad(JavaVM *vm, void *reserved) {
-    JNIEnv *env;
-    if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
-        return JNI_ERR;
-    }
-
-    jclass cls = env->FindClass("com/pocketqwen/app/repository/NativeLlamaRepository");
-    if (cls == nullptr) {
-        return JNI_ERR;
-    }
-
-    if (env->RegisterNatives(cls, g_methods, sizeof(g_methods) / sizeof(g_methods[0])) < 0) {
-        return JNI_ERR;
-    }
-
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
+    JNIEnv *env = nullptr;
+    if (vm->GetEnv((void **)&env, JNI_VERSION_1_6) != JNI_OK) return JNI_ERR;
+    jclass cls = env->FindClass("com/pocketqwen/app/repository/NativeAiRepository");
+    if (!cls) return JNI_ERR;
+    if (env->RegisterNatives(cls, methods, sizeof(methods) / sizeof(methods[0])) != JNI_OK) return JNI_ERR;
     return JNI_VERSION_1_6;
 }
