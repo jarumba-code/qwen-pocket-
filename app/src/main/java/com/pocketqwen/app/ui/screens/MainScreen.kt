@@ -43,17 +43,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalContext
+import com.pocketqwen.app.model.Conversation
+import com.pocketqwen.app.storage.ConversationStore
 import androidx.compose.ui.unit.dp
 import com.pocketqwen.app.model.ChatMessage
 import com.pocketqwen.app.viewmodel.ChatViewModel
 import com.pocketqwen.app.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
-
-private data class SavedConversation(
-    val id: String,
-    val title: String,
-    val messages: List<ChatMessage>
-)
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -63,23 +60,31 @@ fun MainScreen(
     modifier: Modifier = Modifier
 ) {
     var showSettings by remember { mutableStateOf(false) }
-    var pendingDelete by remember { mutableStateOf<SavedConversation?>(null) }
+    var pendingDelete by remember { mutableStateOf<Conversation?>(null) }
     var activeConversationId by remember { mutableStateOf<String?>(null) }
-    val conversations = remember { mutableStateListOf<SavedConversation>() }
+    val context = LocalContext.current
+    val conversationStore = remember(context) { ConversationStore(context) }
+    val conversations = remember { mutableStateListOf<Conversation>().apply { addAll(conversationStore.loadAll()) } }
     val messages by chatViewModel.messages.collectAsState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
     // Keep the current conversation snapshot updated while the user chats.
     LaunchedEffect(messages, activeConversationId) {
-        val id = activeConversationId
-        if (id != null && messages.isNotEmpty()) {
+        if (messages.isNotEmpty()) {
+            val id = activeConversationId ?: java.util.UUID.randomUUID().toString().also {
+                activeConversationId = it
+            }
             val title = messages.firstOrNull { it.isUser }?.text
                 ?.replace("\n", " ")?.take(42) ?: "New conversation"
             val index = conversations.indexOfFirst { it.id == id }
-            val snapshot = SavedConversation(id, title, messages.toList())
+            val snapshot = Conversation(id, title, messages.toList(), System.currentTimeMillis())
             if (index >= 0) conversations[index] = snapshot else conversations.add(0, snapshot)
         }
+    }
+
+    LaunchedEffect(conversations.toList()) {
+        conversationStore.save(conversations.toList())
     }
 
     BackHandler(enabled = showSettings || drawerState.isOpen) {
@@ -109,7 +114,7 @@ fun MainScreen(
                             val id = activeConversationId ?: java.util.UUID.randomUUID().toString()
                             val title = messages.firstOrNull { it.isUser }?.text?.take(42) ?: "New conversation"
                             val index = conversations.indexOfFirst { it.id == id }
-                            val item = SavedConversation(id, title, messages.toList())
+                            val item = Conversation(id, title, messages.toList())
                             if (index >= 0) conversations[index] = item else conversations.add(0, item)
                         }
                         activeConversationId = null
@@ -236,7 +241,7 @@ fun MainScreen(
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
             title = { Text("Delete conversation?") },
-            text = { Text("This removes “${conversation.title}” from this session's chat list.") },
+            text = { Text("This permanently deletes “${conversation.title}” from this device.") },
             confirmButton = {
                 TextButton(onClick = {
                     conversations.removeAll { it.id == conversation.id }
