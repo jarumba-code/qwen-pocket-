@@ -1,29 +1,36 @@
 package com.pocketqwen.app.viewmodel
 
+import com.pocketqwen.app.model.ChatMessage
+import com.pocketqwen.app.model.MessageStatus
 import com.pocketqwen.app.repository.AiRepository
-import com.pocketqwen.app.repository.MockAiRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModelTest {
-    private val testDispatcher = UnconfinedTestDispatcher()
+    private val dispatcher = StandardTestDispatcher()
+    private lateinit var repository: FakeAiRepository
+    private lateinit var viewModel: ChatViewModel
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
+        Dispatchers.setMain(dispatcher)
+        repository = FakeAiRepository()
+        viewModel = ChatViewModel(repository)
     }
 
     @After
@@ -31,72 +38,90 @@ class ChatViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private class TestRepository : AiRepository {
-        val messages = mutableListOf<String>()
-
-        override fun generateResponse(message: String): Flow<String> {
-            messages.add(message)
-            return flow {
-                emit("Placeholder response for: $message")
-                emit("[End of placeholder response]")
-            }
-        }
-
-        override fun isModelAvailable(): Boolean = false
-        override fun getModelStatus(): String = "Not installed"
-    }
-
     @Test
-    fun `initial message is present`() {
-        val vm = ChatViewModel(TestRepository())
-        val messages = vm.messages.value
-        assertNotNull(messages)
-        assertTrue(messages.isEmpty())
-    }
+    fun sendMessage_streamsChunksIntoSingleAssistantMessage() = runTest(dispatcher) {
+        repository.response = flowOf("Hello", ", ", "world!")
 
-    @Test
-    fun `sending empty message does not add message`() {
-        val repo = TestRepository()
-        val vm = ChatViewModel(repo)
-        vm.sendMessage("")
-        vm.sendMessage("   ")
-        assertTrue(vm.messages.value.isEmpty())
-        assertEquals(0, repo.messages.size)
-    }
+        viewModel.sendMessage("  Say hello  ")
+        advanceUntilIdle()
 
-    @Test
-    fun `sending message adds user and assistant messages`() {
-        val vm = ChatViewModel(TestRepository())
-        vm.sendMessage("Hello")
-        val messages = vm.messages.value
+        val messages = viewModel.messages.value
         assertEquals(2, messages.size)
         assertTrue(messages[0].isUser)
-        assertEquals("Hello", messages[0].text)
+        assertEquals("Say hello", messages[0].text)
         assertFalse(messages[1].isUser)
-        assertEquals("Placeholder response for: Hello", messages[1].text)
+        assertEquals("Hello, world!", messages[1].text)
+        assertEquals(MessageStatus.SENT, messages[1].status)
+        assertFalse(viewModel.isLoading.value)
+        assertFalse(viewModel.thinking.value)
     }
 
     @Test
-    fun `repository receives message`() {
-        val repo = TestRepository()
-        val vm = ChatViewModel(repo)
-        vm.sendMessage("Test message")
-        assertEquals(listOf("Test message"), repo.messages)
+    fun blankMessageIsIgnored() = runTest(dispatcher) {
+        viewModel.sendMessage("   ")
+        advanceUntilIdle()
+
+        assertTrue(viewModel.messages.value.isEmpty())
+        assertEquals(0, repository.generateCalls)
     }
 
     @Test
-    fun `model not available`() {
-        val repo = MockAiRepository()
-        assertFalse(repo.isModelAvailable())
-        assertTrue(repo.getModelStatus().contains("simulated", ignoreCase = true))
+    fun generationFailureIsShownAsErrorMessage() = runTest(dispatcher) {
+        repository.response = flow { throw IllegalStateException("Model unavailable") }
+
+        viewModel.sendMessage("Test")
+        advanceUntilIdle()
+
+        val assistant = viewModel.messages.value.last()
+        assertFalse(assistant.isUser)
+        assertEquals(MessageStatus.ERROR, assistant.status)
+        assertTrue(assistant.text.contains("Model unavailable"))
+        assertFalse(viewModel.isLoading.value)
     }
 
     @Test
-    fun `clearMessages removes all messages`() {
-        val vm = ChatViewModel(TestRepository())
-        vm.sendMessage("Test")
-        assertEquals(2, vm.messages.value.size)
-        vm.clearMessages()
-        assertTrue(vm.messages.value.isEmpty())
+    fun switchingConversationRestoresItsMessages() = runTest(dispatcher) {
+        val saved = listOf(
+            ChatMessage(id = "saved-user", text = "Previously asked", isUser = true),
+            ChatMessage(id = "saved-assistant", text = "Previously answered", isUser = false)
+        )
+
+        viewModel.activateConversation("conversation-1", saved)
+
+        assertEquals(saved, viewModel.messages.value)
+    }
+
+    @Test
+    fun separateConversationsKeepTheirOwnMessages() = runTest(dispatcher) {
+        repository.response = flowOf("Answer one")
+        viewModel.activateConversation("one")
+        viewModel.sendMessage("Question one")
+        advanceUntilIdle()
+        val firstConversation = viewModel.messages.value
+
+        viewModel.activateConversation("two")
+        assertTrue(viewModel.messages.value.isEmpty())
+        repository.response = flowOf("Answer two")
+        viewModel.sendMessage("Question two")
+        advanceUntilIdle()
+
+        assertEquals("Answer one", firstConversation.last().text)
+        assertEquals("Answer two", viewModel.messages.value.last().text)
+        viewModel.activateConversation("one")
+        assertEquals(firstConversation, viewModel.messages.value)
+    }
+
+    private class FakeAiRepository : AiRepository {
+        var response: Flow<String> = flowOf("Test response")
+        var generateCalls: Int = 0
+            private set
+
+        override fun generateResponse(message: String): Flow<String> {
+            generateCalls++
+            return response
+        }
+
+        override fun isModelAvailable(): Boolean = true
+        override fun getModelStatus(): String = "Test model ready"
     }
 }
