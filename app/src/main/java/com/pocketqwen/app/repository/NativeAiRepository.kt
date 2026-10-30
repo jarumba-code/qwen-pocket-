@@ -5,49 +5,70 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
+import java.io.File
 
 /**
- * Real llama.cpp-backed AI repository.
- *
- * All native inference runs off the main thread via a JNI bridge.
- * Model loading and generation are done synchronously inside the native
- * layer; this wrapper simply marshals calls onto a background dispatcher.
- *
- * Until a model file is loaded, every call returns an error indicating the
- * model is not installed.
+ * llama.cpp-backed local repository. The model is bundled as assets/qwen.gguf
+ * by the Android build workflow and copied to private app storage on first use.
  */
-class LlamaRepository(private val context: android.content.Context) : AiRepository {
+class NativeAiRepository(private val context: Context) : AiRepository {
+    @Volatile private var loaded = false
+    @Volatile private var status = "Preparing bundled Qwen model"
 
-    private var isModelLoaded = false
+    init {
+        System.loadLibrary("pocketqwen_native")
+    }
 
-    override fun isModelAvailable(): Boolean = isModelLoaded
+    override fun isModelAvailable(): Boolean = loaded
 
-    override fun getModelStatus(): String {
-        return if (isModelLoaded) "Local model loaded" else "Local model not installed"
+    override fun getModelStatus(): String = status
+
+    suspend fun initialize(): Boolean = withContext(Dispatchers.IO) {
+        if (loaded) return@withContext true
+        try {
+            val modelFile = File(context.filesDir, MODEL_FILENAME)
+            if (!modelFile.exists() || modelFile.length() < MIN_MODEL_BYTES) {
+                context.assets.open(MODEL_FILENAME).use { input ->
+                    modelFile.outputStream().use { output -> input.copyTo(output) }
+                }
+            }
+            status = "Loading Qwen2.5-0.5B locally…"
+            loaded = nativeLoadModel(modelFile.absolutePath)
+            status = if (loaded) "Qwen2.5-0.5B ready · on-device" else "Model failed to load"
+            loaded
+        } catch (e: Exception) {
+            status = "Model unavailable: ${e.message ?: "asset copy failed"}"
+            loaded = false
+            false
+        }
     }
 
     override fun generateResponse(message: String): Flow<String> = flow {
         emit("[Thinking...]")
-
         val result = withContext(Dispatchers.IO) {
+            if (!loaded && !initialize()) {
+                throw IllegalStateException(status)
+            }
             nativeGenerateResponse(message)
         }
-
         emit(result)
         emit("[End of response]")
     }
 
-    /**
-     * Attempt to load a model from the given path. Returns true on success.
-     */
-    fun loadModel(modelPath: String): Boolean {
-        val result = nativeLoadModel(modelPath)
-        isModelLoaded = result
-        return result
+    fun release() {
+        nativeRelease()
+        loaded = false
+        status = "Model unloaded"
     }
 
     private external fun nativeLoadModel(modelPath: String): Boolean
     private external fun nativeGenerateResponse(message: String): String
     private external fun nativeIsModelAvailable(): Boolean
     private external fun nativeGetModelStatus(): String
+    private external fun nativeRelease()
+
+    companion object {
+        private const val MODEL_FILENAME = "qwen.gguf"
+        private const val MIN_MODEL_BYTES = 100_000_000L
+    }
 }
