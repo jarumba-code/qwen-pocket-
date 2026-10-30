@@ -59,6 +59,12 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
         }
     }
 
+    fun loadMessages(savedMessages: List<ChatMessage>) {
+        _messages.value = savedMessages.toList()
+        _error.value = null
+        _isLoading.value = false
+    }
+
     fun clearMessages() {
         _messages.value = emptyList()
         _error.value = null
