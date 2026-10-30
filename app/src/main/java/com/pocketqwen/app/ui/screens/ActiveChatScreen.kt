@@ -1,21 +1,22 @@
 package com.pocketqwen.app.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.pocketqwen.app.model.ChatMessage
-import com.pocketqwen.app.model.MessageStatus
 import com.pocketqwen.app.ui.components.MessageBubble
 import com.pocketqwen.app.ui.components.MessageComposer
 import com.pocketqwen.app.viewmodel.ChatViewModel
@@ -23,61 +24,47 @@ import com.pocketqwen.app.viewmodel.ChatViewModel
 @Composable
 fun ActiveChatScreen(
     viewModel: ChatViewModel,
-    onNavigateToSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val messagesState = viewModel.messages.collectAsState()
-    val messages = messagesState.value
-    val isLoadingState = viewModel.isLoading.collectAsState()
-    val isLoading = isLoadingState.value
-    val errorState = viewModel.error.collectAsState()
-    val error = errorState.value
+    val messages by viewModel.messages.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+    val listState = rememberLazyListState()
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    LaunchedEffect(messages.size, isLoading) {
+        val count = messages.size + if (isLoading) 1 else 0
+        if (count > 0) listState.animateScrollToItem(count - 1)
+    }
+
+    Column(modifier = modifier.fillMaxSize().imePadding()) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().weight(1f),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+            state = listState,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            items(messages) { message ->
-                MessageBubble(message = message)
-            }
+            items(messages, key = { it.id }) { message -> MessageBubble(message = message) }
             if (isLoading) {
-                MessageBubble(
-                    message = ChatMessage(
-                        id = "loading",
-                        text = "Thinking...",
-                        isUser = false,
-                        status = MessageStatus.SENDING
-                    )
-                )
+                item { Text("Preparing preview response…", style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) }
             }
             if (error != null) {
-                Text(
-                    text = "Error: $error",
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = androidx.compose.foundation.layout.padding(horizontal = 16.dp)
-                )
+                item {
+                    Text(
+                        text = "Error: $error",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
             }
         }
-
-        androidx.compose.material3.TextField(
-            value = "",
-            onValueChange = {},
-            placeholder = {
-                Text(text = "Message PocketQwen...")
-            },
-            singleLine = false,
-            maxLines = 5,
-            modifier = Modifier.fillMaxWidth()
+        Text(
+            text = "Preview mode · no local model is loaded",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 2.dp)
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            onClick = {},
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Send")
-        }
+        MessageComposer(onSend = viewModel::sendMessage)
     }
 }
