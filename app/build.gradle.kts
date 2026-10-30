@@ -4,6 +4,7 @@ plugins {
 }
 
 android {
+    namespace = "com.pocketqwen.app"
     compileSdk = 34
 
     defaultConfig {
@@ -12,16 +13,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        externalNativeBuild {
-            cmake {
-                cppFlags "-std=c++17 -fexceptions -fPIE -fPIC"
-                arguments "-DANDROID_STL=c++_shared"
-            }
-        }
-        ndkVersion = "25.1.8937393"
     }
 
     buildTypes {
@@ -56,14 +48,6 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-
-    externalNativeBuild {
-        cmake {
-            path = "CMakeLists.txt"
-        }
-    }
-
-    ndkVersion = "25.1.8937393"
 }
 
 dependencies {
