@@ -248,7 +248,7 @@ fun MainScreen(
                 TextButton(onClick = {
                     conversations.removeAll { it.id == conversation.id }
                     if (activeConversationId == conversation.id) {
-                        activeConversationId = null
+                        activeConversationId = java.util.UUID.randomUUID().toString()
                         chatViewModel.clearMessages()
                     }
                     pendingDelete = null
