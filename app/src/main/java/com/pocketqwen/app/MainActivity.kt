@@ -9,9 +9,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.view.WindowCompat
 import com.pocketqwen.app.repository.AiRepository
 import com.pocketqwen.app.repository.MockAiRepository
 import com.pocketqwen.app.settings.ThemeMode
@@ -46,6 +49,7 @@ class SettingsViewModelFactory(
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, true)
         val repository: AiRepository = MockAiRepository()
         setContent {
             val settingsViewModel: SettingsViewModel = viewModel(
@@ -58,9 +62,18 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
             }
             PocketQwenTheme(darkTheme = darkTheme) {
+                val scheme = MaterialTheme.colorScheme
+                SideEffect {
+                    window.statusBarColor = scheme.surface.toArgb()
+                    window.navigationBarColor = scheme.surface.toArgb()
+                    WindowCompat.getInsetsController(window, window.decorView).apply {
+                        isAppearanceLightStatusBars = !darkTheme
+                        isAppearanceLightNavigationBars = !darkTheme
+                    }
+                }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = scheme.background
                 ) {
                     val chatViewModel: ChatViewModel = viewModel(
                         factory = ChatViewModelFactory(repository)
