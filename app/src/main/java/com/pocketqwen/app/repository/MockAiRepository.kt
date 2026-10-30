@@ -5,28 +5,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 /**
- * Mock implementation used to develop and test the UI.
- * This does not perform real AI inference.
+ * UI-preview repository. Responses are simulated and never use a language model.
  */
 class MockAiRepository : AiRepository {
+    override fun isModelAvailable(): Boolean = false
 
-    private val placeholderResponses = listOf(
-        "This is a placeholder response. Real AI inference is not yet available.",
-        "I'm a mock assistant. llama.cpp integration is pending.",
-        "PocketQwen is ready for on-device AI once the model is integrated.",
-        "Placeholder: your message was received, but no model is loaded."
-    )
+    override fun getModelStatus(): String = "No model loaded — chat responses are simulated"
 
     override fun generateResponse(message: String): Flow<String> = flow {
         emit("[Thinking...]")
-        delay(1500)
-        val index = Math.floorMod(message.hashCode(), placeholderResponses.size)
-        emit(placeholderResponses[index])
-        delay(800)
+        delay(350)
+        emit("[Mock response] PocketQwen's chat interface is working, but local AI inference is not connected yet. Your message was: \"$message\"")
         emit("[End of placeholder response]")
     }
-
-    override fun isModelAvailable(): Boolean = false
-
-    override fun getModelStatus(): String = "Not installed"
 }
