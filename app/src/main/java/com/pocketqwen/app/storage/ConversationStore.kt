@@ -122,7 +122,7 @@ class ConversationStore(context: Context) {
         return messages
     }
 
-    private class ConversationDatabase(context: Context) :
+    private class ConversationDatabase(private val context: Context) :
         SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
         override fun onConfigure(db: SQLiteDatabase) {
             super.onConfigure(db)
