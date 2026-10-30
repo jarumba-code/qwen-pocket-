@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,23 +27,17 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MessageComposer(
     onSend: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isGenerating: Boolean = false,
+    onStop: () -> Unit = {}
 ) {
     var text by remember { mutableStateOf("") }
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.Bottom
-    ) {
+    Row(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.Bottom) {
         TextField(
-            value = text,
-            onValueChange = { text = it },
-            placeholder = { Text(text = "Message PocketQwen...") },
-            singleLine = false,
-            maxLines = 5,
-            shape = RoundedCornerShape(24.dp),
+            value = text, onValueChange = { text = it },
+            placeholder = { Text("Message PocketQwen…") },
+            singleLine = false, maxLines = 5, shape = RoundedCornerShape(24.dp),
             modifier = Modifier.weight(1f),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -50,22 +45,16 @@ fun MessageComposer(
                 disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
             )
         )
-        Spacer(modifier = Modifier.width(8.dp))
-        IconButton(
-            enabled = text.isNotBlank(),
-            onClick = {
+        Spacer(Modifier.width(8.dp))
+        IconButton(enabled = isGenerating || text.isNotBlank(), onClick = {
+            if (isGenerating) onStop() else {
                 val message = text.trim()
-                if (message.isNotEmpty()) {
-                    onSend(message)
-                    text = ""
-                }
+                if (message.isNotEmpty()) { onSend(message); text = "" }
             }
-        ) {
-            Icon(
-                imageVector = Icons.Default.Send,
-                contentDescription = "Send message",
-                tint = MaterialTheme.colorScheme.primary
-            )
+        }) {
+            Icon(if (isGenerating) Icons.Default.Stop else Icons.Default.Send,
+                contentDescription = if (isGenerating) "Stop generation" else "Send message",
+                tint = if (isGenerating) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
         }
     }
 }

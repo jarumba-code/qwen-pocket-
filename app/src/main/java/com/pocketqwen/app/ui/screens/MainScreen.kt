@@ -61,13 +61,15 @@ fun MainScreen(
 ) {
     var showSettings by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<Conversation?>(null) }
-    var activeConversationId by remember { mutableStateOf<String?>(null) }
+    var activeConversationId by remember { mutableStateOf(java.util.UUID.randomUUID().toString()) }
     val context = LocalContext.current
     val conversationStore = remember(context) { ConversationStore(context) }
     val conversations = remember { mutableStateListOf<Conversation>().apply { addAll(conversationStore.loadAll()) } }
     val messages by chatViewModel.messages.collectAsState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(activeConversationId) { val id = activeConversationId; if (id != null) { val saved = conversations.firstOrNull { it.id == id }?.messages ?: emptyList(); chatViewModel.activateConversation(id, saved) } }
 
     // Keep the current conversation snapshot updated while the user chats.
     LaunchedEffect(messages, activeConversationId) {
@@ -117,7 +119,7 @@ fun MainScreen(
                             val item = Conversation(id, title, messages.toList())
                             if (index >= 0) conversations[index] = item else conversations.add(0, item)
                         }
-                        activeConversationId = null
+                        activeConversationId = java.util.UUID.randomUUID().toString()
                         chatViewModel.clearMessages()
                         showSettings = false
                         scope.launch { drawerState.close() }
@@ -163,7 +165,7 @@ fun MainScreen(
                                     icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null) },
                                     onClick = {
                                         activeConversationId = conversation.id
-                                        chatViewModel.loadMessages(conversation.messages)
+                                        chatViewModel.activateConversation(conversation.id, conversation.messages)
                                         showSettings = false
                                         scope.launch { drawerState.close() }
                                     },
