@@ -9,12 +9,7 @@ fun PocketQwenTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) {
-        PocketQwenDarkColorScheme
-    } else {
-        PocketQwenLightColorScheme
-    }
-
+    val colorScheme = if (darkTheme) PocketQwenDarkColorScheme else PocketQwenLightColorScheme
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
