@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - fix/ui-stabilization-v1
+      - feat/chat-sidebar-native-inference
   workflow_dispatch:
 
 permissions:
