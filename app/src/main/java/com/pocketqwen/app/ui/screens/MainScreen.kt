@@ -182,7 +182,7 @@ fun MainScreen(
                 }
                 Spacer(Modifier.padding(bottom = 12.dp))
                 Text(
-                    "Offline-first · Preview build",
+                    "Offline · on-device Qwen",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
