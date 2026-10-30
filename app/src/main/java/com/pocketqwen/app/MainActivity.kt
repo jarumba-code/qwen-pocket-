@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
 import com.pocketqwen.app.repository.AiRepository
-import com.pocketqwen.app.repository.MockAiRepository
+import com.pocketqwen.app.repository.NativeAiRepository
 import com.pocketqwen.app.settings.ThemeMode
 import com.pocketqwen.app.ui.theme.PocketQwenTheme
 import com.pocketqwen.app.ui.screens.MainScreen
@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, true)
-        val repository: AiRepository = MockAiRepository()
+        val repository: AiRepository = NativeAiRepository(applicationContext)
         setContent {
             val settingsViewModel: SettingsViewModel = viewModel(
                 factory = SettingsViewModelFactory(applicationContext, repository)
