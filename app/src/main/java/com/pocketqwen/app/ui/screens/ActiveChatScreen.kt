@@ -22,10 +22,7 @@ import com.pocketqwen.app.ui.components.MessageComposer
 import com.pocketqwen.app.viewmodel.ChatViewModel
 
 @Composable
-fun ActiveChatScreen(
-    viewModel: ChatViewModel,
-    modifier: Modifier = Modifier
-) {
+fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
     val messages by viewModel.messages.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -45,22 +42,21 @@ fun ActiveChatScreen(
         ) {
             items(messages, key = { it.id }) { message -> MessageBubble(message = message) }
             if (isLoading) {
-                item { Text("Preparing preview response…", style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) }
+                item {
+                    Text("Qwen is thinking on your device…", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
+                }
             }
             if (error != null) {
                 item {
-                    Text(
-                        text = "Error: $error",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
+                    Text("Error: $error", color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                 }
             }
         }
         Text(
-            text = "Preview mode · no local model is loaded",
+            text = "Private · local model · no cloud inference",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 2.dp)
