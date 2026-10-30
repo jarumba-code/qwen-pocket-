@@ -8,12 +8,10 @@ import com.pocketqwen.app.repository.AiRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.UUID
 
 class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
-
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages: StateFlow<List<ChatMessage>> = _messages.asStateFlow()
 
@@ -23,54 +21,39 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    init {
-        _messages.value = listOf(
-            ChatMessage(
-                id = UUID.randomUUID().toString(),
-                text = "Hello! I'm PocketQwen, your private on-device AI assistant. " +
-                    "Note: AI inference is not yet connected — this is a UI preview. " +
-                    "Ask me anything to see the chat interface in action.",
-                isUser = false,
-                status = MessageStatus.SENT
-            )
-        )
-    }
-
     fun sendMessage(text: String) {
         val trimmed = text.trim()
-        if (trimmed.isEmpty()) return
+        if (trimmed.isEmpty() || _isLoading.value) return
 
-        val userMessage = ChatMessage(
+        _messages.value = _messages.value + ChatMessage(
             id = UUID.randomUUID().toString(),
             text = trimmed,
             isUser = true,
             status = MessageStatus.SENT
         )
-
-        _messages.value = _messages.value + userMessage
         _isLoading.value = true
         _error.value = null
 
         viewModelScope.launch {
             try {
                 aiRepository.generateResponse(trimmed).collect { response ->
-                    if (response == "[Thinking...]") {
-                        _isLoading.value = true
-                    } else if (response.startsWith("[End of placeholder")) {
-                        _isLoading.value = false
-                    } else {
-                        val assistantMessage = ChatMessage(
-                            id = UUID.randomUUID().toString(),
-                            text = response,
-                            isUser = false,
-                            status = MessageStatus.SENT
-                        )
-                        _messages.value = _messages.value + assistantMessage
-                        _isLoading.value = false
+                    when {
+                        response == "[Thinking...]" -> _isLoading.value = true
+                        response.startsWith("[End of placeholder") ||
+                            response == "[End of response]" -> _isLoading.value = false
+                        else -> {
+                            _messages.value = _messages.value + ChatMessage(
+                                id = UUID.randomUUID().toString(),
+                                text = response,
+                                isUser = false,
+                                status = MessageStatus.SENT
+                            )
+                            _isLoading.value = false
+                        }
                     }
                 }
             } catch (e: Exception) {
-                _error.value = e.message
+                _error.value = e.message ?: "Unable to generate a response."
                 _isLoading.value = false
             }
         }
