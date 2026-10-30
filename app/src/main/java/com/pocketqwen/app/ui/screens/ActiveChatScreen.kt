@@ -12,10 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +50,21 @@ fun ThinkingDots() {
 }
 
 @Composable
+private fun StreamingIndicator() {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp),
+        modifier = Modifier.padding(start = 14.dp, top = 6.dp, bottom = 10.dp)) {
+        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(28.dp)) {
+            androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) {
+                Text("Q", color = MaterialTheme.colorScheme.onPrimaryContainer, style = MaterialTheme.typography.labelLarge)
+            }
+        }
+        CircularProgressIndicator(modifier = Modifier.size(15.dp), strokeWidth = 2.dp)
+        Text("Qwen is responding", style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
 fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
     val messages by viewModel.messages.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -53,7 +72,7 @@ fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
     val error by viewModel.error.collectAsState()
     val listState = rememberLazyListState()
     LaunchedEffect(messages.size, messages.lastOrNull()?.text, isLoading, thinking) {
-        val count = messages.size + if (thinking) 1 else 0
+        val count = messages.size + if (thinking || (isLoading && !thinking)) 1 else 0
         if (count > 0) listState.animateScrollToItem(count - 1)
     }
     Column(modifier = modifier.fillMaxSize().imePadding()) {
@@ -62,6 +81,7 @@ fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(4.dp)) {
             items(messages, key = { it.id }) { MessageBubble(message = it) }
             if (thinking) item { ThinkingDots() }
+            else if (isLoading) item { StreamingIndicator() }
             if (error != null) item {
                 Text("Error: " + error, color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
