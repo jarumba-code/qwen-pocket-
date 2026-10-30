@@ -205,7 +205,7 @@ fun MainScreen(
                                 val id = activeConversationId ?: java.util.UUID.randomUUID().toString()
                                 val title = messages.firstOrNull { it.isUser }?.text?.take(42) ?: "New conversation"
                                 val index = conversations.indexOfFirst { it.id == id }
-                                val item = SavedConversation(id, title, messages.toList())
+                                val item = Conversation(id = id, title = title, messages = messages.toList())
                                 if (index >= 0) conversations[index] = item else conversations.add(0, item)
                                 activeConversationId = null
                                 chatViewModel.clearMessages()
