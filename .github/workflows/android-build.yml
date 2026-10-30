@@ -2,7 +2,9 @@ name: Android Build
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - fix/ui-stabilization-v1
   workflow_dispatch:
 
 permissions:
@@ -10,7 +12,7 @@ permissions:
 
 jobs:
   build:
-    name: Build debug APK
+    name: Build and test debug APK
     runs-on: ubuntu-latest
 
     steps:
@@ -24,36 +26,11 @@ jobs:
           java-version: 17
 
       - name: Set up Android SDK
-        run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          cd $HOME/android-sdk/cmdline-tools
-          curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o cmdline-tools.zip
-          unzip -q cmdline-tools.zip
-          mv cmdline-tools latest
-          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+        uses: android-actions/setup-android@v3
 
-      - name: Install Android NDK
+      - name: Install Android platform and build tools
         run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;25.1.8937393"
-          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.1.8937393" >> $GITHUB_ENV
-          echo "NDK_HOME=$ANDROID_HOME/ndk/25.1.8937393" >> $GITHUB_ENV
-
-      - name: Install CMake
-        run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "cmake;3.22.1"
-          echo "ANDROID_CMAKE=$ANDROID_HOME/cmake/3.22.1/bin/cmake" >> $GITHUB_ENV
-
-      - name: Fetch llama.cpp source
-        run: |
-          mkdir -p $HOME/llama.cpp-src
-          cd $HOME/llama.cpp-src
-          git clone --depth 1 --branch master https://github.com/ggerganov/llama.cpp.git llama.cpp
-          cd llama.cpp
-          git checkout 6c05e69237044bf2d321f31af7ff42c546d597d3 2>/dev/null || true
-          ls -la
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -67,18 +44,17 @@ jobs:
         run: ./gradlew assembleDebug --no-daemon
 
       - name: Run unit tests
-        if: always()
-        run: ./gradlew testDebugUnitTest --no-daemon || true
+        run: ./gradlew testDebugUnitTest --no-daemon
 
       - name: Upload debug APK artifact
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: pocketqwen-debug-apk
           path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: ignore
+          if-no-files-found: error
 
-      - name: Upload test report on failure
+      - name: Upload build and test reports on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
