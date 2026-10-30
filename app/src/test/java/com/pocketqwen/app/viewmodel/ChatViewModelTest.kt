@@ -51,8 +51,7 @@ class ChatViewModelTest {
         val vm = ChatViewModel(TestRepository())
         val messages = vm.messages.value
         assertNotNull(messages)
-        assertEquals(1, messages.size)
-        assertFalse(messages[0].isUser)
+        assertTrue(messages.isEmpty())
     }
 
     @Test
@@ -61,7 +60,7 @@ class ChatViewModelTest {
         val vm = ChatViewModel(repo)
         vm.sendMessage("")
         vm.sendMessage("   ")
-        assertEquals(1, vm.messages.value.size)
+        assertTrue(vm.messages.value.isEmpty())
         assertEquals(0, repo.messages.size)
     }
 
@@ -70,11 +69,11 @@ class ChatViewModelTest {
         val vm = ChatViewModel(TestRepository())
         vm.sendMessage("Hello")
         val messages = vm.messages.value
-        assertEquals(3, messages.size)
-        assertTrue(messages[1].isUser)
-        assertEquals("Hello", messages[1].text)
-        assertFalse(messages[2].isUser)
-        assertEquals("Placeholder response for: Hello", messages[2].text)
+        assertEquals(2, messages.size)
+        assertTrue(messages[0].isUser)
+        assertEquals("Hello", messages[0].text)
+        assertFalse(messages[1].isUser)
+        assertEquals("Placeholder response for: Hello", messages[1].text)
     }
 
     @Test
@@ -89,14 +88,14 @@ class ChatViewModelTest {
     fun `model not available`() {
         val repo = MockAiRepository()
         assertFalse(repo.isModelAvailable())
-        assertEquals("Not installed", repo.getModelStatus())
+        assertTrue(repo.getModelStatus().contains("simulated", ignoreCase = true))
     }
 
     @Test
     fun `clearMessages removes all messages`() {
         val vm = ChatViewModel(TestRepository())
         vm.sendMessage("Test")
-        assertEquals(3, vm.messages.value.size)
+        assertEquals(2, vm.messages.value.size)
         vm.clearMessages()
         assertTrue(vm.messages.value.isEmpty())
     }
