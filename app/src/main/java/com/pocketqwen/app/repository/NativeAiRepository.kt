@@ -16,6 +16,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
     @Volatile private var loaded = false
     @Volatile private var status = "Bundled Qwen model is ready to initialize"
     private val generationActive = AtomicBoolean(false)
+    private val initializationLock = Any()
 
     init { System.loadLibrary("pocketqwen_native") }
 
@@ -25,14 +26,18 @@ class NativeAiRepository(private val context: Context) : AiRepository {
 
     suspend fun initialize(): Boolean = withContext(Dispatchers.IO) {
         if (loaded) return@withContext true
-        synchronized(this@NativeAiRepository) {
+        synchronized(initializationLock) {
             if (loaded) return@synchronized true
+            initializeLocked()
         }
+    }
+
+    private fun initializeLocked(): Boolean {
         val modelFile = File(context.filesDir, MODEL_FILENAME)
         val temporaryFile = File(context.filesDir, "$MODEL_FILENAME.part")
         try {
             status = "Checking bundled model…"
-            val assetExists = runCatching { context.assets.open(MODEL_FILENAME).close(); true }.getOrDefault(false)
+            val assetExists = runCatching { context.assets.open(MODEL_FILENAME).use { }; true }.getOrDefault(false)
             if (!assetExists) throw IOException("Bundled qwen.gguf asset is missing from this APK")
             if (!modelFile.exists() || modelFile.length() < MIN_MODEL_BYTES) {
                 status = "Copying bundled model to private storage…"
@@ -43,7 +48,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
                 val copiedLength = temporaryFile.length()
                 if (copiedLength < MIN_MODEL_BYTES) {
                     temporaryFile.delete()
-                    throw IOException("Bundled model is incomplete (" + copiedLength + " bytes)")
+                    throw IOException("Bundled model is incomplete ($copiedLength bytes)")
                 }
                 if (modelFile.exists() && !modelFile.delete()) throw IOException("Could not replace incomplete model file")
                 if (!temporaryFile.renameTo(modelFile)) throw IOException("Could not finalize model copy")
@@ -52,12 +57,12 @@ class NativeAiRepository(private val context: Context) : AiRepository {
             loaded = nativeLoadModel(modelFile.absolutePath)
             status = if (loaded) "Qwen2.5-0.5B ready · on-device only"
                 else "Native model initialization failed. Check available RAM and app logs."
-            loaded
+            return loaded
         } catch (e: Exception) {
             temporaryFile.delete()
             status = "Model unavailable: " + (e.message ?: "asset copy failed")
             loaded = false
-            false
+            return false
         }
     }
 
@@ -79,6 +84,8 @@ class NativeAiRepository(private val context: Context) : AiRepository {
                     }
                 })
                 close()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 close(e)
             } finally {

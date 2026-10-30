@@ -209,7 +209,7 @@ fun MainScreen(
                                 val index = conversations.indexOfFirst { it.id == id }
                                 val item = Conversation(id = id, title = title, messages = messages.toList())
                                 if (index >= 0) conversations[index] = item else conversations.add(0, item)
-                                activeConversationId = null
+                                activeConversationId = java.util.UUID.randomUUID().toString()
                                 chatViewModel.clearMessages()
                             }) { Text("New chat") }
                         }
