@@ -1,6 +1,7 @@
 package com.pocketqwen.app.repository
 
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -76,6 +77,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
             return@callbackFlow
         }
         val worker = launch(Dispatchers.IO) {
+            val responseStartNs = System.nanoTime()
             try {
                 if (!loaded && !initialize()) throw IllegalStateException(status)
                 nativeGenerateResponse(message.trim(), object : TokenCallback {
@@ -89,6 +91,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
             } catch (e: Exception) {
                 close(e)
             } finally {
+                Log.i(LOG_TAG, "response_total_ms=${(System.nanoTime() - responseStartNs) / 1_000_000.0}")
                 generationActive.set(false)
             }
         }
@@ -120,6 +123,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
     private external fun nativeRelease()
 
     companion object {
+        private const val LOG_TAG = "PocketQwenNative"
         private const val MODEL_FILENAME = "qwen.gguf"
         private const val MIN_MODEL_BYTES = 100_000_000L
     }
