@@ -11,11 +11,11 @@ set(LLAMA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(LLAMA_BUILD_SERVER OFF CACHE BOOL "" FORCE)
 set(LLAMA_BUILD_COMMON OFF CACHE BOOL "" FORCE)
 set(GGML_NATIVE OFF CACHE BOOL "" FORCE) # Cross-compile for Android; never tune to the CI host CPU.
-set(GGML_CPU_KLEIDIAI ON CACHE BOOL "" FORCE) # Optional runtime-dispatched ARM kernels for arm64-v8a.
+set(GGML_CPU_KLEIDIAI OFF CACHE BOOL "" FORCE) # Match the fast Termux reference build for this experiment.
 set(LLAMA_OPENSSL OFF CACHE BOOL "" FORCE) # Keep the Android native build independent of OpenSSL.
-set(GGML_OPENMP OFF CACHE BOOL "" FORCE)
+set(GGML_OPENMP ON CACHE BOOL "" FORCE) # Experimental: mirror the Termux build OpenMP option.
 set(GGML_VULKAN OFF CACHE BOOL "" FORCE) # GPU backend is a separate opt-in change; CPU remains the safe baseline.
-set(GGML_LLAMAFILE OFF CACHE BOOL "" FORCE)
+set(GGML_LLAMAFILE ON CACHE BOOL "" FORCE) # Experimental: mirror the Termux build option.
 add_subdirectory(llama.cpp)
 
 add_library(pocketqwen_native SHARED native_inference.cpp)

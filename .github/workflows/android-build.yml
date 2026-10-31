@@ -6,6 +6,8 @@ on:
       - main
       - fix/ui-stabilization-v1
       - feat/chat-sidebar-native-inference
+      - perf/arm-inference-diagnostics
+      - experiment/termux-style-native
   workflow_dispatch:
 
 permissions:
@@ -32,7 +34,7 @@ jobs:
       - name: Accept Android SDK licenses and install required packages
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "build-tools;34.0.0" "platform-tools" "ndk;27.2.12479018" "cmake;3.22.1"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "build-tools;34.0.0" "platform-tools" "ndk;29.0.14206865" "cmake;3.22.1"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -45,7 +47,7 @@ jobs:
       - name: Fetch pinned llama.cpp native engine
         run: |
           git clone https://github.com/ggml-org/llama.cpp.git app/src/main/cpp/llama.cpp
-          git -C app/src/main/cpp/llama.cpp checkout 0ec4027a2a0183de87c007069adddc06e665f7de
+          git -C app/src/main/cpp/llama.cpp checkout 9125a2ebe8e5a38f0f4232170c134a29ed730b66
 
       - name: Download bundled Qwen2.5-0.5B-Instruct model
         run: |
@@ -54,8 +56,31 @@ jobs:
           echo "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db  app/src/main/assets/qwen.gguf" | sha256sum --check
           ls -lh app/src/main/assets/qwen.gguf
 
+      - name: Report Termux-parity native build settings
+        run: |
+          echo "Experiment branch: experiment/termux-style-native"
+          echo "llama.cpp revision: 9125a2ebe8e5a38f0f4232170c134a29ed730b66"
+          echo "Expected target-safe parity: Release/-O3, GGML_NATIVE=OFF (required for NDK cross-compile), GGML_OPENMP=ON, GGML_CPU_KLEIDIAI=OFF, GGML_LLAMAFILE=ON, LLAMA_OPENSSL=OFF"
+          grep -nE 'GGML_NATIVE|GGML_OPENMP|GGML_CPU_KLEIDIAI|GGML_LLAMAFILE|LLAMA_OPENSSL|GGML_VULKAN' app/src/main/cpp/CMakeLists.txt
+          echo "NDK: $ANDROID_HOME/ndk/29.0.14206865"
+          grep -m1 'Pkg.Revision' "$ANDROID_HOME/ndk/29.0.14206865/source.properties"
+
       - name: Build debug APK
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Capture generated native CMake configuration
+        if: always()
+        run: |
+          mkdir -p native-build-diagnostics
+          find app/.cxx -type f -name CMakeCache.txt -print 2>/dev/null | tee native-build-diagnostics/cmake-cache-paths.txt || true
+          while IFS= read -r cache; do
+            [ -f "$cache" ] || continue
+            {
+              echo "===== $cache ====="
+              grep -E '^(CMAKE_BUILD_TYPE|CMAKE_C_FLAGS_RELEASE|CMAKE_CXX_FLAGS_RELEASE|GGML_NATIVE|GGML_OPENMP|GGML_CPU_KLEIDIAI|GGML_LLAMAFILE|LLAMA_OPENSSL|GGML_VULKAN):' "$cache" || true
+            } >> native-build-diagnostics/native-cmake-options.txt
+          done < native-build-diagnostics/cmake-cache-paths.txt
+          cat native-build-diagnostics/native-cmake-options.txt 2>/dev/null || true
 
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --no-daemon
@@ -64,9 +89,17 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: pocketqwen-debug-apk
+          name: pocketqwen-termux-style-experiment-apk
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      - name: Upload native build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketqwen-native-build-diagnostics
+          path: native-build-diagnostics/
+          if-no-files-found: ignore
 
       - name: Upload build and test reports on failure
         if: failure()
