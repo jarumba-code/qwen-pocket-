@@ -7,6 +7,7 @@ on:
       - fix/ui-stabilization-v1
       - feat/chat-sidebar-native-inference
       - perf/arm-inference-diagnostics
+      - experiment/termux-style-native
   workflow_dispatch:
 
 permissions:
@@ -33,7 +34,7 @@ jobs:
       - name: Accept Android SDK licenses and install required packages
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "build-tools;34.0.0" "platform-tools" "ndk;27.2.12479018" "cmake;3.22.1"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "build-tools;34.0.0" "platform-tools" "ndk;29.0.14206865" "cmake;3.22.1"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -46,7 +47,7 @@ jobs:
       - name: Fetch pinned llama.cpp native engine
         run: |
           git clone https://github.com/ggml-org/llama.cpp.git app/src/main/cpp/llama.cpp
-          git -C app/src/main/cpp/llama.cpp checkout 0ec4027a2a0183de87c007069adddc06e665f7de
+          git -C app/src/main/cpp/llama.cpp checkout 9125a2ebe8e5a38f0f4232170c134a29ed730b66
 
       - name: Download bundled Qwen2.5-0.5B-Instruct model
         run: |
