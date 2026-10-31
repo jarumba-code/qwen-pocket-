@@ -99,7 +99,7 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path) {
     LOGI("llama_system_info=%s", systemInfo ? systemInfo : "unavailable");
     llama_model_params mp = llama_model_default_params();
     mp.n_gpu_layers = 0;
-    LOGI("Loading model; cpu_threads=4 context=1024 batch=128 gpu_layers=0");
+    LOGI("Loading model; cpu_threads=auto batch_threads=auto context=1024 batch=2048 ubatch=512 gpu_layers=0; termux-style experiment");
     const auto start = std::chrono::steady_clock::now();
     const auto modelLoadStart = std::chrono::steady_clock::now();
     g_model = llama_model_load_from_file(p, mp);
@@ -108,9 +108,10 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path) {
     if (!g_model) { LOGE("Model load failed; verify GGUF integrity and available RAM"); return JNI_FALSE; }
     llama_context_params cp = llama_context_default_params();
     cp.n_ctx = 1024;
-    cp.n_batch = 128;
-    cp.n_threads = 4;
-    cp.n_threads_batch = 4;
+    cp.n_batch = 2048;
+    cp.n_ubatch = 512;
+    cp.n_threads = -1;
+    cp.n_threads_batch = -1;
     const auto contextInitStart = std::chrono::steady_clock::now();
     g_ctx = llama_init_from_model(g_model, cp);
     const auto contextInitEnd = std::chrono::steady_clock::now();
