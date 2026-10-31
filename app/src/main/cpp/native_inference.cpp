@@ -93,6 +93,10 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path) {
     std::lock_guard<std::mutex> lock(g_mutex);
     release_locked();
     llama_backend_init();
+    // Record the actual compiled/runtime backend capabilities on-device. This
+    // helps verify whether the ARM-optimized kernels are present in the APK.
+    const char *systemInfo = llama_print_system_info();
+    LOGI("llama_system_info=%s", systemInfo ? systemInfo : "unavailable");
     llama_model_params mp = llama_model_default_params();
     mp.n_gpu_layers = 0;
     LOGI("Loading model; cpu_threads=4 context=1024 batch=128 gpu_layers=0");
