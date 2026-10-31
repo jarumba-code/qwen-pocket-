@@ -6,6 +6,7 @@ on:
       - main
       - fix/ui-stabilization-v1
       - feat/chat-sidebar-native-inference
+      - perf/arm-inference-diagnostics
   workflow_dispatch:
 
 permissions:
