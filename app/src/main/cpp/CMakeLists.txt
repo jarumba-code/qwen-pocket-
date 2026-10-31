@@ -10,9 +10,11 @@ set(LLAMA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(LLAMA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(LLAMA_BUILD_SERVER OFF CACHE BOOL "" FORCE)
 set(LLAMA_BUILD_COMMON OFF CACHE BOOL "" FORCE)
-set(GGML_NATIVE OFF CACHE BOOL "" FORCE)
+set(GGML_NATIVE OFF CACHE BOOL "" FORCE) # Cross-compile for Android; never tune to the CI host CPU.
+set(GGML_CPU_KLEIDIAI ON CACHE BOOL "" FORCE) # Optional runtime-dispatched ARM kernels for arm64-v8a.
+set(LLAMA_OPENSSL OFF CACHE BOOL "" FORCE) # Keep the Android native build independent of OpenSSL.
 set(GGML_OPENMP OFF CACHE BOOL "" FORCE)
-set(GGML_VULKAN OFF CACHE BOOL "" FORCE)
+set(GGML_VULKAN OFF CACHE BOOL "" FORCE) # GPU backend is a separate opt-in change; CPU remains the safe baseline.
 set(GGML_LLAMAFILE OFF CACHE BOOL "" FORCE)
 add_subdirectory(llama.cpp)
 
