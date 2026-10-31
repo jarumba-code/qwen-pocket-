@@ -42,8 +42,10 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Fetch llama.cpp native engine
-        run: git clone --depth 1 https://github.com/ggml-org/llama.cpp.git app/src/main/cpp/llama.cpp
+      - name: Fetch pinned llama.cpp native engine
+        run: |
+          git clone https://github.com/ggml-org/llama.cpp.git app/src/main/cpp/llama.cpp
+          git -C app/src/main/cpp/llama.cpp checkout 0ec4027a2a0183de87c007069adddc06e665f7de
 
       - name: Download bundled Qwen2.5-0.5B-Instruct model
         run: |
