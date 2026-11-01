@@ -5,6 +5,7 @@
 #include <chrono>
 #include <limits>
 #include <string>
+#include <thread>
 #include <vector>
 #include <mutex>
 #include "llama.h"
@@ -99,7 +100,7 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path) {
     LOGI("llama_system_info=%s", systemInfo ? systemInfo : "unavailable");
     llama_model_params mp = llama_model_default_params();
     mp.n_gpu_layers = 0;
-    LOGI("Loading model; cpu_threads=auto batch_threads=auto context=1024 batch=2048 ubatch=512 gpu_layers=0; termux-style experiment");
+    LOGI("Loading model; cpu_threads=auto batch_threads=auto context=1024 batch=2048 ubatch=512 gpu_layers=0; experiment-3 mobile profile");
     const auto start = std::chrono::steady_clock::now();
     const auto modelLoadStart = std::chrono::steady_clock::now();
     g_model = llama_model_load_from_file(p, mp);
@@ -110,9 +111,14 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path) {
     cp.n_ctx = 1024;
     cp.n_batch = 2048;
     cp.n_ubatch = 512;
-    cp.n_threads = -1;
-    cp.n_threads_batch = -1;
+    // Explicit, conservative mobile threading: avoid oversubscribing a low-RAM
+    // big.LITTLE phone. Compare 2/4 threads on-device before increasing this.
+    const unsigned int cpuCount = std::max(1u, std::thread::hardware_concurrency());
+    const int inferenceThreads = static_cast<int>(std::min(4u, cpuCount));
+    cp.n_threads = inferenceThreads;
+    cp.n_threads_batch = inferenceThreads;
     const auto contextInitStart = std::chrono::steady_clock::now();
+    LOGI("Context params selected inference_threads=%d context=%u batch=%u ubatch=%u", inferenceThreads, cp.n_ctx, cp.n_batch, cp.n_ubatch);
     g_ctx = llama_init_from_model(g_model, cp);
     const auto contextInitEnd = std::chrono::steady_clock::now();
     if (!g_ctx) { release_locked(); LOGE("Context creation failed; likely memory pressure"); return JNI_FALSE; }
@@ -306,7 +312,9 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jobject 
             }
         }
         // Amortize JNI/Kotlin Flow overhead while keeping streamed output responsive.
-        if (sampledTokens % 4 == 0 && !flushCallback()) callbackFailed = true;
+        // Deliver the first token immediately to reduce perceived latency; batch later
+        // callbacks to amortize JNI/Flow overhead without hiding the first result.
+        if ((sampledTokens == 1 || sampledTokens % 4 == 0) && !flushCallback()) callbackFailed = true;
         if (callbackFailed) break;
         batch.token[0] = token; batch.pos[0] = position++;
         batch.n_seq_id[0] = 1; batch.seq_id[0][0] = 0; batch.logits[0] = true; batch.n_tokens = 1;
