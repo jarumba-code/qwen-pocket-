@@ -49,6 +49,7 @@ import androidx.compose.ui.res.painterResource
 import com.pocketqwen.app.model.Conversation
 import com.pocketqwen.app.storage.ConversationStore
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.size
 import com.pocketqwen.app.model.ChatMessage
 import com.pocketqwen.app.viewmodel.ChatViewModel
 import com.pocketqwen.app.viewmodel.SettingsViewModel
@@ -126,7 +127,7 @@ fun MainScreen(
                     Image(
                         painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_pocketqwen_coin),
                         contentDescription = "PocketQwen coin logo",
-                        modifier = Modifier.padding(end = 10.dp).width(36.dp)
+                        modifier = Modifier.padding(end = 10.dp).size(36.dp)
                     )
                     Text(
                         "PocketQwen",
@@ -228,7 +229,7 @@ fun MainScreen(
                                 Image(
                                     painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_pocketqwen_coin),
                                     contentDescription = "PocketQwen coin logo",
-                                    modifier = Modifier.padding(end = 8.dp).width(28.dp)
+                                    modifier = Modifier.padding(end = 8.dp).size(28.dp)
                                 )
                             }
                             Text(if (showSettings) "Settings" else "PocketQwen")
