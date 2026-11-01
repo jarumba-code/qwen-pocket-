@@ -100,7 +100,7 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path) {
     LOGI("llama_system_info=%s", systemInfo ? systemInfo : "unavailable");
     llama_model_params mp = llama_model_default_params();
     mp.n_gpu_layers = 0;
-    LOGI("Loading model; cpu_threads=auto batch_threads=auto context=1024 batch=2048 ubatch=512 gpu_layers=0; experiment-3 mobile profile");
+    LOGI("Loading model; cpu_threads=all_available batch_threads=all_available context=1024 batch=2048 ubatch=512 gpu_layers=0; experiment-4 full-thread profile");
     const auto start = std::chrono::steady_clock::now();
     const auto modelLoadStart = std::chrono::steady_clock::now();
     g_model = llama_model_load_from_file(p, mp);
@@ -111,14 +111,15 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path) {
     cp.n_ctx = 1024;
     cp.n_batch = 2048;
     cp.n_ubatch = 512;
-    // Explicit, conservative mobile threading: avoid oversubscribing a low-RAM
-    // big.LITTLE phone. Compare 2/4 threads on-device before increasing this.
-    const unsigned int cpuCount = std::max(1u, std::thread::hardware_concurrency());
-    const int inferenceThreads = static_cast<int>(std::min(4u, cpuCount));
+    // Experiment 4: use all CPU threads reported by the runtime, like llama.cpp
+    // auto-thread mode. This is a benchmark setting, not a guarantee of higher
+    // sustained speed: Android scheduling and thermal throttling still apply.
+    const int inferenceThreads = static_cast<int>(
+        std::max(1u, std::thread::hardware_concurrency()));
     cp.n_threads = inferenceThreads;
     cp.n_threads_batch = inferenceThreads;
     const auto contextInitStart = std::chrono::steady_clock::now();
-    LOGI("Context params selected inference_threads=%d context=%u batch=%u ubatch=%u", inferenceThreads, cp.n_ctx, cp.n_batch, cp.n_ubatch);
+    LOGI("Experiment 4 params inference_threads=%d (runtime hardware_concurrency) context=%u batch=%u ubatch=%u", inferenceThreads, cp.n_ctx, cp.n_batch, cp.n_ubatch);
     g_ctx = llama_init_from_model(g_model, cp);
     const auto contextInitEnd = std::chrono::steady_clock::now();
     if (!g_ctx) { release_locked(); LOGE("Context creation failed; likely memory pressure"); return JNI_FALSE; }
