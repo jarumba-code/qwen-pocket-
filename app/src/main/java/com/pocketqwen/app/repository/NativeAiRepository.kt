@@ -11,11 +11,14 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
+import com.pocketqwen.app.settings.PerformanceMode
+import kotlinx.coroutines.flow.flowOf
 
 /** llama.cpp-backed local repository. No prompt or response is sent to a cloud service. */
 class NativeAiRepository(private val context: Context) : AiRepository {
     @Volatile private var loaded = false
     @Volatile private var status = "Bundled Qwen model is ready to initialize"
+    @Volatile private var performanceMode = PerformanceMode.BALANCED
     private val generationActive = AtomicBoolean(false)
     private val initializationLock = Any()
 
@@ -24,6 +27,34 @@ class NativeAiRepository(private val context: Context) : AiRepository {
     override fun isModelAvailable(): Boolean = loaded
     override fun getModelStatus(): String = status
     override suspend fun initializeModel(): Boolean = initialize()
+
+    override suspend fun configurePerformanceMode(mode: PerformanceMode) = withContext(Dispatchers.IO) {
+        synchronized(initializationLock) {
+            if (performanceMode == mode) return@synchronized
+            val wasLoaded = loaded
+            performanceMode = mode
+            if (wasLoaded) {
+                status = "Applying ${mode.name.lowercase().replaceFirstChar { it.uppercase() }} mode…"
+                nativeCancelGeneration()
+                nativeRelease()
+                loaded = false
+                status = "Reloading model with ${mode.name.lowercase().replaceFirstChar { it.uppercase() }} mode…"
+                initializeLocked()
+            }
+        }
+    }
+
+    override suspend fun releaseModel() = withContext(Dispatchers.IO) {
+        synchronized(initializationLock) {
+            if (loaded || nativeIsModelAvailable()) {
+                status = "Ejecting local model…"
+                nativeCancelGeneration()
+                nativeRelease()
+            }
+            loaded = false
+            status = "Model unloaded"
+        }
+    }
 
     suspend fun initialize(): Boolean = withContext(Dispatchers.IO) {
         if (loaded) return@withContext true
@@ -55,8 +86,8 @@ class NativeAiRepository(private val context: Context) : AiRepository {
                 if (!temporaryFile.renameTo(modelFile)) throw IOException("Could not finalize model copy")
             }
             status = "Loading Qwen model into memory…"
-            loaded = nativeLoadModel(modelFile.absolutePath)
-            status = if (loaded) "Qwen2.5-0.5B ready · on-device only"
+            loaded = nativeLoadModel(modelFile.absolutePath, performanceMode.nativeValue)
+            status = if (loaded) "Qwen2.5-0.5B ready · ${performanceMode.name.lowercase().replaceFirstChar { it.uppercase() }} mode · on-device only"
                 else "Native model initialization failed. Check available RAM and app logs."
             return loaded
         } catch (e: Exception) {
@@ -70,6 +101,11 @@ class NativeAiRepository(private val context: Context) : AiRepository {
     override fun generateResponse(message: String): Flow<String> = callbackFlow {
         if (message.isBlank()) {
             close(IllegalArgumentException("Enter a message first."))
+            return@callbackFlow
+        }
+        if (isIdentityQuestion(message)) {
+            trySend(IDENTITY_RESPONSE)
+            close()
             return@callbackFlow
         }
         if (generationActive.getAndSet(true)) {
@@ -108,14 +144,12 @@ class NativeAiRepository(private val context: Context) : AiRepository {
         nativeCancelGeneration()
     }
 
-    fun release() {
-        nativeCancelGeneration()
-        nativeRelease()
-        loaded = false
-        status = "Model unloaded"
+    private fun isIdentityQuestion(message: String): Boolean {
+        val normalized = message.trim().lowercase().replace(Regex("[.!?\\s]+$"), "")
+        return normalized == "who are you" || normalized == "what are you"
     }
 
-    private external fun nativeLoadModel(modelPath: String): Boolean
+    private external fun nativeLoadModel(modelPath: String, performanceMode: Int): Boolean
     private external fun nativeGenerateResponse(message: String, callback: TokenCallback)
     private external fun nativeCancelGeneration()
     private external fun nativeIsModelAvailable(): Boolean
@@ -126,5 +160,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
         private const val LOG_TAG = "PocketQwenNative"
         private const val MODEL_FILENAME = "qwen.gguf"
         private const val MIN_MODEL_BYTES = 100_000_000L
+        private const val IDENTITY_RESPONSE =
+            "I am a digital assistant created by PocketQwen, a team of developers, designed to run locally on phones."
     }
 }
