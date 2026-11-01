@@ -16,12 +16,24 @@ private val Context.pocketQwenDataStore by preferencesDataStore(
 private object AppSettingsKey {
     val THEME_MODE = stringPreferencesKey("theme_mode")
     val IS_FIRST_LAUNCH = booleanPreferencesKey("is_first_launch")
+    val PERFORMANCE_MODE = stringPreferencesKey("performance_mode")
 }
 
 enum class ThemeMode {
     LIGHT,
     DARK,
     SYSTEM
+}
+
+enum class PerformanceMode(val nativeValue: Int, val description: String) {
+    BALANCED(
+        nativeValue = 0,
+        description = "Uses about half of the available CPU threads to balance speed, battery use, and responsiveness."
+    ),
+    PERFORMANCE(
+        nativeValue = 1,
+        description = "Uses all available CPU threads for faster text generation. May use more battery and produce more heat."
+    )
 }
 
 class AppSettings(private val context: Context) {
@@ -32,9 +44,20 @@ class AppSettings(private val context: Context) {
         runCatching { ThemeMode.valueOf(savedValue) }.getOrDefault(ThemeMode.SYSTEM)
     }
 
+    fun getPerformanceModeFlow(): Flow<PerformanceMode> = dataStore.data.map { preferences ->
+        val savedValue = preferences[AppSettingsKey.PERFORMANCE_MODE] ?: PerformanceMode.BALANCED.name
+        runCatching { PerformanceMode.valueOf(savedValue) }.getOrDefault(PerformanceMode.BALANCED)
+    }
+
     suspend fun setThemeMode(mode: ThemeMode) {
         dataStore.edit { preferences ->
             preferences[AppSettingsKey.THEME_MODE] = mode.name
+        }
+    }
+
+    suspend fun setPerformanceMode(mode: PerformanceMode) {
+        dataStore.edit { preferences ->
+            preferences[AppSettingsKey.PERFORMANCE_MODE] = mode.name
         }
     }
 
