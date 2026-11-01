@@ -8,6 +8,7 @@ Keep the Kotlin/Jetpack Compose UI and private SQLite history while building an 
 - The release APK is signed with the Android debug key only so it can be installed for local testing. This is an experiment artifact, **not a production signing setup**.
 - Native inference selects a conservative maximum of four CPU threads (bounded by the runtime-reported CPU count) for both generation and prompt-batch evaluation. This is a hypothesis for a low-memory mobile device, not a proven optimum; compare 2 vs 4 threads on the target phone.
 - JNI streaming sends the first generated token immediately, then batches subsequent callbacks in groups of four to reduce JNI/Flow callback overhead while avoiding an artificial four-token delay before the response starts.
+- Conversation history persistence now checkpoints on a 750 ms cadence on `Dispatchers.IO`, instead of rewriting the SQLite conversation/message tables on every streamed UI update. This reduces storage work and main-thread blocking during generation.
 - Existing native timing logs record model-load time, context initialization, prompt tokenization/prefill, first sample/callback, callback overhead, decode time, and sampled tokens/sec.
 - Existing native engine pin, GGUF SHA-256 verification, arm64-v8a ABI, OpenMP setting, and CPU-only backend remain unchanged.
 
@@ -32,4 +33,4 @@ adb logcat -s PocketQwenNative:I
 - This experiment does not bundle the Termux Linux distribution. It compiles the pinned llama.cpp source for Android's NDK/Bionic ABI; Termux binaries are not generally portable into an Android app sandbox.
 - The four-thread cap is a safe test baseline, not a universal optimum.
 - Conversation history and prompt-template parity with the Termux command must be held constant in a valid benchmark. If Termux sends prior turns while the app sends only the latest message, compare equivalent single-turn prompts first.
-- The UI/database path is separate from native token-generation speed. If history persistence is wired to save the whole conversation on each token, batch persistence writes; this should not be confused with model decode throughput.
+- The UI/database path is separate from native token-generation speed. The main screen now batches full-history SQLite checkpoints off the main thread every 750 ms. This bounds persistence frequency but still rewrites the saved snapshot; if very large histories remain costly, the next step is a differential upsert API for only the changed conversation/message.
