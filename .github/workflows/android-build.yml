@@ -1,5 +1,9 @@
 name: Android Build
 
+concurrency:
+  group: pocketqwen-android-build-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches:
