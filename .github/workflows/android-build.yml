@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   build:
-    name: Build and test debug APK
+    name: Build and test optimized experiment APK
     runs-on: ubuntu-latest
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
@@ -87,7 +87,7 @@ jobs:
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --no-daemon
 
-      - name: Upload debug APK artifact
+      - name: Upload optimized release APK artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
