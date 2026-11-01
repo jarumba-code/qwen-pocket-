@@ -11,6 +11,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pocketqwen.app.settings.PerformanceMode
 import com.pocketqwen.app.settings.ThemeMode
 import com.pocketqwen.app.viewmodel.SettingsViewModel
 
@@ -29,8 +31,10 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val themeMode by viewModel.themeMode.collectAsState()
+    val performanceMode by viewModel.performanceMode.collectAsState()
     val modelStatus by viewModel.modelStatus.collectAsState()
     val isModelLoading by viewModel.isModelLoading.collectAsState()
+    val isModelLoaded by viewModel.isModelLoaded.collectAsState()
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -61,6 +65,50 @@ fun SettingsScreen(
                 }
             }
         }
+
+        item {
+            Text("Performance", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
+        }
+        items(2) { index ->
+            val mode = listOf(PerformanceMode.BALANCED, PerformanceMode.PERFORMANCE)[index]
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { viewModel.setPerformanceMode(mode) },
+                enabled = !isModelLoading
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            if (mode == PerformanceMode.PERFORMANCE) "Performance" else "Balanced",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            mode.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                    RadioButton(
+                        selected = performanceMode == mode,
+                        onClick = { viewModel.setPerformanceMode(mode) },
+                        enabled = !isModelLoading
+                    )
+                }
+            }
+        }
+        item {
+            Text(
+                "Both modes keep the context window at 1024 tokens. Changing modes reloads the model to apply the new CPU thread count.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
+        }
+
         item {
             Text("Local model", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
             Card(modifier = Modifier.fillMaxWidth()) {
@@ -72,15 +120,30 @@ fun SettingsScreen(
                     Text(
                         modelStatus,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (modelStatus.contains("ready", ignoreCase = true)) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (isModelLoaded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
                     )
-                    Button(onClick = viewModel::refreshModelStatus, enabled = !isModelLoading, modifier = Modifier.padding(top = 10.dp)) {
-                        Text(if (isModelLoading) "Loading model…" else "Load / check model")
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = viewModel::refreshModelStatus,
+                            enabled = !isModelLoading && !isModelLoaded,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(if (isModelLoading) "Loading…" else "Load model")
+                        }
+                        OutlinedButton(
+                            onClick = viewModel::ejectModel,
+                            enabled = isModelLoaded && !isModelLoading,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Eject model")
+                        }
                     }
                     Text(
-                        "The model runs locally. First load copies the bundled file into private app storage and can take time; later launches reuse that copy. Inference does not require network access.",
+                        "PocketQwen loads the model automatically on startup. Ejecting releases the model and its inference context from memory; the bundled model file remains on this device and can be loaded again here.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
