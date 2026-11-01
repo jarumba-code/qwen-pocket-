@@ -26,6 +26,9 @@ android {
 
     buildTypes {
         release {
+            // Experiment-only: sign the optimized APK with the debug key so it can
+            // be installed directly for on-device benchmarking. Never ship this key.
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
