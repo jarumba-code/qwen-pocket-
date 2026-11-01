@@ -1,6 +1,7 @@
 package com.pocketqwen.app.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import com.pocketqwen.app.model.Conversation
 import com.pocketqwen.app.storage.ConversationStore
 import androidx.compose.ui.unit.dp
@@ -117,12 +119,21 @@ fun MainScreen(
                 drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 modifier = Modifier.width(304.dp)
             ) {
-                Text(
-                    "PocketQwen",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 18.dp)
-                )
+                Row(
+                    modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 18.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_pocketqwen_coin),
+                        contentDescription = "PocketQwen coin logo",
+                        modifier = Modifier.padding(end = 10.dp).width(36.dp)
+                    )
+                    Text(
+                        "PocketQwen",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
                 NavigationDrawerItem(
                     label = { Text("New chat") },
                     selected = false,
@@ -211,7 +222,18 @@ fun MainScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(if (showSettings) "Settings" else "PocketQwen") },
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (!showSettings) {
+                                Image(
+                                    painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_pocketqwen_coin),
+                                    contentDescription = "PocketQwen coin logo",
+                                    modifier = Modifier.padding(end = 8.dp).width(28.dp)
+                                )
+                            }
+                            Text(if (showSettings) "Settings" else "PocketQwen")
+                        }
+                    },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Open sidebar")
