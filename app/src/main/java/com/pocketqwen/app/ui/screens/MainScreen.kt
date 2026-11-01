@@ -50,7 +50,10 @@ import androidx.compose.ui.unit.dp
 import com.pocketqwen.app.model.ChatMessage
 import com.pocketqwen.app.viewmodel.ChatViewModel
 import com.pocketqwen.app.viewmodel.SettingsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -85,8 +88,21 @@ fun MainScreen(
         }
     }
 
-    LaunchedEffect(conversations.toList()) {
-        conversationStore.save(conversations.toList())
+    // Stream updates mutate the in-memory conversation snapshot frequently. Persist on a
+    // background dispatcher at a bounded cadence instead of rewriting every message row for
+    // every streamed chunk (which competes with inference for CPU and storage I/O).
+    LaunchedEffect(conversationStore) {
+        var lastSaved: List<Conversation>? = null
+        while (true) {
+            val snapshot = conversations.toList()
+            if (snapshot != lastSaved) {
+                withContext(Dispatchers.IO) {
+                    conversationStore.save(snapshot)
+                }
+                lastSaved = snapshot
+            }
+            delay(750)
+        }
     }
 
     BackHandler(enabled = showSettings || drawerState.isOpen) {
