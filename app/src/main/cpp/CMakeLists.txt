@@ -20,5 +20,5 @@ add_subdirectory(llama.cpp)
 
 add_library(pocketqwen_native SHARED native_inference.cpp)
 target_compile_features(pocketqwen_native PRIVATE cxx_std_17)
-target_compile_options(pocketqwen_native PRIVATE -O3)
+target_compile_options(pocketqwen_native PRIVATE -O3 $<$<CONFIG:Release>:-DNDEBUG>)
 target_link_libraries(pocketqwen_native PRIVATE llama android log)
