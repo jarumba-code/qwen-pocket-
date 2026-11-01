@@ -125,8 +125,8 @@ fun MainScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
-                        painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_pocketqwen_coin),
-                        contentDescription = "PocketQwen coin logo",
+                        painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
+                        contentDescription = "Official Qwen model logo",
                         modifier = Modifier.padding(end = 10.dp).size(36.dp)
                     )
                     Text(
@@ -227,8 +227,8 @@ fun MainScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if (!showSettings) {
                                 Image(
-                                    painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_pocketqwen_coin),
-                                    contentDescription = "PocketQwen coin logo",
+                                    painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
+                                    contentDescription = "Official Qwen model logo",
                                     modifier = Modifier.padding(end = 8.dp).size(28.dp)
                                 )
                             }
