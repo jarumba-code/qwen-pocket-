@@ -86,7 +86,7 @@ static jstring utf8_to_jstring(JNIEnv *env, const std::string &utf8) {
     return env->NewString(utf16.data(), static_cast<jsize>(utf16.size()));
 }
 
-static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path) {
+static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode) {
     if (!path) return JNI_FALSE;
     std::lock_guard<std::mutex> loadLock(g_load_mutex);
     const char *p = env->GetStringUTFChars(path, nullptr);
@@ -100,7 +100,13 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path) {
     LOGI("llama_system_info=%s", systemInfo ? systemInfo : "unavailable");
     llama_model_params mp = llama_model_default_params();
     mp.n_gpu_layers = 0;
-    LOGI("Loading model; cpu_threads=all_available batch_threads=all_available context=1024 batch=2048 ubatch=512 gpu_layers=0; experiment-4 full-thread profile");
+    const unsigned int availableThreads = std::max(1u, std::thread::hardware_concurrency());
+    const bool performanceMode = mode != 0;
+    const int inferenceThreads = performanceMode
+        ? static_cast<int>(availableThreads)
+        : std::max(1, static_cast<int>(availableThreads / 2));
+    LOGI("Loading model; selected_mode=%s available_cpu_threads=%u inference_threads=%d context=1024 batch=2048 ubatch=512 gpu_layers=0",
+         performanceMode ? "performance" : "balanced", availableThreads, inferenceThreads);
     const auto start = std::chrono::steady_clock::now();
     const auto modelLoadStart = std::chrono::steady_clock::now();
     g_model = llama_model_load_from_file(p, mp);
@@ -111,15 +117,14 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path) {
     cp.n_ctx = 1024;
     cp.n_batch = 2048;
     cp.n_ubatch = 512;
-    // Experiment 4: use all CPU threads reported by the runtime, like llama.cpp
-    // auto-thread mode. This is a benchmark setting, not a guarantee of higher
-    // sustained speed: Android scheduling and thermal throttling still apply.
-    const int inferenceThreads = static_cast<int>(
-        std::max(1u, std::thread::hardware_concurrency()));
+    // Experiment 5: Performance uses all runtime-reported threads; Balanced
+    // uses half, rounded down, with a minimum of one. Both modes keep context=1024.
+    // Thread count is a policy choice, not a guarantee of better sustained speed.
     cp.n_threads = inferenceThreads;
     cp.n_threads_batch = inferenceThreads;
     const auto contextInitStart = std::chrono::steady_clock::now();
-    LOGI("Experiment 4 params inference_threads=%d (runtime hardware_concurrency) context=%u batch=%u ubatch=%u", inferenceThreads, cp.n_ctx, cp.n_batch, cp.n_ubatch);
+    LOGI("Experiment 5 params selected_mode=%s available_cpu_threads=%u inference_threads=%d context=%u batch=%u ubatch=%u gpu_layers=0",
+         performanceMode ? "performance" : "balanced", availableThreads, inferenceThreads, cp.n_ctx, cp.n_batch, cp.n_ubatch);
     g_ctx = llama_init_from_model(g_model, cp);
     const auto contextInitEnd = std::chrono::steady_clock::now();
     if (!g_ctx) { release_locked(); LOGE("Context creation failed; likely memory pressure"); return JNI_FALSE; }
@@ -346,7 +351,7 @@ static void nativeRelease(JNIEnv *, jobject) {
 }
 
 static JNINativeMethod methods[] = {
-    {const_cast<char*>("nativeLoadModel"), const_cast<char*>("(Ljava/lang/String;)Z"), (void*)nativeLoadModel},
+    {const_cast<char*>("nativeLoadModel"), const_cast<char*>("(Ljava/lang/String;I)Z"), (void*)nativeLoadModel},
     {const_cast<char*>("nativeGenerateResponse"), const_cast<char*>("(Ljava/lang/String;Lcom/pocketqwen/app/repository/TokenCallback;)V"), (void*)nativeGenerateResponse},
     {const_cast<char*>("nativeCancelGeneration"), const_cast<char*>("()V"), (void*)nativeCancelGeneration},
     {const_cast<char*>("nativeIsModelAvailable"), const_cast<char*>("()Z"), (void*)nativeIsModelAvailable},
