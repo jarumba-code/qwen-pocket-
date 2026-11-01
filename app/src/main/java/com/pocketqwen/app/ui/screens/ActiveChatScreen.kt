@@ -13,13 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,32 +35,49 @@ import com.pocketqwen.app.viewmodel.ChatViewModel
 
 @Composable
 fun ThinkingDots() {
-    val transition = rememberInfiniteTransition(label = "thinking-dots")
-    Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(start = 20.dp, top = 6.dp, bottom = 8.dp)) {
-        repeat(3) { index ->
-            val alpha by transition.animateFloat(
-                initialValue = 0.25f, targetValue = 1f,
-                animationSpec = infiniteRepeatable(tween(450, delayMillis = index * 140), RepeatMode.Reverse),
-                label = "dot-" + index
-            )
-            Text("●", color = MaterialTheme.colorScheme.primary, modifier = Modifier.alpha(alpha))
-        }
+    val transition = rememberInfiniteTransition(label = "qwen-thinking")
+    val alpha by transition.animateFloat(
+        initialValue = 0.45f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(650), RepeatMode.Reverse),
+        label = "qwen-logo-pulse"
+    )
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(9.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(start = 14.dp, top = 6.dp, bottom = 10.dp)
+    ) {
+        Image(
+            painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
+            contentDescription = "Qwen is thinking",
+            modifier = Modifier.size(28.dp).alpha(alpha)
+        )
+        Text(
+            "Qwen is thinking…",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
 @Composable
 private fun StreamingIndicator() {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp),
-        modifier = Modifier.padding(start = 14.dp, top = 6.dp, bottom = 10.dp)) {
-        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(28.dp)) {
-            androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) {
-                Text("Q", color = MaterialTheme.colorScheme.onPrimaryContainer, style = MaterialTheme.typography.labelLarge)
-            }
-        }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(9.dp),
+        modifier = Modifier.padding(start = 14.dp, top = 6.dp, bottom = 10.dp)
+    ) {
+        Image(
+            painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
+            contentDescription = "Qwen is writing",
+            modifier = Modifier.size(28.dp)
+        )
         CircularProgressIndicator(modifier = Modifier.size(15.dp), strokeWidth = 2.dp)
-        Text("Qwen is responding", style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            "Qwen is writing…",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
