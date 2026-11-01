@@ -12,7 +12,6 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import com.pocketqwen.app.settings.PerformanceMode
-import kotlinx.coroutines.flow.flowOf
 
 /** llama.cpp-backed local repository. No prompt or response is sent to a cloud service. */
 class NativeAiRepository(private val context: Context) : AiRepository {
