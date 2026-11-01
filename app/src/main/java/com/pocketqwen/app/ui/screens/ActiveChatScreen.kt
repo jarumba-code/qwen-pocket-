@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -88,6 +89,13 @@ fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
     val thinking by viewModel.thinking.collectAsState()
     val error by viewModel.error.collectAsState()
     val listState = rememberLazyListState()
+    // Approximate only: the exact llama.cpp tokenizer count (including prompt/template
+    // overhead) is not exposed to the UI yet. Keep the label explicit to avoid false precision.
+    val estimatedTokens = remember(messages) {
+        (messages.sumOf { it.text.length } + 3) / 4
+    }.coerceAtMost(1024)
+    val remainingTokens = (1024 - estimatedTokens).coerceAtLeast(0)
+    val remainingFraction = remainingTokens / 1024f
     LaunchedEffect(messages.size, messages.lastOrNull()?.text, isLoading, thinking) {
         val count = messages.size + if (thinking || (isLoading && !thinking)) 1 else 0
         if (count > 0) listState.animateScrollToItem(count - 1)
@@ -102,6 +110,30 @@ fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
             if (error != null) item {
                 Text("Error: " + error, color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            CircularProgressIndicator(
+                progress = { remainingFraction },
+                modifier = Modifier.size(28.dp),
+                strokeWidth = 3.dp,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "$remainingTokens / 1,024 context tokens left",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    "Approximate estimate · context resets in a new chat",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
         Text("Private · local model · no cloud inference", style = MaterialTheme.typography.labelSmall,
