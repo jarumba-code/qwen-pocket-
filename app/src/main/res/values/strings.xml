@@ -22,7 +22,7 @@
     <string name="ai_inference_title">AI Inference</string>
     <string name="ai_inference_not_connected">Not connected</string>
     <string name="about_title">About PocketQwen</string>
-    <string name="version">Version 1.0.0</string>
+    <string name="version">Version 1.1.0</string>
     <string name="privacy">Privacy</string>
     <string name="privacy_desc">All processing happens on your device.</string>
     <string name="no_conversations">No conversations yet</string>
