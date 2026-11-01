@@ -49,7 +49,7 @@ import androidx.compose.ui.res.painterResource
 import com.pocketqwen.app.model.Conversation
 import com.pocketqwen.app.storage.ConversationStore
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.size
+import androidx.compose.foundation.layout.size
 import com.pocketqwen.app.model.ChatMessage
 import com.pocketqwen.app.viewmodel.ChatViewModel
 import com.pocketqwen.app.viewmodel.SettingsViewModel
