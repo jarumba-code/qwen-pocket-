@@ -19,6 +19,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
     @Volatile private var loaded = false
     @Volatile private var status = "Bundled Qwen model is ready to initialize"
     @Volatile private var performanceMode = PerformanceMode.BALANCED
+    @Volatile private var modelOperationInProgress = false
     private val generationActive = AtomicBoolean(false)
     private val initializationLock = Any()
 
@@ -34,25 +35,35 @@ class NativeAiRepository(private val context: Context) : AiRepository {
             val wasLoaded = loaded
             performanceMode = mode
             if (wasLoaded) {
-                status = "Applying ${mode.name.lowercase().replaceFirstChar { it.uppercase() }} mode…"
-                nativeCancelGeneration()
-                nativeRelease()
-                loaded = false
-                status = "Reloading model with ${mode.name.lowercase().replaceFirstChar { it.uppercase() }} mode…"
-                initializeLocked()
+                modelOperationInProgress = true
+                try {
+                    status = "Applying ${mode.name.lowercase().replaceFirstChar { it.uppercase() }} mode…"
+                    nativeCancelGeneration()
+                    nativeRelease()
+                    loaded = false
+                    status = "Reloading model with ${mode.name.lowercase().replaceFirstChar { it.uppercase() }} mode…"
+                    initializeLocked()
+                } finally {
+                    modelOperationInProgress = false
+                }
             }
         }
     }
 
     override suspend fun releaseModel() = withContext(Dispatchers.IO) {
         synchronized(initializationLock) {
-            if (loaded || nativeIsModelAvailable()) {
-                status = "Ejecting local model…"
-                nativeCancelGeneration()
-                nativeRelease()
+            modelOperationInProgress = true
+            try {
+                if (loaded || nativeIsModelAvailable()) {
+                    status = "Ejecting local model…"
+                    nativeCancelGeneration()
+                    nativeRelease()
+                }
+                loaded = false
+                status = "Model unloaded"
+            } finally {
+                modelOperationInProgress = false
             }
-            loaded = false
-            status = "Model unloaded"
         }
     }
 
@@ -60,7 +71,12 @@ class NativeAiRepository(private val context: Context) : AiRepository {
         if (loaded) return@withContext true
         synchronized(initializationLock) {
             if (loaded) return@synchronized true
-            initializeLocked()
+            modelOperationInProgress = true
+            try {
+                initializeLocked()
+            } finally {
+                modelOperationInProgress = false
+            }
         }
     }
 
@@ -106,6 +122,10 @@ class NativeAiRepository(private val context: Context) : AiRepository {
         if (isIdentityQuestion(message)) {
             trySend(IDENTITY_RESPONSE)
             close()
+            return@callbackFlow
+        }
+        if (modelOperationInProgress) {
+            close(IllegalStateException("The local model is loading, unloading, or changing modes. Please try again shortly."))
             return@callbackFlow
         }
         if (generationActive.getAndSet(true)) {
