@@ -155,7 +155,8 @@ class NativeAiRepository(private val context: Context) : AiRepository {
                 nativeCancelGeneration()
                 worker.cancel()
             }
-            generationActive.set(false)
+            // Keep generationActive set until the native call really returns.
+            // Cancelling the coroutine does not interrupt a synchronous JNI call.
         }
     }
 
