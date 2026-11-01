@@ -69,7 +69,7 @@ class SettingsViewModel(
         if (_isModelLoading.value || _performanceMode.value == mode) return
         viewModelScope.launch {
             val wasLoaded = aiRepository.isModelAvailable()
-            _isModelLoading.value = wasLoaded
+            _isModelLoading.value = true
             _modelStatus.value = if (wasLoaded) "Applying ${mode.name.lowercase().replaceFirstChar { it.uppercase() }} mode…" else "Saving performance mode…"
             try {
                 appSettings.setPerformanceMode(mode)
