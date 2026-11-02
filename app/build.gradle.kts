@@ -8,7 +8,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.pocketqwen.app"
+        applicationId = "com.pocketqwen.gemmaexperiment1"
         minSdk = 24
         targetSdk = 34
         versionCode = 3
