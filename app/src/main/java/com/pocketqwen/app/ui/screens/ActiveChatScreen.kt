@@ -50,11 +50,11 @@ fun ThinkingDots() {
     ) {
         Image(
             painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
-            contentDescription = "Qwen is thinking",
+            contentDescription = "PocketQwen is thinking",
             modifier = Modifier.size(28.dp).alpha(alpha)
         )
         Text(
-            "Qwen is thinking…",
+            "PocketGemma is thinking…",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -70,12 +70,12 @@ private fun StreamingIndicator() {
     ) {
         Image(
             painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
-            contentDescription = "Qwen is writing",
+            contentDescription = "PocketQwen is writing",
             modifier = Modifier.size(28.dp)
         )
         CircularProgressIndicator(modifier = Modifier.size(15.dp), strokeWidth = 2.dp)
         Text(
-            "Qwen is writing…",
+            "PocketGemma is writing…",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
