@@ -36,7 +36,7 @@ fun WelcomeScreen(
         horizontalAlignment = Alignment.Start
     ) {
         Text(
-            text = "Welcome to PocketQwen",
+            text = "Welcome to Ekip",
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
@@ -48,7 +48,7 @@ fun WelcomeScreen(
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            text = "A lightweight AI assistant designed to run directly on your phone. Chat, learn, and work with local AI without sending each prompt to a cloud AI service.",
+            text = "A lightweight AI assistant built around a local language model. Chat, learn, and work with AI directly on your phone, without sending prompts to a cloud AI service for inference.",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
