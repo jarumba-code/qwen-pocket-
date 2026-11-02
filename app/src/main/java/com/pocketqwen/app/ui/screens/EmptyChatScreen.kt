@@ -39,7 +39,7 @@ fun EmptyChatScreen(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Private, on-device AI conversations. The local model is not connected yet; messages currently receive clearly labeled preview responses.",
+                text = "Gemma 3 1B · local AI on your phone. Your chat stays on-device unless you explicitly use an online feature.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 10.dp, bottom = 24.dp)
