@@ -54,7 +54,7 @@ fun ThinkingDots() {
             modifier = Modifier.size(28.dp).alpha(alpha)
         )
         Text(
-            "PocketGemma is thinking…",
+            "PocketQwen is thinking…",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -75,7 +75,7 @@ private fun StreamingIndicator() {
         )
         CircularProgressIndicator(modifier = Modifier.size(15.dp), strokeWidth = 2.dp)
         Text(
-            "PocketGemma is writing…",
+            "PocketQwen is writing…",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
