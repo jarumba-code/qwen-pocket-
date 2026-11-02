@@ -225,7 +225,7 @@ fun MainScreen(
                 }
                 Spacer(Modifier.padding(bottom = 12.dp))
                 Text(
-                    "Offline · on-device Qwen",
+                    "Local AI · on-device inference",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
@@ -241,11 +241,11 @@ fun MainScreen(
                             if (!showSettings) {
                                 Image(
                                     painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
-                                    contentDescription = "Official Qwen model logo",
+                                    contentDescription = "Ekip app icon",
                                     modifier = Modifier.padding(end = 8.dp).size(28.dp)
                                 )
                             }
-                            Text(if (showSettings) "Settings" else "PocketQwen")
+                            Text(if (showSettings) "Settings" else "Ekip")
                         }
                     },
                     navigationIcon = {
