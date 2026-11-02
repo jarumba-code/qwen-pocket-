@@ -94,6 +94,46 @@ jobs:
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --no-daemon
 
+      - name: Verify APK metadata and signature
+        run: |
+          APK="$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' -print -quit)"
+          test -n "$APK"
+          echo "APK path: $APK"
+          ls -lh "$APK"
+          "$ANDROID_HOME/build-tools/34.0.0/aapt" dump badging "$APK" | head -n 8
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose "$APK"
+          sha256sum "$APK"
+
+      - name: Install and launch APK on ARM64 Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: arm64-v8a
+          profile: pixel_2
+          emulator-boot-timeout: 900
+          script: |
+            APK="$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' -print -quit)"
+            echo "Installing $APK on Android emulator..."
+            adb install -r "$APK"
+            echo "Install succeeded. Launching app..."
+            adb shell monkey -p com.pocketqwen.gemmaexperiment1 1
+            sleep 10
+            adb shell dumpsys activity activities | grep -E 'mResumedActivity|topResumedActivity' || true
+            adb logcat -d -t 2000 > emulator-logcat.txt
+            if grep -E 'FATAL EXCEPTION|UnsatisfiedLinkError|INSTALL_FAILED' emulator-logcat.txt; then
+              echo "Potential app startup/install failure found in logcat."
+              exit 1
+            fi
+
+      - name: Upload emulator diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketqwen-gemma-emulator-diagnostics
+          path: emulator-logcat.txt
+          if-no-files-found: ignore
+
       - name: Upload optimized release APK artifact
         if: success()
         uses: actions/upload-artifact@v4
