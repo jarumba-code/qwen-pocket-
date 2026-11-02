@@ -16,7 +16,7 @@ import com.pocketqwen.app.settings.PerformanceMode
 /** llama.cpp-backed local repository. No prompt or response is sent to a cloud service. */
 class NativeAiRepository(private val context: Context) : AiRepository {
     @Volatile private var loaded = false
-    @Volatile private var status = "Bundled Qwen model is ready to initialize"
+    @Volatile private var status = "Bundled Gemma model is ready to initialize"
     @Volatile private var performanceMode = PerformanceMode.BALANCED
     @Volatile private var modelOperationInProgress = false
     private val generationActive = AtomicBoolean(false)
@@ -100,9 +100,9 @@ class NativeAiRepository(private val context: Context) : AiRepository {
                 if (modelFile.exists() && !modelFile.delete()) throw IOException("Could not replace incomplete model file")
                 if (!temporaryFile.renameTo(modelFile)) throw IOException("Could not finalize model copy")
             }
-            status = "Loading Qwen model into memory…"
+            status = "Loading Gemma 3 1B into memory…"
             loaded = nativeLoadModel(modelFile.absolutePath, performanceMode.nativeValue)
-            status = if (loaded) "Qwen2.5-0.5B ready · ${performanceMode.name.lowercase().replaceFirstChar { it.uppercase() }} mode · on-device only"
+            status = if (loaded) "Gemma 3 1B ready · ${performanceMode.name.lowercase().replaceFirstChar { it.uppercase() }} mode · on-device only"
                 else "Native model initialization failed. Check available RAM and app logs."
             return loaded
         } catch (e: Exception) {
