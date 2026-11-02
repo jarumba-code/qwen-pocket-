@@ -138,7 +138,7 @@ fun MainScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
-                        painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
+                        painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_ekip_logo),
                         contentDescription = "Official Qwen model logo",
                         modifier = Modifier.padding(end = 10.dp).size(36.dp)
                     )
