@@ -17,6 +17,8 @@ private object AppSettingsKey {
     val THEME_MODE = stringPreferencesKey("theme_mode")
     val IS_FIRST_LAUNCH = booleanPreferencesKey("is_first_launch")
     val PERFORMANCE_MODE = stringPreferencesKey("performance_mode")
+    val USER_NAME = stringPreferencesKey("user_name")
+    val ACCENT_COLOR = stringPreferencesKey("accent_color")
 }
 
 enum class ThemeMode {
@@ -58,6 +60,28 @@ class AppSettings(private val context: Context) {
     suspend fun setPerformanceMode(mode: PerformanceMode) {
         dataStore.edit { preferences ->
             preferences[AppSettingsKey.PERFORMANCE_MODE] = mode.name
+        }
+    }
+
+    fun getUserNameFlow(): Flow<String> = dataStore.data.map { preferences ->
+        preferences[AppSettingsKey.USER_NAME].orEmpty()
+    }
+
+    fun getAccentColorFlow(): Flow<String> = dataStore.data.map { preferences ->
+        preferences[AppSettingsKey.ACCENT_COLOR] ?: "BLUE"
+    }
+
+    suspend fun setUserName(name: String) {
+        dataStore.edit { preferences ->
+            preferences[AppSettingsKey.USER_NAME] = name.trim().take(40)
+        }
+    }
+
+    suspend fun setAccentColor(color: String) {
+        val allowed = setOf("RED", "BLUE", "GREEN", "LIGHT_BLUE", "DARK_BLUE", "BLACK", "GOLDEN", "PINK", "PURPLE")
+        if (color !in allowed) return
+        dataStore.edit { preferences ->
+            preferences[AppSettingsKey.ACCENT_COLOR] = color
         }
     }
 
