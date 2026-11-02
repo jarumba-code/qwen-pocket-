@@ -11,8 +11,8 @@ android {
         applicationId = "com.pocketqwen.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.1.1-gemma-experiment-1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk { abiFilters += "arm64-v8a" }
         externalNativeBuild { cmake { cppFlags += listOf("-std=c++17", "-O3") } }
