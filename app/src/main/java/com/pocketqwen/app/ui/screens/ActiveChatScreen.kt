@@ -49,7 +49,7 @@ fun ThinkingDots() {
         modifier = Modifier.padding(start = 14.dp, top = 6.dp, bottom = 10.dp)
     ) {
         Image(
-            painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
+            painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_ekip_logo),
             contentDescription = "Ekip is thinking",
             modifier = Modifier.size(28.dp).alpha(alpha)
         )
