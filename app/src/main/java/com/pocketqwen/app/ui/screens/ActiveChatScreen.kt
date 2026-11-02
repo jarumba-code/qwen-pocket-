@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -93,9 +94,9 @@ fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
     // overhead) is not exposed to the UI yet. Keep the label explicit to avoid false precision.
     val estimatedTokens = remember(messages) {
         (messages.sumOf { it.text.length } + 3) / 4
-    }.coerceAtMost(1024)
-    val remainingTokens = (1024 - estimatedTokens).coerceAtLeast(0)
-    val remainingFraction = remainingTokens / 1024f
+    }.coerceAtMost(1034)
+    val remainingTokens = (1034 - estimatedTokens).coerceAtLeast(0)
+    val remainingFraction = remainingTokens / 1034f
     LaunchedEffect(messages.size, messages.lastOrNull()?.text, isLoading, thinking) {
         val count = messages.size + if (thinking || (isLoading && !thinking)) 1 else 0
         if (count > 0) listState.animateScrollToItem(count - 1)
@@ -125,7 +126,7 @@ fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "$remainingTokens / 1,024 context tokens left",
+                    "$remainingTokens / 1,034 context tokens left",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
