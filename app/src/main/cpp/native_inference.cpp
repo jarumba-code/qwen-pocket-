@@ -105,7 +105,7 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode) {
     const int inferenceThreads = performanceMode
         ? static_cast<int>(availableThreads)
         : std::max(1, static_cast<int>(availableThreads / 2));
-    LOGI("Loading model; selected_mode=%s available_cpu_threads=%u inference_threads=%d context=1024 batch=2048 ubatch=512 gpu_layers=0",
+    LOGI("Loading model; selected_mode=%s available_cpu_threads=%u inference_threads=%d context=1034 batch=2048 ubatch=512 gpu_layers=0",
          performanceMode ? "performance" : "balanced", availableThreads, inferenceThreads);
     const auto start = std::chrono::steady_clock::now();
     const auto modelLoadStart = std::chrono::steady_clock::now();
@@ -114,11 +114,11 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode) {
     env->ReleaseStringUTFChars(path, p);
     if (!g_model) { LOGE("Model load failed; verify GGUF integrity and available RAM"); return JNI_FALSE; }
     llama_context_params cp = llama_context_default_params();
-    cp.n_ctx = 1024;
+    cp.n_ctx = 1034;
     cp.n_batch = 2048;
     cp.n_ubatch = 512;
     // Experiment 5: Performance uses all runtime-reported threads; Balanced
-    // uses half, rounded down, with a minimum of one. Both modes keep context=1024.
+    // uses half, rounded down, with a minimum of one. Both modes keep context=1034.
     // Thread count is a policy choice, not a guarantee of better sustained speed.
     cp.n_threads = inferenceThreads;
     cp.n_threads_batch = inferenceThreads;
