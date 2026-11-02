@@ -72,8 +72,21 @@ fun MainScreen(
     val conversationStore = remember(context) { ConversationStore(context) }
     val conversations = remember { mutableStateListOf<Conversation>().apply { addAll(conversationStore.loadAll()) } }
     val messages by chatViewModel.messages.collectAsState()
+    val isFirstLaunch by settingsViewModel.isFirstLaunch.collectAsState()
+    val userName by settingsViewModel.userName.collectAsState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    if (isFirstLaunch) {
+        WelcomeScreen(
+            onContinue = { enteredName ->
+                settingsViewModel.setUserName(enteredName)
+                settingsViewModel.dismissFirstLaunch()
+            },
+            modifier = modifier.fillMaxSize()
+        )
+        return
+    }
 
     LaunchedEffect(activeConversationId) { val id = activeConversationId; if (id != null) { val saved = conversations.firstOrNull { it.id == id }?.messages ?: emptyList(); chatViewModel.activateConversation(id, saved) } }
 
@@ -266,6 +279,7 @@ fun MainScreen(
                 } else if (messages.isEmpty()) {
                     EmptyChatScreen(
                         viewModel = chatViewModel,
+                        userName = userName,
                         modifier = Modifier.weight(1f).fillMaxWidth()
                     )
                 } else {
