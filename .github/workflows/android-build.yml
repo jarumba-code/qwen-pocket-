@@ -16,6 +16,7 @@ on:
       - experiment-3
       - experiment-4
       - feature/experiment-5-performance-settings
+      - experiment/gemma-model-experiment-1
   workflow_dispatch:
 
 permissions:
@@ -57,11 +58,11 @@ jobs:
           git clone https://github.com/ggml-org/llama.cpp.git app/src/main/cpp/llama.cpp
           git -C app/src/main/cpp/llama.cpp checkout 9125a2ebe8e5a38f0f4232170c134a29ed730b66
 
-      - name: Download bundled Qwen2.5-0.5B-Instruct model
+      - name: Download bundled Gemma 3 1B instruction model
         run: |
           mkdir -p app/src/main/assets
-          curl --fail --location --retry 5 --retry-all-errors "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf" --output app/src/main/assets/qwen.gguf
-          echo "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db  app/src/main/assets/qwen.gguf" | sha256sum --check
+          curl --fail --location --retry 5 --retry-all-errors "https://huggingface.co/unsloth/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q4_K_M.gguf" --output app/src/main/assets/qwen.gguf
+          test "$(stat -c%s app/src/main/assets/qwen.gguf)" -gt 750000000
           ls -lh app/src/main/assets/qwen.gguf
 
       - name: Report Termux-parity native build settings
@@ -97,7 +98,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: pocketqwen-experiment-5-release-apk
+          name: pocketqwen-gemma-model-experiment-1-release-apk
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
