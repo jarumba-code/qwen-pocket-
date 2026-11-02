@@ -114,7 +114,7 @@ fun SettingsScreen(
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Qwen2.5-0.5B-Instruct · Q4_K_M", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                        Text("Gemma 3 1B · Q4_K_M", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                         if (isModelLoading) CircularProgressIndicator()
                     }
                     Text(
@@ -153,7 +153,34 @@ fun SettingsScreen(
         }
         item {
             Text("About PocketQwen", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
-            Text("Version 1.1.0 · Private, on-device AI", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Gemma Model Experiment 1 · Experimental build", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        item {
+            Text("Privacy & data", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Local-first processing", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Prompts and responses are processed by the bundled model on this device. This build does not enable web search, advertising, analytics, or account sign-in. If online features are added in a future build, they must be clearly identified because queries may leave the device.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                    Text("Manage your data", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 14.dp))
+                    Text(
+                        "Open Recent chats in the sidebar to delete an individual conversation, or use Delete all chats there to clear local conversation history. Uninstalling the app removes its private app data.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                    Text(
+                        "No subscriptions or paid features are included in this experiment, so no refund or unsubscribe flow is needed.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            }
+        }
         }
     }
 }
