@@ -22,6 +22,10 @@ class SettingsViewModel(
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
     private val _performanceMode = MutableStateFlow(PerformanceMode.BALANCED)
     val performanceMode: StateFlow<PerformanceMode> = _performanceMode.asStateFlow()
+    private val _userName = MutableStateFlow("")
+    val userName: StateFlow<String> = _userName.asStateFlow()
+    private val _accentColor = MutableStateFlow("BLUE")
+    val accentColor: StateFlow<String> = _accentColor.asStateFlow()
     private val _isFirstLaunch = MutableStateFlow(true)
     val isFirstLaunch: StateFlow<Boolean> = _isFirstLaunch.asStateFlow()
     private val _modelStatus = MutableStateFlow("Preparing local model…")
@@ -36,6 +40,8 @@ class SettingsViewModel(
             _themeMode.value = appSettings.getThemeModeFlow().first()
             _performanceMode.value = appSettings.getPerformanceModeFlow().first()
             _isFirstLaunch.value = appSettings.isFirstLaunch()
+            _userName.value = appSettings.getUserNameFlow().first()
+            _accentColor.value = appSettings.getAccentColorFlow().first()
             aiRepository.configurePerformanceMode(_performanceMode.value)
             refreshModelStatus()
         }
@@ -108,6 +114,20 @@ class SettingsViewModel(
         viewModelScope.launch {
             appSettings.setThemeMode(mode)
             _themeMode.value = mode
+        }
+    }
+
+    fun setUserName(name: String) {
+        viewModelScope.launch {
+            appSettings.setUserName(name)
+            _userName.value = name.trim().take(40)
+        }
+    }
+
+    fun setAccentColor(color: String) {
+        viewModelScope.launch {
+            appSettings.setAccentColor(color)
+            _accentColor.value = color
         }
     }
 
