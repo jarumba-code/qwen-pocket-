@@ -161,7 +161,7 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jobject 
     #ifdef POCKETQWEN_GEMMA_EXPERIMENT
     // Gemma 3 instruction-tuned chat template. Keep this conditional scoped to
     // the experiment branch; Experiment 5 continues to use Qwen's ChatML format.
-    std::string("<start_of_turn>user\nYou are PocketQwen, a helpful offline assistant. Be clear and concise.\n\n")
+    std::string prompt = std::string("<start_of_turn>user\nYou are PocketQwen, a helpful offline assistant. Be clear and concise.\n\n")
         + raw + "<end_of_turn>\n<start_of_turn>model\n";
 #else
     std::string prompt = std::string("<|im_start|>system\nYou are PocketQwen, a helpful offline assistant. Be clear and concise.\n<|im_end|>\n<|im_start|>user\n") + raw + "\n<|im_end|>\n<|im_start|>assistant\n";
