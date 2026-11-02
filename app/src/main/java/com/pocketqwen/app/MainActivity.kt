@@ -56,12 +56,13 @@ class MainActivity : ComponentActivity() {
                 factory = SettingsViewModelFactory(applicationContext, repository)
             )
             val themeMode by settingsViewModel.themeMode.collectAsState()
+            val accentColor by settingsViewModel.accentColor.collectAsState()
             val darkTheme = when (themeMode) {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
                 ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
             }
-            PocketQwenTheme(darkTheme = darkTheme) {
+            PocketQwenTheme(darkTheme = darkTheme, accentColor = accentColor) {
                 val scheme = MaterialTheme.colorScheme
                 SideEffect {
                     window.statusBarColor = scheme.surface.toArgb()
