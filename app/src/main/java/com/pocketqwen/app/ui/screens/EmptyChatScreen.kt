@@ -24,6 +24,7 @@ import com.pocketqwen.app.viewmodel.ChatViewModel
 @Composable
 fun EmptyChatScreen(
     viewModel: ChatViewModel,
+    userName: String = "",
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize().imePadding()) {
@@ -34,9 +35,15 @@ fun EmptyChatScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "What can I help you with?",
+                text = if (userName.isBlank()) "Good day. What can I help you with?" else "Good day, $userName.",
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "What would you like to work on today?",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 6.dp, bottom = 12.dp)
             )
             Text(
                 text = "Private, on-device AI conversations. The local model is not connected yet; messages currently receive clearly labeled preview responses.",
