@@ -4,8 +4,8 @@
 
     <application
         android:allowBackup="false"
-        android:icon="@drawable/ic_qwen_logo"
-        android:roundIcon="@drawable/ic_qwen_logo"
+        android:icon="@drawable/ic_ekip_logo"
+        android:roundIcon="@drawable/ic_ekip_logo"
         android:label="@string/app_name"
         android:supportsRtl="true">
         <activity
