@@ -46,7 +46,7 @@ fun EmptyChatScreen(
                 modifier = Modifier.padding(top = 6.dp, bottom = 12.dp)
             )
             Text(
-                text = "Private, on-device AI conversations. The local model is not connected yet; messages currently receive clearly labeled preview responses.",
+                text = "Private, on-device AI conversations powered by a bundled local language model.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 10.dp, bottom = 24.dp)
@@ -77,30 +77,6 @@ fun EmptyChatScreen(
                         )
                     }
                 }
-            }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            CircularProgressIndicator(
-                progress = { 1f },
-                modifier = Modifier.size(28.dp),
-                strokeWidth = 3.dp,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    "1,024 / 1,024 context tokens left",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    "Approximate estimate · context resets in a new chat",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
         MessageComposer(
