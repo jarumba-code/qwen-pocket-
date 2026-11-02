@@ -16,6 +16,7 @@ on:
       - experiment-3
       - experiment-4
       - feature/experiment-5-performance-settings
+      - feature/experiment-5-ui-improvements
   workflow_dispatch:
 
 permissions:
