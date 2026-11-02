@@ -1,7 +1,7 @@
 name: Android Build
 
 concurrency:
-  group: pocketqwen-android-build-${{ github.ref }}
+  group: ekip-android-build-${{ github.ref }}
   cancel-in-progress: true
 
 on:
@@ -98,7 +98,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: pocketqwen-experiment-5-release-apk
+          name: ekip-experiment-5-release-apk
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
@@ -106,7 +106,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pocketqwen-native-build-diagnostics
+          name: ekip-native-build-diagnostics
           path: native-build-diagnostics/
           if-no-files-found: ignore
 
