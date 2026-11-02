@@ -102,7 +102,7 @@ fun SettingsScreen(
         }
         item {
             Text(
-                "Both modes keep the context window at 1024 tokens. Changing modes reloads the model to apply the new CPU thread count.",
+                "Both modes keep the context window at 1034 tokens. Changing modes reloads the model to apply the new CPU thread count.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 4.dp)
@@ -154,6 +154,7 @@ fun SettingsScreen(
         item {
             Text("About PocketQwen", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
             Text("Gemma Model Experiment 1 · Experimental build", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         item {
             Text("Privacy & data", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
             Card(modifier = Modifier.fillMaxWidth()) {
