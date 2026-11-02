@@ -25,11 +25,9 @@ import androidx.compose.ui.unit.dp
 import com.pocketqwen.app.model.ChatMessage
 import com.pocketqwen.app.model.MessageStatus
 
-private data class CodePart(val language: String, val code: String)
-
 private fun splitCodeBlocks(text: String): List<Pair<Boolean, String>> {
     val parts = mutableListOf<Pair<Boolean, String>>()
-    val regex = Regex("```([^\n]*)\n([\s\S]*?)```")
+    val regex = Regex("""```([^\n]*)\n([\s\S]*?)```""")
     var cursor = 0
     regex.findAll(text).forEach { match ->
         if (match.range.first > cursor) parts += false to text.substring(cursor, match.range.first)
