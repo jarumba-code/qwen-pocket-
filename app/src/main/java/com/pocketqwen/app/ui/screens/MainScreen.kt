@@ -67,6 +67,7 @@ fun MainScreen(
 ) {
     var showSettings by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<Conversation?>(null) }
+    var pendingDeleteAll by remember { mutableStateOf(false) }
     var activeConversationId by remember { mutableStateOf(java.util.UUID.randomUUID().toString()) }
     val context = LocalContext.current
     val conversationStore = remember(context) { ConversationStore(context) }
@@ -164,6 +165,16 @@ fun MainScreen(
                     },
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
+                NavigationDrawerItem(
+                    label = { Text("Delete all chats") },
+                    selected = false,
+                    icon = { Icon(Icons.Default.DeleteOutline, contentDescription = null) },
+                    onClick = {
+                        pendingDeleteAll = true
+                        scope.launch { drawerState.close() }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
                 Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp))
                 Text(
                     "Recent chats",
@@ -212,7 +223,7 @@ fun MainScreen(
                 }
                 Spacer(Modifier.padding(bottom = 12.dp))
                 Text(
-                    "Offline · on-device Qwen",
+                    "Offline · on-device Gemma 3 1B",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
@@ -276,6 +287,26 @@ fun MainScreen(
                 }
             }
         }
+    }
+
+    if (pendingDeleteAll) {
+        AlertDialog(
+            onDismissRequest = { pendingDeleteAll = false },
+            title = { Text("Delete all conversations?") },
+            text = { Text("This permanently deletes all saved chat history from this device. The bundled Gemma model is not deleted.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    conversations.clear()
+                    scope.launch(Dispatchers.IO) { conversationStore.save(emptyList()) }
+                    activeConversationId = java.util.UUID.randomUUID().toString()
+                    chatViewModel.clearMessages()
+                    pendingDeleteAll = false
+                }) { Text("Delete all", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDeleteAll = false }) { Text("Cancel") }
+            }
+        )
     }
 
     pendingDelete?.let { conversation ->
