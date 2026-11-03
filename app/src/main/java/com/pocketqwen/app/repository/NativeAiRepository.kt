@@ -117,7 +117,8 @@ class NativeAiRepository(private val context: Context) : AiRepository {
 
     override fun generateResponse(messages: List<ChatMessage>): Flow<String> = callbackFlow {
         val latestUserMessage = messages.lastOrNull { it.isUser }?.text.orEmpty()
-        val prompt = try { buildPrompt(messages) } catch (e: Exception) {
+        val outputBudget = selectOutputBudget(latestUserMessage)
+        val prompt = try { buildPrompt(messages, outputBudget) } catch (e: Exception) {
             close(e)
             return@callbackFlow
         }
@@ -142,7 +143,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
             val responseStartNs = System.nanoTime()
             try {
                 if (!loaded && !initialize()) throw IllegalStateException(status)
-                nativeGenerateResponse(prompt, object : TokenCallback {
+                nativeGenerateResponse(prompt, outputBudget, object : TokenCallback {
                     override fun onToken(text: String) {
                         if (text.isNotEmpty()) trySend(text)
                     }
@@ -176,7 +177,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
      * Oldest complete turns are discarded first when the 2,048-token context budget is tight.
      * The JNI layer performs the authoritative tokenizer-based context check.
      */
-    private fun buildPrompt(messages: List<ChatMessage>): String {
+    private fun buildPrompt(messages: List<ChatMessage>, outputBudget: Int): String {
         val system = """You are Ekip, a helpful, careful, practical assistant running locally on this device.
 Answer the user's latest request directly. Use earlier messages only when they are relevant to the current topic; do not carry unrelated subjects into a new question.
 Be clear and naturally conversational. Start with the answer, then add useful explanation. Ask one focused clarification only when essential information is missing.
@@ -187,7 +188,7 @@ Keep all responses age-appropriate. Do not provide instructions that facilitate 
 Do not claim to browse the internet, use external tools, or perform actions outside this device. The local model may be wrong; be transparent when confidence is limited."""
         val prefix = "<|im_start|>system\n\${system}\n<|im_end|>\n"
         val suffix = "<|im_start|>assistant\n"
-        val usableChars = (CONTEXT_TOKENS - MAX_OUTPUT_TOKENS) * APPROX_CHARS_PER_TOKEN
+        val usableChars = (CONTEXT_TOKENS - outputBudget - CONTEXT_SAFETY_MARGIN) * APPROX_CHARS_PER_TOKEN
         var remaining = usableChars - prefix.length - suffix.length
         val validMessages = messages.filter {
             it.status != MessageStatus.SENDING && it.text.isNotBlank()
@@ -211,13 +212,35 @@ Do not claim to browse the internet, use external tools, or perform actions outs
         return prefix + retained.asReversed().joinToString(separator = "") + suffix
     }
 
+    private fun selectOutputBudget(message: String): Int {
+        val text = message.lowercase()
+        val essay = text.contains("essay") || text.contains("500 word") ||
+            text.contains("500-word") || text.contains("600 word") ||
+            text.contains("700 word") || text.contains("800 word") ||
+            text.contains("1000 word") || text.contains("long-form") ||
+            text.contains("detailed report")
+        val detailed = text.contains("explain in detail") || text.contains("comprehensive") ||
+            text.contains("in depth") || text.contains("step by step") ||
+            text.contains("long answer") || text.contains("detailed explanation")
+        val code = (text.contains("write") || text.contains("generate") ||
+            text.contains("create") || text.contains("build")) &&
+            (text.contains("code") || text.contains("program") || text.contains("script") ||
+            text.contains("function") || text.contains("class") || text.contains("app"))
+        return when {
+            essay -> 1024
+            code || detailed -> 768
+            text.length > 700 -> 512
+            else -> 384
+        }
+    }
+
     private fun isIdentityQuestion(message: String): Boolean {
         val normalized = message.trim().lowercase().replace(Regex("[.!?\\s]+$"), "")
         return normalized == "who are you" || normalized == "what are you"
     }
 
     private external fun nativeLoadModel(modelPath: String, performanceMode: Int): Boolean
-    private external fun nativeGenerateResponse(message: String, callback: TokenCallback)
+    private external fun nativeGenerateResponse(message: String, maxTokens: Int, callback: TokenCallback)
     private external fun nativeCancelGeneration()
     private external fun nativeIsModelAvailable(): Boolean
     private external fun nativeGetModelStatus(): String
@@ -228,7 +251,7 @@ Do not claim to browse the internet, use external tools, or perform actions outs
         private const val MODEL_FILENAME = "qwen.gguf"
         private const val MIN_MODEL_BYTES = 100_000_000L
         private const val CONTEXT_TOKENS = 2048
-        private const val MAX_OUTPUT_TOKENS = 384
+        private const val CONTEXT_SAFETY_MARGIN = 64
         private const val APPROX_CHARS_PER_TOKEN = 3
         private const val IDENTITY_RESPONSE =
             "I am Ekip, a private on-device AI assistant. I use a local language model, so ordinary chat does not require cloud inference."
