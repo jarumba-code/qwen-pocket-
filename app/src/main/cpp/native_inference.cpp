@@ -154,7 +154,7 @@ static void nativeCancelGeneration(JNIEnv *, jobject) {
     LOGI("Cancellation requested");
 }
 
-static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jobject callback) {
+static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint requestedMaxTokens, jobject callback) {
     if (!input || !callback) return;
     const char *raw = env->GetStringUTFChars(input, nullptr);
     if (!raw) return;
@@ -191,8 +191,8 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jobject 
         count = llama_tokenize(vocab, prompt.c_str(), static_cast<int32_t>(prompt.size()), tokens.data(), static_cast<int32_t>(tokens.size()), true, true);
     }
     const auto tokenizeEnd = std::chrono::steady_clock::now();
-    constexpr int MAX_GENERATION_TOKENS = 384;
-    if (count <= 0 || count > static_cast<int32_t>(llama_n_ctx(g_ctx)) - MAX_GENERATION_TOKENS - 8) {
+    const int maxGenerationTokens = std::clamp(static_cast<int>(requestedMaxTokens), 128, 1024);
+    if (count <= 0 || count > static_cast<int32_t>(llama_n_ctx(g_ctx)) - maxGenerationTokens - 8) {
         jclass ex = env->FindClass("java/lang/IllegalArgumentException");
         if (ex) env->ThrowNew(ex, "Message is too long for the local context window. Please shorten it.");
         LOGE("Prompt rejected: tokens=%d context=%u", count, llama_n_ctx(g_ctx));
@@ -298,7 +298,7 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jobject 
          std::chrono::duration<double, std::milli>(tokenizeStart - requestStart).count(),
          std::chrono::duration<double, std::milli>(tokenizeEnd - tokenizeStart).count(),
          promptBatchMs, promptDecodeMs);
-    for (int i = 0; i < MAX_GENERATION_TOKENS && !g_cancel_requested.load(); ++i) {
+    for (int i = 0; i < maxGenerationTokens && !g_cancel_requested.load(); ++i) {
         const auto sampleStart = std::chrono::steady_clock::now();
         llama_token token = llama_sampler_sample(g_sampler, g_ctx, -1);
         sampleMs += std::chrono::duration<double, std::milli>(
