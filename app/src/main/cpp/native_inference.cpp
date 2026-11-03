@@ -354,7 +354,7 @@ static void nativeRelease(JNIEnv *, jobject) {
 
 static JNINativeMethod methods[] = {
     {const_cast<char*>("nativeLoadModel"), const_cast<char*>("(Ljava/lang/String;I)Z"), (void*)nativeLoadModel},
-    {const_cast<char*>("nativeGenerateResponse"), const_cast<char*>("(Ljava/lang/String;Lcom/pocketqwen/app/repository/TokenCallback;)V"), (void*)nativeGenerateResponse},
+    {const_cast<char*>("nativeGenerateResponse"), const_cast<char*>("(Ljava/lang/String;ILcom/pocketqwen/app/repository/TokenCallback;)V"), (void*)nativeGenerateResponse},
     {const_cast<char*>("nativeCancelGeneration"), const_cast<char*>("()V"), (void*)nativeCancelGeneration},
     {const_cast<char*>("nativeIsModelAvailable"), const_cast<char*>("()Z"), (void*)nativeIsModelAvailable},
     {const_cast<char*>("nativeGetModelStatus"), const_cast<char*>("()Ljava/lang/String;"), (void*)nativeGetModelStatus},
