@@ -1,11 +1,12 @@
 package com.pocketqwen.app.repository
 
 import kotlinx.coroutines.flow.Flow
+import com.pocketqwen.app.model.ChatMessage
 import com.pocketqwen.app.settings.PerformanceMode
 
 /** Isolates local inference from the UI. Implementations must not send prompts to a cloud service. */
 interface AiRepository {
-    fun generateResponse(message: String): Flow<String>
+    fun generateResponse(messages: List<ChatMessage>): Flow<String>
     fun isModelAvailable(): Boolean
     fun getModelStatus(): String
 

@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import kotlin.coroutines.coroutineContext
 
-/** Streams text into one assistant bubble and keeps jobs associated with their originating chat. */
+/** Maintains separate chat histories and streams local inference against the active conversation. */
 class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
     private val conversations = mutableMapOf<String, MutableList<ChatMessage>>()
     private val jobs = mutableMapOf<String, Job>()
@@ -44,36 +44,78 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
         if (trimmed.isEmpty()) return
         val key = activeKey
         if (jobs[key]?.isActive == true) return
+        conversations.getOrPut(key) { mutableListOf() }.add(
+            ChatMessage(UUID.randomUUID().toString(), trimmed, true, status = MessageStatus.SENT)
+        )
+        _error.value = null
+        startGeneration(key)
+    }
+
+    /**
+     * Edits a user message, removes every later turn, and regenerates the assistant response.
+     * Editing is disabled while generation is active to avoid overlapping JNI inference.
+     */
+    fun editMessage(messageId: String, revisedText: String) {
+        val text = revisedText.trim()
+        if (text.isBlank()) return
+        val key = activeKey
+        if (jobs[key]?.isActive == true) return
+        val list = conversations[key] ?: return
+        val index = list.indexOfFirst { it.id == messageId && it.isUser }
+        if (index < 0) return
+
+        list[index] = list[index].copy(text = text, status = MessageStatus.SENT)
+        while (list.size > index + 1) list.removeAt(list.lastIndex)
+        _error.value = null
+        startGeneration(key)
+    }
+
+    private fun startGeneration(key: String) {
         val list = conversations.getOrPut(key) { mutableListOf() }
-        list += ChatMessage(UUID.randomUUID().toString(), trimmed, true, status = MessageStatus.SENT)
+        val contextMessages = list.toList()
         val assistantId = UUID.randomUUID().toString()
         list += ChatMessage(assistantId, "", false, status = MessageStatus.SENDING)
-        _error.value = null
-        if (key == activeKey) { _isLoading.value = true; _thinking.value = true; publishActive() }
+        if (key == activeKey) {
+            _isLoading.value = true
+            _thinking.value = true
+            publishActive()
+        }
 
-        // LAZY start ensures the map owns this exact Job before its finally block can run.
         val generationJob = viewModelScope.launch(start = CoroutineStart.LAZY) {
             val output = StringBuilder()
             try {
-                aiRepository.generateResponse(trimmed).collect { chunk ->
+                aiRepository.generateResponse(contextMessages).collect { chunk ->
                     if (chunk.isNotEmpty() && !chunk.startsWith("[End of")) {
                         output.append(chunk)
                         updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
-                        if (key == activeKey) { _thinking.value = false; publishActive() }
+                        if (key == activeKey) {
+                            _thinking.value = false
+                            publishActive()
+                        }
                     }
                 }
-                if (output.isEmpty()) updateAssistant(key, assistantId, "Generation ended without text. Try again.", MessageStatus.ERROR)
+                if (output.isEmpty()) {
+                    updateAssistant(key, assistantId, "Generation ended without text. Try again.", MessageStatus.ERROR)
+                }
             } catch (e: CancellationException) {
                 if (output.isNotEmpty()) updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
                 else updateAssistant(key, assistantId, "Generation stopped.", MessageStatus.SENT)
                 throw e
             } catch (e: Exception) {
                 if (output.isNotEmpty()) updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
-                else updateAssistant(key, assistantId, "Generation failed. " + (e.message ?: "Check model status and retry."), MessageStatus.ERROR)
+                else updateAssistant(
+                    key, assistantId,
+                    "Generation failed. " + (e.message ?: "Check model status and retry."),
+                    MessageStatus.ERROR
+                )
                 if (key == activeKey) _error.value = e.message ?: "Unable to generate a response."
             } finally {
                 if (jobs[key] === coroutineContext[Job]) jobs.remove(key)
-                if (key == activeKey) { _isLoading.value = false; _thinking.value = false; publishActive() }
+                if (key == activeKey) {
+                    _isLoading.value = false
+                    _thinking.value = false
+                    publishActive()
+                }
             }
         }
         jobs[key] = generationJob
@@ -93,9 +135,12 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
         jobs.remove(key)
         val list = conversations[key]
         val pending = list?.indexOfLast { !it.isUser && it.status == MessageStatus.SENDING } ?: -1
-        if (list != null && pending >= 0) list[pending] = list[pending].copy(
-            text = list[pending].text.ifBlank { "Generation stopped." }, status = MessageStatus.SENT
-        )
+        if (list != null && pending >= 0) {
+            list[pending] = list[pending].copy(
+                text = list[pending].text.ifBlank { "Generation stopped." },
+                status = MessageStatus.SENT
+            )
+        }
         _isLoading.value = false
         _thinking.value = false
         publishActive()
@@ -119,5 +164,5 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
         _isLoading.value = jobs[activeKey]?.isActive == true
     }
 
-    companion object { private const val NEW_CHAT_KEY = "__pocketqwen_new_chat__" }
+    companion object { private const val NEW_CHAT_KEY = "__ekip_new_chat__" }
 }

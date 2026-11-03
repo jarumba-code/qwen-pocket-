@@ -12,6 +12,8 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import com.pocketqwen.app.settings.PerformanceMode
+import com.pocketqwen.app.model.ChatMessage
+import com.pocketqwen.app.model.MessageStatus
 
 /** llama.cpp-backed local repository. No prompt or response is sent to a cloud service. */
 class NativeAiRepository(private val context: Context) : AiRepository {
@@ -113,12 +115,17 @@ class NativeAiRepository(private val context: Context) : AiRepository {
         }
     }
 
-    override fun generateResponse(message: String): Flow<String> = callbackFlow {
-        if (message.isBlank()) {
+    override fun generateResponse(messages: List<ChatMessage>): Flow<String> = callbackFlow {
+        val latestUserMessage = messages.lastOrNull { it.isUser }?.text.orEmpty()
+        val prompt = try { buildPrompt(messages) } catch (e: Exception) {
+            close(e)
+            return@callbackFlow
+        }
+        if (latestUserMessage.isBlank()) {
             close(IllegalArgumentException("Enter a message first."))
             return@callbackFlow
         }
-        if (isIdentityQuestion(message)) {
+        if (isIdentityQuestion(latestUserMessage)) {
             trySend(IDENTITY_RESPONSE)
             close()
             return@callbackFlow
@@ -135,7 +142,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
             val responseStartNs = System.nanoTime()
             try {
                 if (!loaded && !initialize()) throw IllegalStateException(status)
-                nativeGenerateResponse(message.trim(), object : TokenCallback {
+                nativeGenerateResponse(prompt, object : TokenCallback {
                     override fun onToken(text: String) {
                         if (text.isNotEmpty()) trySend(text)
                     }
@@ -164,6 +171,46 @@ class NativeAiRepository(private val context: Context) : AiRepository {
         nativeCancelGeneration()
     }
 
+    /**
+     * Build a Qwen chat-template prompt with recent turns from this conversation.
+     * Oldest complete turns are discarded first when the 2,048-token context budget is tight.
+     * The JNI layer performs the authoritative tokenizer-based context check.
+     */
+    private fun buildPrompt(messages: List<ChatMessage>): String {
+        val system = """You are Ekip, a helpful, careful, practical assistant running locally on this device.
+Answer the user's latest request directly. Use earlier messages only when they are relevant to the current topic; do not carry unrelated subjects into a new question.
+Be clear and naturally conversational. Start with the answer, then add useful explanation. Ask one focused clarification only when essential information is missing.
+For programming, explain assumptions, provide complete code where appropriate, and never claim code was tested unless it was actually tested.
+For factual, legal, financial, and technical questions, distinguish known facts from estimates. Admit uncertainty and do not invent sources, citations, capabilities, or current information.
+For health questions, provide general educational information and safe next steps without diagnosing. Do not automatically refuse ordinary symptom questions. Explain when professional assessment is appropriate and direct urgent symptoms to local emergency medical care.
+Keep all responses age-appropriate. Do not provide instructions that facilitate violence, self-harm, exploitation or abuse of children, dangerous challenges, or other serious harm. For unsafe requests, briefly explain the limit and redirect to a safe alternative.
+Do not claim to browse the internet, use external tools, or perform actions outside this device. The local model may be wrong; be transparent when confidence is limited."""
+        val prefix = "<|im_start|>system\n\${system}\n<|im_end|>\n"
+        val suffix = "<|im_start|>assistant\n"
+        val usableChars = (CONTEXT_TOKENS - MAX_OUTPUT_TOKENS) * APPROX_CHARS_PER_TOKEN
+        var remaining = usableChars - prefix.length - suffix.length
+        val validMessages = messages.filter {
+            it.status != MessageStatus.SENDING && it.text.isNotBlank()
+        }
+        val latestUser = validMessages.lastOrNull { it.isUser }
+            ?: throw IllegalArgumentException("Enter a message first.")
+        val retained = mutableListOf<String>()
+
+        for (message in validMessages.asReversed()) {
+            val role = if (message.isUser) "user" else "assistant"
+            val segment = "<|im_start|>$role\n\${message.text}\n<|im_end|>\n"
+            if (segment.length <= remaining) {
+                retained += segment
+                remaining -= segment.length
+            } else if (message.id == latestUser.id) {
+                throw IllegalArgumentException(
+                    "That message is too long for the local context window. Shorten it and try again."
+                )
+            }
+        }
+        return prefix + retained.asReversed().joinToString(separator = "") + suffix
+    }
+
     private fun isIdentityQuestion(message: String): Boolean {
         val normalized = message.trim().lowercase().replace(Regex("[.!?\\s]+$"), "")
         return normalized == "who are you" || normalized == "what are you"
@@ -177,10 +224,13 @@ class NativeAiRepository(private val context: Context) : AiRepository {
     private external fun nativeRelease()
 
     companion object {
-        private const val LOG_TAG = "PocketQwenNative"
+        private const val LOG_TAG = "EkipNative"
         private const val MODEL_FILENAME = "qwen.gguf"
         private const val MIN_MODEL_BYTES = 100_000_000L
+        private const val CONTEXT_TOKENS = 2048
+        private const val MAX_OUTPUT_TOKENS = 384
+        private const val APPROX_CHARS_PER_TOKEN = 3
         private const val IDENTITY_RESPONSE =
-            "I am a digital assistant created by PocketQwen, a team of developers, designed to run locally on phones."
+            "I am Ekip, a private on-device AI assistant. I use a local language model, so ordinary chat does not require cloud inference."
     }
 }

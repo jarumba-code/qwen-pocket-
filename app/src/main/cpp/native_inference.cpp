@@ -10,7 +10,7 @@
 #include <mutex>
 #include "llama.h"
 
-#define LOG_TAG "PocketQwenNative"
+#define LOG_TAG "EkipNative"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
@@ -105,7 +105,7 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode) {
     const int inferenceThreads = performanceMode
         ? static_cast<int>(availableThreads)
         : std::max(1, static_cast<int>(availableThreads / 2));
-    LOGI("Loading model; selected_mode=%s available_cpu_threads=%u inference_threads=%d context=1024 batch=2048 ubatch=512 gpu_layers=0",
+    LOGI("Loading model; selected_mode=%s available_cpu_threads=%u inference_threads=%d context=2048 batch=512 ubatch=256 gpu_layers=0",
          performanceMode ? "performance" : "balanced", availableThreads, inferenceThreads);
     const auto start = std::chrono::steady_clock::now();
     const auto modelLoadStart = std::chrono::steady_clock::now();
@@ -114,11 +114,11 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode) {
     env->ReleaseStringUTFChars(path, p);
     if (!g_model) { LOGE("Model load failed; verify GGUF integrity and available RAM"); return JNI_FALSE; }
     llama_context_params cp = llama_context_default_params();
-    cp.n_ctx = 1024;
-    cp.n_batch = 2048;
-    cp.n_ubatch = 512;
+    cp.n_ctx = 2048;
+    cp.n_batch = 512;
+    cp.n_ubatch = 256;
     // Experiment 5: Performance uses all runtime-reported threads; Balanced
-    // uses half, rounded down, with a minimum of one. Both modes keep context=1024.
+    // uses half, rounded down, with a minimum of one. Both modes keep context=2048.
     // Thread count is a policy choice, not a guarantee of better sustained speed.
     cp.n_threads = inferenceThreads;
     cp.n_threads_batch = inferenceThreads;
@@ -158,7 +158,8 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jobject 
     if (!input || !callback) return;
     const char *raw = env->GetStringUTFChars(input, nullptr);
     if (!raw) return;
-    std::string prompt = std::string("<|im_start|>system\nYou are PocketQwen, a helpful offline assistant. Be clear and concise.\n<|im_end|>\n<|im_start|>user\n") + raw + "\n<|im_end|>\n<|im_start|>assistant\n";
+    // Kotlin supplies a complete, context-bounded Qwen chat-template prompt with recent turns.
+    std::string prompt(raw);
     env->ReleaseStringUTFChars(input, raw);
     std::lock_guard<std::mutex> lock(g_mutex);
     if (!g_initialized || !g_model || !g_ctx || !g_sampler) {
@@ -190,7 +191,8 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jobject 
         count = llama_tokenize(vocab, prompt.c_str(), static_cast<int32_t>(prompt.size()), tokens.data(), static_cast<int32_t>(tokens.size()), true, true);
     }
     const auto tokenizeEnd = std::chrono::steady_clock::now();
-    if (count <= 0 || count > static_cast<int32_t>(llama_n_ctx(g_ctx)) - 162) {
+    constexpr int MAX_GENERATION_TOKENS = 384;
+    if (count <= 0 || count > static_cast<int32_t>(llama_n_ctx(g_ctx)) - MAX_GENERATION_TOKENS - 8) {
         jclass ex = env->FindClass("java/lang/IllegalArgumentException");
         if (ex) env->ThrowNew(ex, "Message is too long for the local context window. Please shorten it.");
         LOGE("Prompt rejected: tokens=%d context=%u", count, llama_n_ctx(g_ctx));
@@ -296,7 +298,7 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jobject 
          std::chrono::duration<double, std::milli>(tokenizeStart - requestStart).count(),
          std::chrono::duration<double, std::milli>(tokenizeEnd - tokenizeStart).count(),
          promptBatchMs, promptDecodeMs);
-    for (int i = 0; i < 160 && !g_cancel_requested.load(); ++i) {
+    for (int i = 0; i < MAX_GENERATION_TOKENS && !g_cancel_requested.load(); ++i) {
         const auto sampleStart = std::chrono::steady_clock::now();
         llama_token token = llama_sampler_sample(g_sampler, g_ctx, -1);
         sampleMs += std::chrono::duration<double, std::milli>(
