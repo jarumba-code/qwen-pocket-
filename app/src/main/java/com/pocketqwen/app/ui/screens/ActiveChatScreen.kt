@@ -94,9 +94,9 @@ fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
     // overhead) is not exposed to the UI yet. Keep the label explicit to avoid false precision.
     val estimatedTokens = remember(messages) {
         (messages.sumOf { it.text.length } + 3) / 4
-    }.coerceAtMost(1024)
-    val remainingTokens = (1024 - estimatedTokens).coerceAtLeast(0)
-    val remainingFraction = remainingTokens / 1024f
+    }.coerceAtMost(2048)
+    val remainingTokens = (2048 - estimatedTokens).coerceAtLeast(0)
+    val remainingFraction = remainingTokens / 2048f
     LaunchedEffect(messages.size, messages.lastOrNull()?.text, isLoading, thinking) {
         val count = messages.size + if (thinking || (isLoading && !thinking)) 1 else 0
         if (count > 0) listState.animateScrollToItem(count - 1)
@@ -126,12 +126,12 @@ fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "$remainingTokens / 1,024 context tokens left",
+                    "$remainingTokens / 2,048 context tokens left",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    "Approximate estimate · context resets in a new chat",
+                    "Approximate estimate · recent messages are kept within this chat's context",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
