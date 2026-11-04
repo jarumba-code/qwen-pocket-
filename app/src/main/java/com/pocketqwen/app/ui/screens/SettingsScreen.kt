@@ -240,7 +240,7 @@ fun SettingsScreen(
         AlertDialog(
             onDismissRequest = { showPrivacy = false },
             title = { Text("PocketQwen privacy") },
-            text = { Text("Offline chat prompts and responses are processed by the bundled model on your device. Conversation history and settings are stored in app-private storage. Web Search, if enabled, sends your search query to the configured search service. Submitting a report sends only the information shown in the report form. Do not submit passwords, private keys, or sensitive account information. Model answers may be inaccurate.") },
+            text = { Text("Offline chat prompts and responses are processed on this device. Optional Web Search sends your query to the configured provider. Reports send only the category, details, selected excerpt and app version to the configured report service. Do not submit passwords, private keys or financial credentials. Model answers can be inaccurate. Online services are unavailable until the deployment is configured.") },
             confirmButton = { TextButton(onClick = { showPrivacy = false }) { Text("Close") } }
         )
     }
