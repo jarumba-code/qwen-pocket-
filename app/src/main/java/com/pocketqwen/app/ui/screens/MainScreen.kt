@@ -138,7 +138,7 @@ fun MainScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
-                        painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_ekip_logo),
+                        painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
                         contentDescription = "Official Qwen model logo",
                         modifier = Modifier.padding(end = 10.dp).size(36.dp)
                     )
@@ -241,11 +241,11 @@ fun MainScreen(
                             if (!showSettings) {
                                 Image(
                                     painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
-                                    contentDescription = "Ekip app icon",
+                                    contentDescription = "PocketQwen app icon",
                                     modifier = Modifier.padding(end = 8.dp).size(28.dp)
                                 )
                             }
-                            Text(if (showSettings) "Settings" else "Ekip")
+                            Text(if (showSettings) "Settings" else "PocketQwen")
                         }
                     },
                     navigationIcon = {
