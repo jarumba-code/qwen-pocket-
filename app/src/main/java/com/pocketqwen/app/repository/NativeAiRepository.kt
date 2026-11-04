@@ -250,19 +250,27 @@ When no web-search context is supplied, do not claim to browse the internet or u
             text.contains("700 word") || text.contains("800 word") ||
             text.contains("1000 word") || text.contains("long-form") ||
             text.contains("detailed report")
-        val detailed = text.contains("explain in detail") || text.contains("comprehensive") ||
+        val detailed = text.contains("explain") || text.contains("comprehensive") ||
             text.contains("in depth") || text.contains("step by step") ||
-            text.contains("long answer") || text.contains("detailed explanation")
+            text.contains("long answer") || text.contains("detailed") ||
+            text.contains("break down") || text.contains("walk me through") ||
+            text.contains("tutorial") || text.contains("guide") ||
+            text.contains("compare") || text.contains("analyze") || text.contains("analyse")
+        val concise = text.contains("briefly") || text.contains("concise") ||
+            text.contains("short answer") || text.contains("one sentence") ||
+            text.contains("in one sentence") || text.contains("tl;dr") ||
+            text.contains("quick answer")
         val code = (text.contains("write") || text.contains("generate") ||
             text.contains("create") || text.contains("build")) &&
             (text.contains("code") || text.contains("program") || text.contains("script") ||
             text.contains("function") || text.contains("class") || text.contains("app"))
         return when {
+            concise -> 128
             essay || detailed -> 1024
             code -> 768
-            text.length > 700 -> 256
-            text.length < 80 -> 128
-            else -> 192
+            text.length > 700 -> 384
+            text.length < 80 -> 192
+            else -> 256
         }
     }
 
