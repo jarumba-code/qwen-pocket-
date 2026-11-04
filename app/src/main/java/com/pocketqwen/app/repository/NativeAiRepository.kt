@@ -134,7 +134,8 @@ class NativeAiRepository(private val context: Context) : AiRepository {
         }
     }
     override suspend fun countContextTokens(messages: List<ChatMessage>): Int? = withContext(Dispatchers.IO) {
-        if (!loaded || messages.isEmpty()) return@withContext 0
+        if (!loaded) return@withContext null
+        if (messages.isEmpty()) return@withContext 0
         runCatching {
             val latest = messages.lastOrNull { it.isUser }?.text.orEmpty()
             val budget = minOf(selectOutputBudget(latest), (configuredContextTokens / 3).coerceAtLeast(128))
@@ -230,7 +231,11 @@ When no web-search context is supplied, do not claim to browse the internet or u
         var prompt = render()
         var tokenCount = nativeCountTokens(prompt)
         while (tokenCount > promptBudget && retained.size > 1) {
-            retained.removeAt(0); prompt = render(); tokenCount = nativeCountTokens(prompt)
+            // Drop the oldest complete user/assistant turn where possible.
+            val removeCount = if (retained.size >= 3 && retained[0].isUser && !retained[1].isUser) 2 else 1
+            repeat(minOf(removeCount, retained.size - 1)) { retained.removeAt(0) }
+            prompt = render()
+            tokenCount = nativeCountTokens(prompt)
         }
         if (tokenCount < 0 || tokenCount > promptBudget || retained.none { it.id == latestUser.id }) {
             throw IllegalArgumentException("This request exceeds the selected ${configuredContextTokens}-token context window. Shorten it or select a larger context.")

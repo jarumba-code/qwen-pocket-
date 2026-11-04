@@ -112,14 +112,18 @@ class ChatViewModel(
                         results = webSearchRepository.search(query)
                         if (results.isEmpty()) {
                             searchNotice = "Web Search found no results. This answer is based on the local model and may not reflect current information."
+                            if (key == activeKey) _searchStatus.value = "Web Search found no results. Generating a local answer…"
                         } else {
                             retrievedContext = buildSearchContext(query, results)
                             if (key == activeKey) _searchStatus.value = "Found ${results.size} sources. Generating a local answer…"
                         }
                     } catch (e: CancellationException) {
                         throw e
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         searchNotice = "Web Search failed: ${e.message ?: "service unavailable"}. Answering with the local model only; current information is not verified."
+                        if (key == activeKey) _searchStatus.value = "Web Search failed. Generating a local answer without live results…"
                     }
                 }
                 aiRepository.generateResponse(contextMessages, retrievedContext).collect { chunk ->
