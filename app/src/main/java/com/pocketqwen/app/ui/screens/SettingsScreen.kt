@@ -42,7 +42,7 @@ import com.pocketqwen.app.viewmodel.SettingsViewModel
 private data class AccentOption(val id: String, val label: String, val color: Color)
 
 private val accentOptions = listOf(
-    AccentOption("BLUE", "Blue", Color(0xFF1677FF))
+    AccentOption("GOLDEN", "Champagne gold", Color(0xFFC5A04A))
 )
 @Composable
 fun SettingsScreen(
@@ -92,11 +92,11 @@ fun SettingsScreen(
             }
         }
 
-        item { Text("Accent color", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)) }
+        item { Text("Brand accent", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)) }
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Choose a color for buttons and highlights. Your light or dark background stays unchanged.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Champagne gold is the PocketQwen brand accent.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     accentOptions.chunked(3).forEach { rowOptions ->
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             rowOptions.forEach { option ->
