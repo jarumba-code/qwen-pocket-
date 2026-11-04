@@ -1,4 +1,4 @@
-name: Android Build
+name: Ekip Android Build
 
 concurrency:
   group: pocketqwen-android-build-${{ github.ref }}
