@@ -20,6 +20,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
     @Volatile private var loaded = false
     @Volatile private var status = "Bundled Qwen model is ready to initialize"
     @Volatile private var performanceMode = PerformanceMode.BALANCED
+    @Volatile private var configuredContextTokens = 1024
     @Volatile private var modelOperationInProgress = false
     private val generationActive = AtomicBoolean(false)
     private val initializationLock = Any()
@@ -103,7 +104,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
                 if (!temporaryFile.renameTo(modelFile)) throw IOException("Could not finalize model copy")
             }
             status = "Loading Qwen model into memory…"
-            loaded = nativeLoadModel(modelFile.absolutePath, performanceMode.nativeValue)
+            loaded = nativeLoadModel(modelFile.absolutePath, performanceMode.nativeValue, configuredContextTokens)
             status = if (loaded) "Qwen2.5-0.5B ready · ${performanceMode.name.lowercase().replaceFirstChar { it.uppercase() }} mode · on-device only"
                 else "Native model initialization failed. Check available RAM and app logs."
             return loaded
@@ -115,13 +116,41 @@ class NativeAiRepository(private val context: Context) : AiRepository {
         }
     }
 
-    override fun generateResponse(messages: List<ChatMessage>): Flow<String> = callbackFlow {
+    override val contextWindowTokens: Int get() = configuredContextTokens
+
+    override suspend fun configureContextWindow(tokens: Int) = withContext(Dispatchers.IO) {
+        require(tokens == 1024 || tokens == 2048) { "Supported context windows are 1,024 and 2,048 tokens." }
+        synchronized(initializationLock) {
+            if (configuredContextTokens == tokens) return@synchronized
+            val wasLoaded = loaded
+            configuredContextTokens = tokens
+            if (wasLoaded) {
+                modelOperationInProgress = true
+                try {
+                    nativeCancelGeneration()
+                    nativeRelease()
+                    loaded = false
+                    status = "Reloading model with $tokens-token context…"
+                    initializeLocked()
+                } finally { modelOperationInProgress = false }
+            }
+        }
+    }
+
+    override suspend fun countContextTokens(messages: List<ChatMessage>): Int? = withContext(Dispatchers.IO) {
+        if (!loaded || messages.isEmpty()) return@withContext 0
+        runCatching {
+            val latest = messages.lastOrNull { it.isUser }?.text.orEmpty()
+            val budget = minOf(selectOutputBudget(latest), (configuredContextTokens / 3).coerceAtLeast(128))
+            nativeCountTokens(buildPrompt(messages, budget, null))
+        }.getOrNull()?.takeIf { it >= 0 }
+    }
+
+    override fun generateResponse(messages: List<ChatMessage>): Flow<String> = generateResponse(messages, null)
+
+    override fun generateResponse(messages: List<ChatMessage>, additionalContext: String?): Flow<String> = callbackFlow {
         val latestUserMessage = messages.lastOrNull { it.isUser }?.text.orEmpty()
         val outputBudget = selectOutputBudget(latestUserMessage)
-        val prompt = try { buildPrompt(messages, outputBudget) } catch (e: Exception) {
-            close(e)
-            return@callbackFlow
-        }
         if (latestUserMessage.isBlank()) {
             close(IllegalArgumentException("Enter a message first."))
             return@callbackFlow
@@ -143,6 +172,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
             val responseStartNs = System.nanoTime()
             try {
                 if (!loaded && !initialize()) throw IllegalStateException(status)
+                val prompt = buildPrompt(messages, outputBudget, additionalContext)
                 nativeGenerateResponse(prompt, outputBudget, object : TokenCallback {
                     override fun onToken(text: String) {
                         if (text.isNotEmpty()) trySend(text)
@@ -174,10 +204,9 @@ class NativeAiRepository(private val context: Context) : AiRepository {
 
     /**
      * Build a Qwen chat-template prompt with recent turns from this conversation.
-     * Oldest complete turns are discarded first when the 2,048-token context budget is tight.
-     * The JNI layer performs the authoritative tokenizer-based context check.
+     * Uses the actual llama.cpp tokenizer to trim older history to the selected context.
      */
-    private fun buildPrompt(messages: List<ChatMessage>, outputBudget: Int): String {
+    private fun buildPrompt(messages: List<ChatMessage>, outputBudget: Int, additionalContext: String?): String {
         val system = """You are PocketQwen, a helpful, careful, practical assistant running locally on this device.
 Answer the user's latest request directly. Use earlier messages only when they are relevant to the current topic; do not carry unrelated subjects into a new question.
 Be clear and naturally conversational. Start with the answer, then add useful explanation. Ask one focused clarification only when essential information is missing.
@@ -186,30 +215,31 @@ For factual, legal, financial, and technical questions, distinguish known facts 
 For health questions, provide general educational information and safe next steps without diagnosing. Do not automatically refuse ordinary symptom questions. Explain when professional assessment is appropriate and direct urgent symptoms to local emergency medical care.
 Keep all responses age-appropriate. Do not provide instructions that facilitate violence, self-harm, exploitation or abuse of children, dangerous challenges, or other serious harm. For unsafe requests, briefly explain the limit and redirect to a safe alternative.
 Do not claim to browse the internet, use external tools, or perform actions outside this device. The local model may be wrong; be transparent when confidence is limited."""
-        val prefix = "<|im_start|>system\n${system}\n<|im_end|>\n"
+        val searchContext = additionalContext?.takeIf { it.isNotBlank() }?.let { "\n\n" + it.take(MAX_SEARCH_CONTEXT_CHARS) }.orEmpty()
+        val prefix = "<|im_start|>system\n${system}${searchContext}\n<|im_end|>\n"
         val suffix = "<|im_start|>assistant\n"
-        val usableChars = (CONTEXT_TOKENS - outputBudget - CONTEXT_SAFETY_MARGIN) * APPROX_CHARS_PER_TOKEN
-        var remaining = usableChars - prefix.length - suffix.length
         val validMessages = messages.filter {
             it.status != MessageStatus.SENDING && it.text.isNotBlank()
         }
         val latestUser = validMessages.lastOrNull { it.isUser }
             ?: throw IllegalArgumentException("Enter a message first.")
-        val retained = mutableListOf<String>()
-
-        for (message in validMessages.asReversed()) {
+        val retained = validMessages.toMutableList()
+        val promptBudget = configuredContextTokens - outputBudget - CONTEXT_SAFETY_MARGIN
+        fun render(): String = prefix + retained.joinToString("") { message ->
             val role = if (message.isUser) "user" else "assistant"
-            val segment = "<|im_start|>$role\n${message.text}\n<|im_end|>\n"
-            if (segment.length <= remaining) {
-                retained += segment
-                remaining -= segment.length
-            } else if (message.id == latestUser.id) {
-                throw IllegalArgumentException(
-                    "That message is too long for the local context window. Shorten it and try again."
-                )
-            }
+            "<|im_start|>$role\n${message.text}\n<|im_end|>\n"
+        } + suffix
+        var prompt = render()
+        var tokenCount = nativeCountTokens(prompt)
+        while (tokenCount > promptBudget && retained.size > 1) {
+            retained.removeAt(0)
+            prompt = render()
+            tokenCount = nativeCountTokens(prompt)
         }
-        return prefix + retained.asReversed().joinToString(separator = "") + suffix
+        if (tokenCount < 0 || tokenCount > promptBudget || retained.none { it.id == latestUser.id }) {
+            throw IllegalArgumentException("This request exceeds the selected ${configuredContextTokens}-token context window. Shorten it or select a larger context.")
+        }
+        return prompt
     }
 
     private fun selectOutputBudget(message: String): Int {
@@ -227,10 +257,10 @@ Do not claim to browse the internet, use external tools, or perform actions outs
             (text.contains("code") || text.contains("program") || text.contains("script") ||
             text.contains("function") || text.contains("class") || text.contains("app"))
         return when {
-            essay -> 1024
-            code || detailed -> 768
-            text.length > 700 -> 512
-            else -> 384
+            essay -> 512
+            code || detailed -> 384
+            text.length > 700 -> 256
+            else -> 192
         }
     }
 
@@ -239,20 +269,20 @@ Do not claim to browse the internet, use external tools, or perform actions outs
         return normalized == "who are you" || normalized == "what are you"
     }
 
-    private external fun nativeLoadModel(modelPath: String, performanceMode: Int): Boolean
+    private external fun nativeLoadModel(modelPath: String, performanceMode: Int, contextTokens: Int): Boolean
     private external fun nativeGenerateResponse(message: String, maxTokens: Int, callback: TokenCallback)
     private external fun nativeCancelGeneration()
     private external fun nativeIsModelAvailable(): Boolean
     private external fun nativeGetModelStatus(): String
+    private external fun nativeCountTokens(prompt: String): Int
     private external fun nativeRelease()
 
     companion object {
         private const val LOG_TAG = "EkipNative"
         private const val MODEL_FILENAME = "qwen.gguf"
         private const val MIN_MODEL_BYTES = 100_000_000L
-        private const val CONTEXT_TOKENS = 2048
         private const val CONTEXT_SAFETY_MARGIN = 64
-        private const val APPROX_CHARS_PER_TOKEN = 3
+        private const val MAX_SEARCH_CONTEXT_CHARS = 4800
         private const val IDENTITY_RESPONSE =
             "I am PocketQwen, a private on-device AI assistant. I use a local language model, so ordinary chat does not require cloud inference."
     }

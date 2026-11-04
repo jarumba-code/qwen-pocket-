@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,8 @@ fun EmptyChatScreen(
     modifier: Modifier = Modifier
 ) {
     var draftSuggestion by remember { mutableStateOf("") }
+    val searchEnabled by viewModel.webSearchEnabled.collectAsState()
+    val searchStatus by viewModel.searchStatus.collectAsState()
     val suggestions = listOf(
         Triple("Explain a difficult concept", "Break a topic into clear, simple steps.", "school"),
         Triple("Help me write some code", "Work through a programming problem.", "code"),
@@ -131,7 +134,10 @@ fun EmptyChatScreen(
         MessageComposer(
             onSend = viewModel::sendMessage,
             modifier = Modifier.fillMaxWidth(),
-            initialText = draftSuggestion
+            initialText = draftSuggestion,
+            webSearchEnabled = searchEnabled,
+            onWebSearchChange = viewModel::setWebSearchEnabled,
+            searchStatus = searchStatus
         )
     }
 }

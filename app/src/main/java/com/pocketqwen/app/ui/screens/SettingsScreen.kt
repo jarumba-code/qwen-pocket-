@@ -1,6 +1,7 @@
 package com.pocketqwen.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,7 +43,15 @@ import com.pocketqwen.app.viewmodel.SettingsViewModel
 private data class AccentOption(val id: String, val label: String, val color: Color)
 
 private val accentOptions = listOf(
-    AccentOption("GOLDEN", "Champagne gold", Color(0xFFC5A04A))
+    AccentOption("RED", "Red", Color(0xFFC44747)),
+    AccentOption("BLUE", "Blue", Color(0xFF3267C8)),
+    AccentOption("GREEN", "Green", Color(0xFF34845B)),
+    AccentOption("LIGHT_BLUE", "Light blue", Color(0xFF39A9D6)),
+    AccentOption("DARK_BLUE", "Dark blue", Color(0xFF243B73)),
+    AccentOption("BLACK", "Black", Color(0xFF333333)),
+    AccentOption("GOLDEN", "Champagne gold", Color(0xFFC5A04A)),
+    AccentOption("PINK", "Pink", Color(0xFFD65B9B)),
+    AccentOption("PURPLE", "Purple", Color(0xFF8054B8))
 )
 @Composable
 fun SettingsScreen(
@@ -52,6 +61,7 @@ fun SettingsScreen(
 ) {
     val themeMode by viewModel.themeMode.collectAsState()
     val performanceMode by viewModel.performanceMode.collectAsState()
+    val contextWindow by viewModel.contextWindow.collectAsState()
     val modelStatus by viewModel.modelStatus.collectAsState()
     val isModelLoading by viewModel.isModelLoading.collectAsState()
     val isModelLoaded by viewModel.isModelLoaded.collectAsState()
@@ -172,11 +182,31 @@ fun SettingsScreen(
         }
         item {
             Text(
-                "Both modes keep the context window at 2,048 tokens. Performance uses all available CPU threads; Balanced uses about half. Changing modes applies the selected CPU thread count.",
+                "Balanced uses about half of the available CPU threads; Performance uses all available threads. Context size is configured separately and can increase memory use.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
+        }
+
+        item {
+            Text("Context window", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Choose how much conversation the local model can consider.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    listOf(1024, 2048).forEach { tokens ->
+                        Row(modifier = Modifier.fillMaxWidth().clickable(enabled = !isModelLoading) { viewModel.setContextWindow(tokens) }.padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(if (tokens == 1024) "1,024 tokens" else "2,048 tokens", style = MaterialTheme.typography.titleMedium)
+                                Text(if (tokens == 1024) "Recommended default for lower-memory phones." else "More room for longer conversations; uses more memory.",
+                                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            RadioButton(selected = contextWindow == tokens, onClick = { viewModel.setContextWindow(tokens) }, enabled = !isModelLoading)
+                        }
+                    }
+                }
+            }
         }
 
         item {
@@ -197,7 +227,7 @@ fun SettingsScreen(
                         }
                     }
                     Text(
-                        "PocketQwen runs the bundled Qwen model on this device. Ejecting releases the model and inference context from memory; the bundled model file remains available to load again.",
+                        "Ekip runs the bundled Qwen model on this device. Ejecting releases model and inference memory; the bundled model file remains available to load again. Changing the context window reloads the model.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
@@ -221,7 +251,7 @@ fun SettingsScreen(
             Text("About PocketQwen", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("PocketQwen · Version 1.1.0", style = MaterialTheme.typography.titleMedium)
+                    Text("Ekip · Version 1.1.0", style = MaterialTheme.typography.titleMedium)
                     Text("Built by JIMM.tech in Nigeria.", style = MaterialTheme.typography.bodyMedium)
                     Text(
                         "PocketQwen is an AI project focused on privacy, data sovereignty, and making local AI more accessible on everyday devices. Founded by Collins Asanya, a Nigerian college student, the project explores how AI can run directly on users' devices, reducing dependence on cloud inference where supported.",

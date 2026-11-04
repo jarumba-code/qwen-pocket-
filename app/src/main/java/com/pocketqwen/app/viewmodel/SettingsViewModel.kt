@@ -26,6 +26,8 @@ class SettingsViewModel(
     val userName: StateFlow<String> = _userName.asStateFlow()
     private val _accentColor = MutableStateFlow("GOLDEN")
     val accentColor: StateFlow<String> = _accentColor.asStateFlow()
+    private val _contextWindow = MutableStateFlow(1024)
+    val contextWindow: StateFlow<Int> = _contextWindow.asStateFlow()
     private val _isFirstLaunch = MutableStateFlow(true)
     val isFirstLaunch: StateFlow<Boolean> = _isFirstLaunch.asStateFlow()
     private val _modelStatus = MutableStateFlow("Preparing local model…")
@@ -42,7 +44,9 @@ class SettingsViewModel(
             _isFirstLaunch.value = appSettings.isFirstLaunch()
             _userName.value = appSettings.getUserNameFlow().first()
             _accentColor.value = appSettings.getAccentColorFlow().first()
+            _contextWindow.value = appSettings.getContextWindowFlow().first()
             aiRepository.configurePerformanceMode(_performanceMode.value)
+            aiRepository.configureContextWindow(_contextWindow.value)
             refreshModelStatus()
         }
     }
@@ -125,9 +129,25 @@ class SettingsViewModel(
     }
 
     fun setAccentColor(color: String) {
+        if (color !in AppSettings.ACCENT_COLORS) return
+        viewModelScope.launch { appSettings.setAccentColor(color); _accentColor.value = color }
+    }
+
+    fun setContextWindow(tokens: Int) {
+        if (tokens !in AppSettings.CONTEXT_WINDOWS || _contextWindow.value == tokens || _isModelLoading.value) return
         viewModelScope.launch {
-            appSettings.setAccentColor(color)
-            _accentColor.value = color
+            _isModelLoading.value = true
+            _modelStatus.value = "Applying $tokens-token context window…"
+            try {
+                appSettings.setContextWindow(tokens)
+                aiRepository.configureContextWindow(tokens)
+                _contextWindow.value = tokens
+                _isModelLoaded.value = aiRepository.isModelAvailable()
+                _modelStatus.value = aiRepository.getModelStatus()
+            } catch (e: Exception) {
+                _modelStatus.value = "Could not apply context window: ${e.message ?: "unknown error"}"
+                _isModelLoaded.value = aiRepository.isModelAvailable()
+            } finally { _isModelLoading.value = false }
         }
     }
 

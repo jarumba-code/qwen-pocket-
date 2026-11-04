@@ -2,6 +2,7 @@ package com.pocketqwen.app.settings
 
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -19,6 +20,7 @@ private object AppSettingsKey {
     val PERFORMANCE_MODE = stringPreferencesKey("performance_mode")
     val USER_NAME = stringPreferencesKey("user_name")
     val ACCENT_COLOR = stringPreferencesKey("accent_color")
+    val CONTEXT_WINDOW = intPreferencesKey("context_window")
 }
 
 enum class ThemeMode {
@@ -67,12 +69,17 @@ class AppSettings(private val context: Context) {
         preferences[AppSettingsKey.USER_NAME].orEmpty()
     }
 
-    // Older installs may have a saved blue accent; map it to the new gold brand accent.
     fun getAccentColorFlow(): Flow<String> = dataStore.data.map { preferences ->
-        when (preferences[AppSettingsKey.ACCENT_COLOR]) {
-            "GOLDEN" -> "GOLDEN"
-            else -> "GOLDEN"
-        }
+        val saved = preferences[AppSettingsKey.ACCENT_COLOR] ?: "GOLDEN"
+        saved.takeIf { it in ACCENT_COLORS } ?: "GOLDEN"
+    }
+
+    fun getContextWindowFlow(): Flow<Int> = dataStore.data.map { preferences ->
+        preferences[AppSettingsKey.CONTEXT_WINDOW]?.takeIf { it in CONTEXT_WINDOWS } ?: 1024
+    }
+
+    suspend fun setContextWindow(tokens: Int) {
+        if (tokens in CONTEXT_WINDOWS) dataStore.edit { it[AppSettingsKey.CONTEXT_WINDOW] = tokens }
     }
 
     suspend fun setUserName(name: String) {
@@ -82,16 +89,18 @@ class AppSettings(private val context: Context) {
     }
 
     suspend fun setAccentColor(color: String) {
-        if (color != "GOLDEN") return
-        dataStore.edit { preferences ->
-            preferences[AppSettingsKey.ACCENT_COLOR] = color
-        }
+        if (color in ACCENT_COLORS) dataStore.edit { it[AppSettingsKey.ACCENT_COLOR] = color }
     }
 
     suspend fun setFirstLaunch(isFirst: Boolean) {
         dataStore.edit { preferences ->
             preferences[AppSettingsKey.IS_FIRST_LAUNCH] = isFirst
         }
+    }
+
+    companion object {
+        val ACCENT_COLORS = setOf("RED", "BLUE", "GREEN", "LIGHT_BLUE", "DARK_BLUE", "BLACK", "GOLDEN", "PINK", "PURPLE")
+        val CONTEXT_WINDOWS = setOf(1024, 2048)
     }
 
     suspend fun isFirstLaunch(): Boolean {

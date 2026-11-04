@@ -76,6 +76,9 @@ jobs:
           echo "NDK: $ANDROID_HOME/ndk/29.0.14206865"
           grep -m1 'Pkg.Revision' "$ANDROID_HOME/ndk/29.0.14206865/source.properties"
 
+      - name: Run unit tests before packaging
+        run: ./gradlew testDebugUnitTest --no-daemon
+
       - name: Build optimized release and installable debug APKs
         run: ./gradlew assembleRelease assembleDebug --no-daemon --stacktrace
 
