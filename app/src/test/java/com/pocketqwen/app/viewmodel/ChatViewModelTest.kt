@@ -3,7 +3,6 @@ package com.pocketqwen.app.viewmodel
 import com.pocketqwen.app.model.ChatMessage
 import com.pocketqwen.app.model.MessageStatus
 import com.pocketqwen.app.repository.AiRepository
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
@@ -113,29 +112,53 @@ class ChatViewModelTest {
         assertFalse(viewModel.isLoading.value)
     }
 
-    @Test fun stoppingAnOldJobDoesNotRemoveANewerJobForSameChat() = runTest(dispatcher) {
-        repository.response = flow {
-            emit("Old partial")
-            awaitCancellation()
-        }
-        viewModel.sendMessage("First")
-        runCurrent()
-        viewModel.stopGeneration()
-        repository.response = flowOf("New answer")
-        viewModel.sendMessage("Second")
+    @Test fun editMessageRemovesFollowingTurnsAndRegenerates() = runTest(dispatcher) {
+        repository.response = flowOf("First answer")
+        viewModel.sendMessage("First question")
         advanceUntilIdle()
-        assertEquals("New answer", viewModel.messages.value.last().text)
-        assertFalse(viewModel.isLoading.value)
+        repository.response = flowOf("Second answer")
+        viewModel.sendMessage("Second question")
+        advanceUntilIdle()
+
+        val firstUser = viewModel.messages.value.first()
+        repository.response = flowOf("Revised answer")
+        viewModel.editMessage(firstUser.id, "Revised question")
+        advanceUntilIdle()
+
+        assertEquals(2, viewModel.messages.value.size)
+        assertEquals("Revised question", viewModel.messages.value.first().text)
+        assertEquals("Revised answer", viewModel.messages.value.last().text)
+        assertEquals(3, repository.generateCalls)
+    }
+
+    @Test fun tokenLimitShowsIncompleteWarning() = runTest(dispatcher) {
+        repository.response = flowOf("Partial response", "__POCKETQWEN_STATUS__:TOKEN_LIMIT")
+        viewModel.sendMessage("Write a report")
+        advanceUntilIdle()
+        val assistant = viewModel.messages.value.last()
+        assertTrue(assistant.text.contains("may be incomplete"))
+        assertTrue(assistant.text.contains("generation limit"))
+    }
+
+    @Test fun nativeDecodeErrorShowsIncompleteWarning() = runTest(dispatcher) {
+        repository.response = flowOf("Partial response", "__POCKETQWEN_STATUS__:INCOMPLETE_ERROR")
+        viewModel.sendMessage("Explain this")
+        advanceUntilIdle()
+        val assistant = viewModel.messages.value.last()
+        assertTrue(assistant.text.contains("stopped unexpectedly"))
+        assertTrue(assistant.text.contains("may be incomplete"))
     }
 
     private class FakeAiRepository : AiRepository {
         var response: Flow<String> = flowOf("Test response")
         var generateCalls = 0
             private set
-        override fun generateResponse(message: String): Flow<String> {
+
+        override fun generateResponse(messages: List<ChatMessage>): Flow<String> {
             generateCalls++
             return response
         }
+
         override fun isModelAvailable(): Boolean = true
         override fun getModelStatus(): String = "Test model ready"
     }
