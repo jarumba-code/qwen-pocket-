@@ -84,11 +84,13 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
         val generationJob = viewModelScope.launch(start = CoroutineStart.LAZY) {
             val output = StringBuilder()
             var hitTokenLimit = false
+            var hitNativeError = false
             try {
                 aiRepository.generateResponse(contextMessages).collect { chunk ->
-                    if (chunk == "__POCKETQWEN_STATUS__:TOKEN_LIMIT") {
-                        hitTokenLimit = true
-                    } else if (chunk.isNotEmpty() && !chunk.startsWith("[End of")) {
+                    when (chunk) {
+                        "__POCKETQWEN_STATUS__:TOKEN_LIMIT" -> hitTokenLimit = true
+                        "__POCKETQWEN_STATUS__:INCOMPLETE_ERROR" -> hitNativeError = true
+                        else -> if (chunk.isNotEmpty() && !chunk.startsWith("[End of")) {
                         output.append(chunk)
                         updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
                         if (key == activeKey) {
@@ -99,8 +101,13 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
                 }
                 if (output.isEmpty()) {
                     updateAssistant(key, assistantId, "Generation ended without text. Try again.", MessageStatus.ERROR)
-                } else if (hitTokenLimit) {
-                    output.append("\n\n⚠️ Response may be incomplete: the local model reached its generation limit. Ask it to continue or split the request into smaller parts.")
+                } else if (hitTokenLimit || hitNativeError) {
+                    val warning = if (hitTokenLimit) {
+                        "⚠️ Response may be incomplete: the local model reached its generation limit. Ask it to continue or split the request into smaller parts."
+                    } else {
+                        "⚠️ Generation stopped unexpectedly. This response may be incomplete; retry the request."
+                    }
+                    output.append("\n\n").append(warning)
                     updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
                 }
             } catch (e: CancellationException) {
