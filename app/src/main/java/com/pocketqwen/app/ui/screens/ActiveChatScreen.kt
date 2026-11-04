@@ -55,7 +55,7 @@ fun ThinkingDots() {
             modifier = Modifier.size(28.dp).alpha(alpha)
         )
         Text(
-            "Ekip is thinking…",
+            "PocketQwen is thinking…",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
