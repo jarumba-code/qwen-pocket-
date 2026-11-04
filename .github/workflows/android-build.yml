@@ -18,6 +18,7 @@ on:
       - feature/experiment-5-performance-settings
       - feature/experiment-5-ui-improvements
       - release/ekip-play-readiness
+      - feat/android-ivory-gold-ui
   workflow_dispatch:
 
 permissions:
