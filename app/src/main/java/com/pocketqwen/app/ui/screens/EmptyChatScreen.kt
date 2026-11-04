@@ -9,13 +9,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
-import androidx.compose.ui.Alignment
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pocketqwen.app.ui.components.MessageComposer
@@ -27,11 +27,12 @@ fun EmptyChatScreen(
     userName: String = "",
     modifier: Modifier = Modifier
 ) {
+    var draftSuggestion by remember { mutableStateOf("") }
     Column(modifier = modifier.fillMaxSize().imePadding()) {
         Column(
             modifier = Modifier.weight(1f).fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 20.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.Center
         ) {
             Text(
@@ -43,13 +44,13 @@ fun EmptyChatScreen(
                 text = "What would you like to work on today?",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 6.dp, bottom = 12.dp)
+                modifier = Modifier.padding(top = 6.dp, bottom = 10.dp)
             )
             Text(
                 text = "Private, on-device AI conversations powered by a bundled local language model.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 10.dp, bottom = 24.dp)
+                modifier = Modifier.padding(top = 6.dp, bottom = 16.dp)
             )
             val suggestions = listOf(
                 "Explain a difficult concept",
@@ -59,10 +60,10 @@ fun EmptyChatScreen(
             )
             suggestions.forEach { prompt ->
                 OutlinedButton(
-                    onClick = { viewModel.sendMessage(prompt) },
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
+                    onClick = { draftSuggestion = prompt },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                 ) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                         Text(prompt, style = MaterialTheme.typography.titleMedium)
                         Text(
                             text = when (prompt) {
@@ -81,7 +82,8 @@ fun EmptyChatScreen(
         }
         MessageComposer(
             onSend = viewModel::sendMessage,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            initialText = draftSuggestion
         )
     }
 }
