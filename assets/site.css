@@ -337,3 +337,23 @@ h1 em,h2 em{font-family:var(--serif);font-weight:400;letter-spacing:-.065em;colo
   .mobile-bottom-nav a span{font-size:17px;line-height:1.2;color:#a1813b}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
+/* Privacy policy document */
+.privacy-document{padding:72px 0 100px}
+.document-container{max-width:790px}
+.document-container h1{font:800 clamp(42px,6vw,66px)/1.06 var(--display);letter-spacing:-.07em;margin:18px 0}
+.document-lede{font-size:17px;color:var(--muted);max-width:650px;margin-bottom:28px}
+.document-notice{padding:16px 18px;border:1px solid #e0d1aa;background:#f6f0e2;border-radius:14px;color:#655735;font-size:12px;line-height:1.8;margin:28px 0}
+.document-container>p{font-size:13px;line-height:1.85;color:var(--muted)}
+.document-container>p strong{color:var(--ink-2)}
+.document-container h2{font:700 21px var(--display);letter-spacing:-.035em;margin:38px 0 10px}
+.document-container a:not(.text-link){color:#96732f;text-decoration:underline;text-underline-offset:3px}
+.document-footer{display:flex;justify-content:space-between;align-items:center;gap:20px;border-top:1px solid var(--line);margin-top:55px;padding-top:20px}
+.document-footer>span{font-size:10px;color:#8c8374}
+@media(max-width:640px){
+  .privacy-document{padding:48px 0 70px}
+  .document-container h1{font-size:43px}
+  .document-lede{font-size:14px}
+  .document-container h2{font-size:18px;margin-top:30px}
+  .document-footer{align-items:flex-start;flex-direction:column}
+}
