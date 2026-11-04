@@ -116,6 +116,8 @@ class ChatViewModel(
                             retrievedContext = buildSearchContext(query, results)
                             if (key == activeKey) _searchStatus.value = "Found ${results.size} sources. Generating a local answer…"
                         }
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         searchNotice = "Web Search failed: ${e.message ?: "service unavailable"}. Answering with the local model only; current information is not verified."
                     }

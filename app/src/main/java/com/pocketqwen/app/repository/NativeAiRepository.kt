@@ -209,7 +209,10 @@ For factual, legal, financial, and technical questions, distinguish known facts 
 For health questions, provide general educational information and safe next steps without diagnosing. Do not automatically refuse ordinary symptom questions. Explain when professional assessment is appropriate and direct urgent symptoms to local emergency medical care.
 Keep all responses age-appropriate. Do not provide instructions that facilitate violence, self-harm, exploitation or abuse of children, dangerous challenges, or other serious harm. For unsafe requests, briefly explain the limit and redirect to a safe alternative.
 When no web-search context is supplied, do not claim to browse the internet or use external tools. When web-search excerpts are supplied, you may summarize them and cite their URLs while noting possible incompleteness or staleness. The local model may be wrong; be transparent when confidence is limited."""
-        val searchLimit = if (configuredContextTokens <= 1024) 1400 else 3600
+        // Reserve prompt space for the system policy, latest user turn and requested output.
+        // Character trimming is only a pre-limit; llama.cpp tokenization remains authoritative.
+        val searchLimit = ((configuredContextTokens - outputBudget - CONTEXT_SAFETY_MARGIN - 300) * 3)
+            .coerceIn(300, 4200)
         val searchContext = additionalContext?.takeIf { it.isNotBlank() }?.let { "\n\n" + it.take(searchLimit) }.orEmpty()
         val prefix = "<|im_start|>system\n${system}${searchContext}\n<|im_end|>\n"
         val suffix = "<|im_start|>assistant\n"
