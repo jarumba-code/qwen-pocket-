@@ -67,8 +67,12 @@ class AppSettings(private val context: Context) {
         preferences[AppSettingsKey.USER_NAME].orEmpty()
     }
 
+    // Older installs may have a saved blue accent; map it to the new gold brand accent.
     fun getAccentColorFlow(): Flow<String> = dataStore.data.map { preferences ->
-        preferences[AppSettingsKey.ACCENT_COLOR] ?: "BLUE"
+        when (preferences[AppSettingsKey.ACCENT_COLOR]) {
+            "GOLDEN" -> "GOLDEN"
+            else -> "GOLDEN"
+        }
     }
 
     suspend fun setUserName(name: String) {
@@ -78,8 +82,7 @@ class AppSettings(private val context: Context) {
     }
 
     suspend fun setAccentColor(color: String) {
-        val allowed = setOf("BLUE")
-        if (color !in allowed) return
+        if (color != "GOLDEN") return
         dataStore.edit { preferences ->
             preferences[AppSettingsKey.ACCENT_COLOR] = color
         }
