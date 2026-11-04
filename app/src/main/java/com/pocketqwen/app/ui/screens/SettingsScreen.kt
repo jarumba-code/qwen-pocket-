@@ -171,7 +171,7 @@ fun SettingsScreen(
         }
         item {
             Text(
-                "Both modes keep the context window at 1024 tokens. Performance uses all available CPU threads; Balanced uses about half. Changing modes applies the selected CPU thread count.",
+                "Both modes keep the context window at 2,048 tokens. Performance uses all available CPU threads; Balanced uses about half. Changing modes applies the selected CPU thread count.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 4.dp)
