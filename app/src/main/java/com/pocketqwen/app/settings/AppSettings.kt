@@ -74,7 +74,7 @@ class AppSettings(private val context: Context) {
         saved.takeIf { it in ACCENT_COLORS } ?: "GOLDEN"
     }
     fun getContextWindowFlow(): Flow<Int> = dataStore.data.map { preferences ->
-        preferences[AppSettingsKey.CONTEXT_WINDOW]?.takeIf { it in CONTEXT_WINDOWS } ?: 1024
+        preferences[AppSettingsKey.CONTEXT_WINDOW]?.takeIf { it in CONTEXT_WINDOWS } ?: 2048
     }
     suspend fun setContextWindow(tokens: Int) {
         if (tokens in CONTEXT_WINDOWS) dataStore.edit { it[AppSettingsKey.CONTEXT_WINDOW] = tokens }

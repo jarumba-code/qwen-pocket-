@@ -20,7 +20,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
     @Volatile private var loaded = false
     @Volatile private var status = "Bundled Qwen model is ready to initialize"
     @Volatile private var performanceMode = PerformanceMode.BALANCED
-    @Volatile private var configuredContextTokens = 1024
+    @Volatile private var configuredContextTokens = 2048
     @Volatile private var modelOperationInProgress = false
     private val generationActive = AtomicBoolean(false)
     private val initializationLock = Any()
@@ -202,7 +202,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
      * Uses the actual llama.cpp tokenizer to trim older history to the selected context.
      */
     private fun buildPrompt(messages: List<ChatMessage>, outputBudget: Int, additionalContext: String?): String {
-        val system = """You are Ekip, a helpful, careful, practical assistant powered by a local model on this device.
+        val system = """You are PocketQwen, a helpful, careful, practical assistant powered by a local model on this device.
 Answer the user's latest request directly. Use earlier messages only when they are relevant to the current topic; do not carry unrelated subjects into a new question.
 Be clear and naturally conversational. Start with the answer, then add useful explanation. Ask one focused clarification only when essential information is missing.
 For programming, explain assumptions, provide complete code where appropriate, and never claim code was tested unless it was actually tested.
@@ -258,9 +258,10 @@ When no web-search context is supplied, do not claim to browse the internet or u
             (text.contains("code") || text.contains("program") || text.contains("script") ||
             text.contains("function") || text.contains("class") || text.contains("app"))
         return when {
-            essay -> 512
-            code || detailed -> 384
+            essay || detailed -> 1024
+            code -> 768
             text.length > 700 -> 256
+            text.length < 80 -> 128
             else -> 192
         }
     }
@@ -284,6 +285,6 @@ When no web-search context is supplied, do not claim to browse the internet or u
         private const val MIN_MODEL_BYTES = 100_000_000L
         private const val CONTEXT_SAFETY_MARGIN = 64
         private const val IDENTITY_RESPONSE =
-            "I am Ekip, an AI assistant that uses a local language model on this device. Ordinary chat does not require cloud inference."
+            "I am PocketQwen, an AI assistant that uses a local language model on this device. Ordinary chat does not require cloud inference."
     }
 }

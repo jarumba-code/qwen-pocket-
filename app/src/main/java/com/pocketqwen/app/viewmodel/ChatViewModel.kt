@@ -223,5 +223,5 @@ class ChatViewModel(
         _isLoading.value = jobs[activeKey]?.isActive == true
     }
 
-    companion object { private const val NEW_CHAT_KEY = "__ekip_new_chat__" }
+    companion object { private const val NEW_CHAT_KEY = "__pocketqwen_new_chat__" }
 }

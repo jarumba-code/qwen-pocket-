@@ -26,7 +26,7 @@ class SettingsViewModel(
     val userName: StateFlow<String> = _userName.asStateFlow()
     private val _accentColor = MutableStateFlow("GOLDEN")
     val accentColor: StateFlow<String> = _accentColor.asStateFlow()
-    private val _contextWindow = MutableStateFlow(1024)
+    private val _contextWindow = MutableStateFlow(2048)
     val contextWindow: StateFlow<Int> = _contextWindow.asStateFlow()
     private val _isFirstLaunch = MutableStateFlow(true)
     val isFirstLaunch: StateFlow<Boolean> = _isFirstLaunch.asStateFlow()

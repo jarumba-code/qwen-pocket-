@@ -199,7 +199,7 @@ fun SettingsScreen(
                             verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(if (tokens == 1024) "1,024 tokens" else "2,048 tokens", style = MaterialTheme.typography.titleMedium)
-                                Text(if (tokens == 1024) "Recommended default for lower-memory phones." else "More room for longer conversations; uses more memory.",
+                                Text(if (tokens == 1024) "Smaller memory footprint for lower-memory phones." else "Default setting. More room for longer conversations; uses more memory.",
                                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             RadioButton(selected = contextWindow == tokens, onClick = { viewModel.setContextWindow(tokens) }, enabled = !isModelLoading)
@@ -227,7 +227,7 @@ fun SettingsScreen(
                         }
                     }
                     Text(
-                        "Ekip runs the bundled Qwen model on this device. Ejecting releases model and inference memory; the bundled model file remains available to load again. Changing the context window reloads the model.",
+                        "PocketQwen runs the bundled Qwen model on this device. Ejecting releases model and inference memory; the bundled model file remains available to load again. Changing the context window reloads the model.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
@@ -251,7 +251,7 @@ fun SettingsScreen(
             Text("About PocketQwen", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Ekip · Version 1.1.0", style = MaterialTheme.typography.titleMedium)
+                    Text("PocketQwen · Version 1.1.0", style = MaterialTheme.typography.titleMedium)
                     Text("Built by JIMM.tech in Nigeria.", style = MaterialTheme.typography.bodyMedium)
                     Text(
                         "PocketQwen is an AI project focused on privacy, data sovereignty, and making local AI more accessible on everyday devices. Founded by Collins Asanya, a Nigerian college student, the project explores how AI can run directly on users' devices, reducing dependence on cloud inference where supported.",
