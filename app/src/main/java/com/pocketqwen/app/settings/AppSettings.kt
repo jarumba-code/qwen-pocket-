@@ -78,7 +78,7 @@ class AppSettings(private val context: Context) {
     }
 
     suspend fun setAccentColor(color: String) {
-        val allowed = setOf("RED", "BLUE", "GREEN", "LIGHT_BLUE", "DARK_BLUE", "BLACK", "GOLDEN", "PINK", "PURPLE")
+        val allowed = setOf("BLUE")
         if (color !in allowed) return
         dataStore.edit { preferences ->
             preferences[AppSettingsKey.ACCENT_COLOR] = color
