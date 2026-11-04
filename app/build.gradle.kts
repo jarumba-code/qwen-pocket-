@@ -26,11 +26,29 @@ android {
 
     androidResources { noCompress += "gguf" }
 
+    val releaseStoreFile = providers.environmentVariable("POCKETQWEN_RELEASE_STORE_FILE").orNull
+    val releaseStorePassword = providers.environmentVariable("POCKETQWEN_RELEASE_STORE_PASSWORD").orNull
+    val releaseKeyAlias = providers.environmentVariable("POCKETQWEN_RELEASE_KEY_ALIAS").orNull
+    val releaseKeyPassword = providers.environmentVariable("POCKETQWEN_RELEASE_KEY_PASSWORD").orNull
+
+    val hasReleaseSigning = listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword)
+        .all { !it.isNullOrBlank() }
+
+    if (hasReleaseSigning) {
+        signingConfigs.create("releaseUpload") {
+            storeFile = file(releaseStoreFile!!)
+            storePassword = releaseStorePassword
+            keyAlias = releaseKeyAlias
+            keyPassword = releaseKeyPassword
+        }
+    }
+
     buildTypes {
         release {
-            // Experiment-only: sign the optimized APK with the debug key so it can
-            // be installed directly for on-device benchmarking. Never ship this key.
-            signingConfig = signingConfigs.getByName("debug")
+            // Never fall back to the debug certificate for a release build.
+            // Configure the four POCKETQWEN_RELEASE_* environment variables in
+            // a protected CI secret environment to produce a Play-uploadable APK.
+            if (hasReleaseSigning) signingConfig = signingConfigs.getByName("releaseUpload")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
