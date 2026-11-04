@@ -186,7 +186,7 @@ For factual, legal, financial, and technical questions, distinguish known facts 
 For health questions, provide general educational information and safe next steps without diagnosing. Do not automatically refuse ordinary symptom questions. Explain when professional assessment is appropriate and direct urgent symptoms to local emergency medical care.
 Keep all responses age-appropriate. Do not provide instructions that facilitate violence, self-harm, exploitation or abuse of children, dangerous challenges, or other serious harm. For unsafe requests, briefly explain the limit and redirect to a safe alternative.
 Do not claim to browse the internet, use external tools, or perform actions outside this device. The local model may be wrong; be transparent when confidence is limited."""
-        val prefix = "<|im_start|>system\n\${system}\n<|im_end|>\n"
+        val prefix = "<|im_start|>system\n${system}\n<|im_end|>\n"
         val suffix = "<|im_start|>assistant\n"
         val usableChars = (CONTEXT_TOKENS - outputBudget - CONTEXT_SAFETY_MARGIN) * APPROX_CHARS_PER_TOKEN
         var remaining = usableChars - prefix.length - suffix.length
@@ -199,7 +199,7 @@ Do not claim to browse the internet, use external tools, or perform actions outs
 
         for (message in validMessages.asReversed()) {
             val role = if (message.isUser) "user" else "assistant"
-            val segment = "<|im_start|>$role\n\${message.text}\n<|im_end|>\n"
+            val segment = "<|im_start|>$role\n${message.text}\n<|im_end|>\n"
             if (segment.length <= remaining) {
                 retained += segment
                 remaining -= segment.length
