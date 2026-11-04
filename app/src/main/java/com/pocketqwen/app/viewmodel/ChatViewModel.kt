@@ -83,9 +83,12 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
 
         val generationJob = viewModelScope.launch(start = CoroutineStart.LAZY) {
             val output = StringBuilder()
+            var hitTokenLimit = false
             try {
                 aiRepository.generateResponse(contextMessages).collect { chunk ->
-                    if (chunk.isNotEmpty() && !chunk.startsWith("[End of")) {
+                    if (chunk == "__POCKETQWEN_STATUS__:TOKEN_LIMIT") {
+                        hitTokenLimit = true
+                    } else if (chunk.isNotEmpty() && !chunk.startsWith("[End of")) {
                         output.append(chunk)
                         updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
                         if (key == activeKey) {
@@ -96,6 +99,9 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
                 }
                 if (output.isEmpty()) {
                     updateAssistant(key, assistantId, "Generation ended without text. Try again.", MessageStatus.ERROR)
+                } else if (hitTokenLimit) {
+                    output.append("\n\n⚠️ Response may be incomplete: the local model reached its generation limit. Ask it to continue or split the request into smaller parts.")
+                    updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
                 }
             } catch (e: CancellationException) {
                 if (output.isNotEmpty()) updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
