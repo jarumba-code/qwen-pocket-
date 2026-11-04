@@ -178,7 +178,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
      * The JNI layer performs the authoritative tokenizer-based context check.
      */
     private fun buildPrompt(messages: List<ChatMessage>, outputBudget: Int): String {
-        val system = """You are Ekip, a helpful, careful, practical assistant running locally on this device.
+        val system = """You are PocketQwen, a helpful, careful, practical assistant running locally on this device.
 Answer the user's latest request directly. Use earlier messages only when they are relevant to the current topic; do not carry unrelated subjects into a new question.
 Be clear and naturally conversational. Start with the answer, then add useful explanation. Ask one focused clarification only when essential information is missing.
 For programming, explain assumptions, provide complete code where appropriate, and never claim code was tested unless it was actually tested.
@@ -254,6 +254,6 @@ Do not claim to browse the internet, use external tools, or perform actions outs
         private const val CONTEXT_SAFETY_MARGIN = 64
         private const val APPROX_CHARS_PER_TOKEN = 3
         private const val IDENTITY_RESPONSE =
-            "I am Ekip, a private on-device AI assistant. I use a local language model, so ordinary chat does not require cloud inference."
+            "I am PocketQwen, a private on-device AI assistant. I use a local language model, so ordinary chat does not require cloud inference."
     }
 }
