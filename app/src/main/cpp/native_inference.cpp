@@ -86,7 +86,7 @@ static jstring utf8_to_jstring(JNIEnv *env, const std::string &utf8) {
     return env->NewString(utf16.data(), static_cast<jsize>(utf16.size()));
 }
 
-static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode) {
+static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode, jint contextTokens) {
     if (!path) return JNI_FALSE;
     std::lock_guard<std::mutex> loadLock(g_load_mutex);
     const char *p = env->GetStringUTFChars(path, nullptr);
@@ -105,8 +105,9 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode) {
     const int inferenceThreads = performanceMode
         ? static_cast<int>(availableThreads)
         : std::max(1, static_cast<int>(availableThreads / 2));
-    LOGI("Loading model; selected_mode=%s available_cpu_threads=%u inference_threads=%d context=2048 batch=512 ubatch=256 gpu_layers=0",
-         performanceMode ? "performance" : "balanced", availableThreads, inferenceThreads);
+    const uint32_t selectedContext = static_cast<uint32_t>(std::clamp(contextTokens, 1024, 2048));
+    LOGI("Loading model; selected_mode=%s available_cpu_threads=%u inference_threads=%d context=%u batch=512 ubatch=256 gpu_layers=0",
+         performanceMode ? "performance" : "balanced", availableThreads, inferenceThreads, selectedContext);
     const auto start = std::chrono::steady_clock::now();
     const auto modelLoadStart = std::chrono::steady_clock::now();
     g_model = llama_model_load_from_file(p, mp);
@@ -114,11 +115,11 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode) {
     env->ReleaseStringUTFChars(path, p);
     if (!g_model) { LOGE("Model load failed; verify GGUF integrity and available RAM"); return JNI_FALSE; }
     llama_context_params cp = llama_context_default_params();
-    cp.n_ctx = 2048;
+    cp.n_ctx = selectedContext;
     cp.n_batch = 512;
     cp.n_ubatch = 256;
     // Experiment 5: Performance uses all runtime-reported threads; Balanced
-    // uses half, rounded down, with a minimum of one. Both modes keep context=2048.
+    // uses half, rounded down, with a minimum of one. Context is independently configurable.
     // Thread count is a policy choice, not a guarantee of better sustained speed.
     cp.n_threads = inferenceThreads;
     cp.n_threads_batch = inferenceThreads;
@@ -147,6 +148,27 @@ static jboolean nativeIsModelAvailable(JNIEnv *, jobject) {
 static jstring nativeGetModelStatus(JNIEnv *env, jobject) {
     std::lock_guard<std::mutex> lock(g_mutex);
     return env->NewStringUTF(g_initialized ? "loaded" : "not_loaded");
+}
+
+static jint nativeCountTokens(JNIEnv *env, jobject, jstring input) {
+    if (!input) return -1;
+    const char *raw = env->GetStringUTFChars(input, nullptr);
+    if (!raw) return -1;
+    std::string prompt(raw);
+    env->ReleaseStringUTFChars(input, raw);
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (!g_initialized || !g_model) return -1;
+    if (prompt.size() > static_cast<size_t>(std::numeric_limits<int32_t>::max())) return -1;
+    const llama_vocab *vocab = llama_model_get_vocab(g_model);
+    std::vector<llama_token> tokens(prompt.size() + 32);
+    int32_t count = llama_tokenize(vocab, prompt.c_str(), static_cast<int32_t>(prompt.size()),
+        tokens.data(), static_cast<int32_t>(tokens.size()), true, true);
+    if (count < 0 && count != std::numeric_limits<int32_t>::min()) {
+        tokens.resize(static_cast<size_t>(-count));
+        count = llama_tokenize(vocab, prompt.c_str(), static_cast<int32_t>(prompt.size()),
+            tokens.data(), static_cast<int32_t>(tokens.size()), true, true);
+    }
+    return count > 0 ? count : -1;
 }
 
 static void nativeCancelGeneration(JNIEnv *, jobject) {
@@ -367,11 +389,12 @@ static void nativeRelease(JNIEnv *, jobject) {
 }
 
 static JNINativeMethod methods[] = {
-    {const_cast<char*>("nativeLoadModel"), const_cast<char*>("(Ljava/lang/String;I)Z"), (void*)nativeLoadModel},
+    {const_cast<char*>("nativeLoadModel"), const_cast<char*>("(Ljava/lang/String;II)Z"), (void*)nativeLoadModel},
     {const_cast<char*>("nativeGenerateResponse"), const_cast<char*>("(Ljava/lang/String;ILcom/pocketqwen/app/repository/TokenCallback;)V"), (void*)nativeGenerateResponse},
     {const_cast<char*>("nativeCancelGeneration"), const_cast<char*>("()V"), (void*)nativeCancelGeneration},
     {const_cast<char*>("nativeIsModelAvailable"), const_cast<char*>("()Z"), (void*)nativeIsModelAvailable},
     {const_cast<char*>("nativeGetModelStatus"), const_cast<char*>("()Ljava/lang/String;"), (void*)nativeGetModelStatus},
+    {const_cast<char*>("nativeCountTokens"), const_cast<char*>("(Ljava/lang/String;)I"), (void*)nativeCountTokens},
     {const_cast<char*>("nativeRelease"), const_cast<char*>("()V"), (void*)nativeRelease}
 };
 
