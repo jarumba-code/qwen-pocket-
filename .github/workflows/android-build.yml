@@ -1,8 +1,23 @@
 name: Android Build
 
+concurrency:
+  group: pocketqwen-android-build-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - fix/ui-stabilization-v1
+      - feat/chat-sidebar-native-inference
+      - perf/arm-inference-diagnostics
+      - experiment/termux-style-native
+      - experiment/termux-runtime-backend
+      - experiment-3
+      - experiment-4
+      - feature/experiment-5-performance-settings
+      - feature/experiment-5-ui-improvements
+      - release/ekip-play-readiness
   workflow_dispatch:
 
 permissions:
@@ -10,8 +25,11 @@ permissions:
 
 jobs:
   build:
-    name: Build debug APK
+    name: Build and test PocketQwen APK
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
     steps:
       - name: Checkout repository
@@ -23,62 +41,85 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Android SDK
+      - name: Accept Android SDK licenses and install required packages
         run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          cd $HOME/android-sdk/cmdline-tools
-          curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o cmdline-tools.zip
-          unzip -q cmdline-tools.zip
-          mv cmdline-tools latest
-          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
-
-      - name: Install Android NDK
-        run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;25.1.8937393"
-          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.1.8937393" >> $GITHUB_ENV
-          echo "NDK_HOME=$ANDROID_HOME/ndk/25.1.8937393" >> $GITHUB_ENV
-
-      - name: Install CMake
-        run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "cmake;3.22.1"
-          echo "ANDROID_CMAKE=$ANDROID_HOME/cmake/3.22.1/bin/cmake" >> $GITHUB_ENV
-
-      - name: Fetch llama.cpp source
-        run: |
-          mkdir -p $HOME/llama.cpp-src
-          cd $HOME/llama.cpp-src
-          git clone --depth 1 --branch master https://github.com/ggerganov/llama.cpp.git llama.cpp
-          cd llama.cpp
-          git checkout 6c05e69237044bf2d321f31af7ff42c546d597d3 2>/dev/null || true
-          ls -la
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" "platform-tools" "ndk;29.0.14206865" "cmake;3.22.1"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.4
+          gradle-version: 8.11.1
 
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug --no-daemon
+      - name: Fetch pinned llama.cpp native engine
+        run: |
+          git clone https://github.com/ggml-org/llama.cpp.git app/src/main/cpp/llama.cpp
+          git -C app/src/main/cpp/llama.cpp checkout 9125a2ebe8e5a38f0f4232170c134a29ed730b66
+
+      - name: Download bundled Qwen2.5-0.5B-Instruct model
+        run: |
+          mkdir -p app/src/main/assets
+          curl --fail --location --retry 5 --retry-all-errors "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf" --output app/src/main/assets/qwen.gguf
+          echo "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db  app/src/main/assets/qwen.gguf" | sha256sum --check
+          ls -lh app/src/main/assets/qwen.gguf
+
+      - name: Report Termux-parity native build settings
+        run: |
+          echo "Experiment branch: $GITHUB_REF_NAME"
+          echo "llama.cpp revision: 9125a2ebe8e5a38f0f4232170c134a29ed730b66"
+          echo "Expected target-safe parity: Release/-O3, GGML_NATIVE=OFF (required for NDK cross-compile), GGML_OPENMP=ON, GGML_CPU_KLEIDIAI=OFF, GGML_LLAMAFILE=ON, LLAMA_OPENSSL=OFF"
+          grep -nE 'GGML_NATIVE|GGML_OPENMP|GGML_CPU_KLEIDIAI|GGML_LLAMAFILE|LLAMA_OPENSSL|GGML_VULKAN' app/src/main/cpp/CMakeLists.txt
+          echo "NDK: $ANDROID_HOME/ndk/29.0.14206865"
+          grep -m1 'Pkg.Revision' "$ANDROID_HOME/ndk/29.0.14206865/source.properties"
+
+      - name: Build optimized release and installable debug APKs
+        run: ./gradlew assembleRelease assembleDebug --no-daemon --stacktrace
+
+      - name: Capture generated native CMake configuration
+        if: always()
+        run: |
+          mkdir -p native-build-diagnostics
+          find app/.cxx -type f -name CMakeCache.txt -print 2>/dev/null | tee native-build-diagnostics/cmake-cache-paths.txt || true
+          while IFS= read -r cache; do
+            [ -f "$cache" ] || continue
+            {
+              echo "===== $cache ====="
+              grep -E '^(CMAKE_BUILD_TYPE|CMAKE_C_FLAGS_RELEASE|CMAKE_CXX_FLAGS_RELEASE|GGML_NATIVE|GGML_OPENMP|GGML_CPU_KLEIDIAI|GGML_LLAMAFILE|LLAMA_OPENSSL|GGML_VULKAN):' "$cache" || true
+            } >> native-build-diagnostics/native-cmake-options.txt
+          done < native-build-diagnostics/cmake-cache-paths.txt
+          cat native-build-diagnostics/native-cmake-options.txt 2>/dev/null || true
 
       - name: Run unit tests
-        if: always()
-        run: ./gradlew testDebugUnitTest --no-daemon || true
+        run: ./gradlew testDebugUnitTest --no-daemon
 
-      - name: Upload debug APK artifact
-        if: always()
+      - name: Upload optimized release APK artifact (unsigned unless protected signing secrets are configured)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketqwen-release-apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Upload installable debug APK for device testing
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: pocketqwen-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload native build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketqwen-native-build-diagnostics
+          path: native-build-diagnostics/
           if-no-files-found: ignore
 
-      - name: Upload test report on failure
+      - name: Upload build and test reports on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:

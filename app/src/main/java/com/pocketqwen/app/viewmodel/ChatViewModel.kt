@@ -5,80 +5,180 @@ import androidx.lifecycle.viewModelScope
 import com.pocketqwen.app.model.ChatMessage
 import com.pocketqwen.app.model.MessageStatus
 import com.pocketqwen.app.repository.AiRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.UUID
+import kotlin.coroutines.coroutineContext
 
+/** Maintains separate chat histories and streams local inference against the active conversation. */
 class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
-
+    private val conversations = mutableMapOf<String, MutableList<ChatMessage>>()
+    private val jobs = mutableMapOf<String, Job>()
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages: StateFlow<List<ChatMessage>> = _messages.asStateFlow()
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
+    private val _thinking = MutableStateFlow(false)
+    val thinking: StateFlow<Boolean> = _thinking.asStateFlow()
+    private var activeKey: String = NEW_CHAT_KEY
 
-    init {
-        _messages.value = listOf(
-            ChatMessage(
-                id = UUID.randomUUID().toString(),
-                text = "Hello! I'm PocketQwen, your private on-device AI assistant. " +
-                    "Note: AI inference is not yet connected — this is a UI preview. " +
-                    "Ask me anything to see the chat interface in action.",
-                isUser = false,
-                status = MessageStatus.SENT
-            )
-        )
+    fun activateConversation(id: String?, savedMessages: List<ChatMessage> = emptyList()) {
+        activeKey = id ?: NEW_CHAT_KEY
+        if (!conversations.containsKey(activeKey)) conversations[activeKey] = savedMessages.toMutableList()
+        else if (conversations[activeKey].isNullOrEmpty() && savedMessages.isNotEmpty()) {
+            conversations[activeKey] = savedMessages.toMutableList()
+        }
+        _error.value = null
+        publishActive()
     }
 
     fun sendMessage(text: String) {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return
-
-        val userMessage = ChatMessage(
-            id = UUID.randomUUID().toString(),
-            text = trimmed,
-            isUser = true,
-            status = MessageStatus.SENT
+        val key = activeKey
+        if (jobs[key]?.isActive == true) return
+        conversations.getOrPut(key) { mutableListOf() }.add(
+            ChatMessage(UUID.randomUUID().toString(), trimmed, true, status = MessageStatus.SENT)
         )
-
-        _messages.value = _messages.value + userMessage
-        _isLoading.value = true
         _error.value = null
+        startGeneration(key)
+    }
 
-        viewModelScope.launch {
+    /**
+     * Edits a user message, removes every later turn, and regenerates the assistant response.
+     * Editing is disabled while generation is active to avoid overlapping JNI inference.
+     */
+    fun editMessage(messageId: String, revisedText: String) {
+        val text = revisedText.trim()
+        if (text.isBlank()) return
+        val key = activeKey
+        if (jobs[key]?.isActive == true) return
+        val list = conversations[key] ?: return
+        val index = list.indexOfFirst { it.id == messageId && it.isUser }
+        if (index < 0) return
+
+        list[index] = list[index].copy(text = text, status = MessageStatus.SENT)
+        while (list.size > index + 1) list.removeAt(list.lastIndex)
+        _error.value = null
+        startGeneration(key)
+    }
+
+    private fun startGeneration(key: String) {
+        val list = conversations.getOrPut(key) { mutableListOf() }
+        val contextMessages = list.toList()
+        val assistantId = UUID.randomUUID().toString()
+        list += ChatMessage(assistantId, "", false, status = MessageStatus.SENDING)
+        if (key == activeKey) {
+            _isLoading.value = true
+            _thinking.value = true
+            publishActive()
+        }
+
+        val generationJob = viewModelScope.launch(start = CoroutineStart.LAZY) {
+            val output = StringBuilder()
+            var hitTokenLimit = false
+            var hitNativeError = false
             try {
-                aiRepository.generateResponse(trimmed).collect { response ->
-                    if (response == "[Thinking...]") {
-                        _isLoading.value = true
-                    } else if (response.startsWith("[End of placeholder")) {
-                        _isLoading.value = false
-                    } else {
-                        val assistantMessage = ChatMessage(
-                            id = UUID.randomUUID().toString(),
-                            text = response,
-                            isUser = false,
-                            status = MessageStatus.SENT
-                        )
-                        _messages.value = _messages.value + assistantMessage
-                        _isLoading.value = false
+                aiRepository.generateResponse(contextMessages).collect { chunk ->
+                    when (chunk) {
+                        "__POCKETQWEN_STATUS__:TOKEN_LIMIT" -> hitTokenLimit = true
+                        "__POCKETQWEN_STATUS__:INCOMPLETE_ERROR" -> hitNativeError = true
+                        else -> {
+                            if (chunk.isNotEmpty() && !chunk.startsWith("[End of")) {
+                                output.append(chunk)
+                                updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
+                                if (key == activeKey) {
+                                    _thinking.value = false
+                                    publishActive()
+                                }
+                            }
+                        }
                     }
                 }
+                if (output.isEmpty()) {
+                    updateAssistant(key, assistantId, "Generation ended without text. Try again.", MessageStatus.ERROR)
+                } else if (hitTokenLimit || hitNativeError) {
+                    val warning = if (hitTokenLimit) {
+                        "⚠️ Response may be incomplete: the local model reached its generation limit. Ask it to continue or split the request into smaller parts."
+                    } else {
+                        "⚠️ Generation stopped unexpectedly. This response may be incomplete; retry the request."
+                    }
+                    output.append("\n\n").append(warning)
+                    updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
+                }
+            } catch (e: CancellationException) {
+                if (output.isNotEmpty()) updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
+                else updateAssistant(key, assistantId, "Generation stopped.", MessageStatus.SENT)
+                throw e
             } catch (e: Exception) {
-                _error.value = e.message
-                _isLoading.value = false
+                if (output.isNotEmpty()) updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
+                else updateAssistant(
+                    key, assistantId,
+                    "Generation failed. " + (e.message ?: "Check model status and retry."),
+                    MessageStatus.ERROR
+                )
+                if (key == activeKey) _error.value = e.message ?: "Unable to generate a response."
+            } finally {
+                if (jobs[key] === coroutineContext[Job]) jobs.remove(key)
+                if (key == activeKey) {
+                    _isLoading.value = false
+                    _thinking.value = false
+                    publishActive()
+                }
             }
         }
+        jobs[key] = generationJob
+        generationJob.start()
+    }
+
+    private fun updateAssistant(key: String, id: String, text: String, status: MessageStatus) {
+        val list = conversations[key] ?: return
+        val index = list.indexOfFirst { it.id == id }
+        if (index >= 0) list[index] = list[index].copy(text = text, status = status)
+    }
+
+    fun stopGeneration() {
+        val key = activeKey
+        aiRepository.cancelGeneration()
+        jobs[key]?.cancel()
+        jobs.remove(key)
+        val list = conversations[key]
+        val pending = list?.indexOfLast { !it.isUser && it.status == MessageStatus.SENDING } ?: -1
+        if (list != null && pending >= 0) {
+            list[pending] = list[pending].copy(
+                text = list[pending].text.ifBlank { "Generation stopped." },
+                status = MessageStatus.SENT
+            )
+        }
+        _isLoading.value = false
+        _thinking.value = false
+        publishActive()
+    }
+
+    fun loadMessages(savedMessages: List<ChatMessage>) {
+        activateConversation(activeKey.takeUnless { it == NEW_CHAT_KEY }, savedMessages)
     }
 
     fun clearMessages() {
-        _messages.value = emptyList()
+        conversations[activeKey] = mutableListOf()
+        activeKey = NEW_CHAT_KEY
+        conversations.getOrPut(activeKey) { mutableListOf() }
         _error.value = null
-        _isLoading.value = false
+        _thinking.value = false
+        publishActive()
     }
+
+    private fun publishActive() {
+        _messages.value = conversations[activeKey]?.toList() ?: emptyList()
+        _isLoading.value = jobs[activeKey]?.isActive == true
+    }
+
+    companion object { private const val NEW_CHAT_KEY = "__ekip_new_chat__" }
 }

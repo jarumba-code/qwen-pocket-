@@ -4,28 +4,51 @@ plugins {
 }
 
 android {
-    compileSdk = 34
+    namespace = "com.pocketqwen.app"
+    compileSdk = 36
+
+    ndkVersion = "29.0.14206865"
 
     defaultConfig {
         applicationId = "com.pocketqwen.app"
         minSdk = 24
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
-
+        targetSdk = 36
+        versionCode = 2
+        versionName = "1.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        ndk { abiFilters += "arm64-v8a" }
+        externalNativeBuild { cmake { cppFlags += listOf("-std=c++17", "-O3") } }
+    }
 
-        externalNativeBuild {
-            cmake {
-                cppFlags "-std=c++17 -fexceptions -fPIE -fPIC"
-                arguments "-DANDROID_STL=c++_shared"
-            }
+    externalNativeBuild {
+        cmake { path = file("src/main/cpp/CMakeLists.txt"); version = "3.22.1" }
+    }
+
+    androidResources { noCompress += "gguf" }
+
+    val releaseStoreFile = providers.environmentVariable("POCKETQWEN_RELEASE_STORE_FILE").orNull
+    val releaseStorePassword = providers.environmentVariable("POCKETQWEN_RELEASE_STORE_PASSWORD").orNull
+    val releaseKeyAlias = providers.environmentVariable("POCKETQWEN_RELEASE_KEY_ALIAS").orNull
+    val releaseKeyPassword = providers.environmentVariable("POCKETQWEN_RELEASE_KEY_PASSWORD").orNull
+
+    val hasReleaseSigning = listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword)
+        .all { !it.isNullOrBlank() }
+
+    if (hasReleaseSigning) {
+        signingConfigs.create("releaseUpload") {
+            storeFile = file(releaseStoreFile!!)
+            storePassword = releaseStorePassword
+            keyAlias = releaseKeyAlias
+            keyPassword = releaseKeyPassword
         }
-        ndkVersion = "25.1.8937393"
     }
 
     buildTypes {
         release {
+            // Never fall back to the debug certificate for a release build.
+            // Configure the four POCKETQWEN_RELEASE_* environment variables in
+            // a protected CI secret environment to produce a Play-uploadable APK.
+            if (hasReleaseSigning) signingConfig = signingConfigs.getByName("releaseUpload")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -48,7 +71,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.5"
+        kotlinCompilerExtensionVersion = "1.5.14"
     }
 
     packaging {
@@ -56,14 +79,6 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-
-    externalNativeBuild {
-        cmake {
-            path = "CMakeLists.txt"
-        }
-    }
-
-    ndkVersion = "25.1.8937393"
 }
 
 dependencies {
@@ -81,6 +96,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.8")
 
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     androidTestImplementation("androidx.test.ext:junit:1.2.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
 }

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">PocketQwen</string>
     <string name="what_can_i_help">What can I help you with?</string>
-    <string name="welcome_subtitle">PocketQwen is designed for private, on-device AI conversations. Your data stays on your device.</string>
+    <string name="welcome_subtitle">PocketQwen is designed for private, on-device AI conversations using a local language model.</string>
     <string name="suggestion_explain_title">Explain a difficult concept</string>
     <string name="suggestion_explain_desc">Get clear explanations of complex topics</string>
     <string name="suggestion_code_title">Help me write some code</string>
@@ -22,9 +22,9 @@
     <string name="ai_inference_title">AI Inference</string>
     <string name="ai_inference_not_connected">Not connected</string>
     <string name="about_title">About PocketQwen</string>
-    <string name="version">Version 1.0.0</string>
+    <string name="version">Version 1.1.0</string>
     <string name="privacy">Privacy</string>
-    <string name="privacy_desc">All processing happens on your device.</string>
+    <string name="privacy_desc">Local chat inference happens on your device.</string>
     <string name="no_conversations">No conversations yet</string>
     <string name="conversation_history">Conversation history</string>
     <string name="new_chat">New chat</string>
