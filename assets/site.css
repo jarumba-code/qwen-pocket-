@@ -537,3 +537,6 @@ h1 em,h2 em{font-family:var(--serif);font-weight:400;letter-spacing:-.065em;colo
  .features-cta-actions{min-width:0;width:100%}
  .features-cta-actions .button{width:100%}
 }
+.features-more-link{display:flex;justify-content:flex-end;margin-top:23px}
+.features-more-link .text-link{font-size:12px}
+@media(max-width:640px){.features-more-link{justify-content:flex-start}}
