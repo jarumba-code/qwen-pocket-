@@ -7,6 +7,7 @@ on:
     paths:
       - index.html
       - privacy.html
+      - features.html
       - assets/**
       - .github/workflows/pages.yml
   workflow_dispatch:
@@ -29,7 +30,7 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p _site/assets
-          cp index.html privacy.html _site/
+          cp index.html privacy.html features.html _site/
           cp assets/site.css assets/site.js assets/pocketqwen-mark.svg _site/assets/
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
