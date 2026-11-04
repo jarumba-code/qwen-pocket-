@@ -17,6 +17,7 @@ on:
       - experiment-4
       - feature/experiment-5-performance-settings
       - feature/experiment-5-ui-improvements
+      - release/ekip-play-readiness
   workflow_dispatch:
 
 permissions:
@@ -24,7 +25,7 @@ permissions:
 
 jobs:
   build:
-    name: Build and test optimized experiment APK
+    name: Build and test PocketQwen APK
     runs-on: ubuntu-latest
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
@@ -43,12 +44,12 @@ jobs:
       - name: Accept Android SDK licenses and install required packages
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "build-tools;34.0.0" "platform-tools" "ndk;29.0.14206865" "cmake;3.22.1"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" "platform-tools" "ndk;29.0.14206865" "cmake;3.22.1"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.4
+          gradle-version: 8.11.1
 
       - name: Make gradlew executable
         run: chmod +x gradlew
@@ -98,7 +99,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: ekip-experiment-5-release-apk
+          name: pocketqwen-release-apk
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
