@@ -50,8 +50,8 @@ fun ThinkingDots() {
         modifier = Modifier.padding(start = 14.dp, top = 6.dp, bottom = 10.dp)
     ) {
         Image(
-            painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_ekip_logo),
-            contentDescription = "Ekip is thinking",
+            painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
+            contentDescription = "PocketQwen is thinking",
             modifier = Modifier.size(28.dp).alpha(alpha)
         )
         Text(
@@ -76,7 +76,7 @@ private fun StreamingIndicator() {
         )
         CircularProgressIndicator(modifier = Modifier.size(15.dp), strokeWidth = 2.dp)
         Text(
-            "Ekip is writing…",
+            "PocketQwen is writing…",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -105,7 +105,7 @@ fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
         LazyColumn(state = listState, modifier = Modifier.weight(1f).fillMaxWidth(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            items(messages, key = { it.id }) { MessageBubble(message = it) }
+            items(messages, key = { it.id }) { MessageBubble(message = it, onEdit = viewModel::editMessage) }
             if (thinking) item { ThinkingDots() }
             else if (isLoading) item { StreamingIndicator() }
             if (error != null) item {
