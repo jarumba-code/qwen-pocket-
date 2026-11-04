@@ -90,12 +90,15 @@ class ChatViewModel(private val aiRepository: AiRepository) : ViewModel() {
                     when (chunk) {
                         "__POCKETQWEN_STATUS__:TOKEN_LIMIT" -> hitTokenLimit = true
                         "__POCKETQWEN_STATUS__:INCOMPLETE_ERROR" -> hitNativeError = true
-                        else -> if (chunk.isNotEmpty() && !chunk.startsWith("[End of")) {
-                        output.append(chunk)
-                        updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
-                        if (key == activeKey) {
-                            _thinking.value = false
-                            publishActive()
+                        else -> {
+                            if (chunk.isNotEmpty() && !chunk.startsWith("[End of")) {
+                                output.append(chunk)
+                                updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
+                                if (key == activeKey) {
+                                    _thinking.value = false
+                                    publishActive()
+                                }
+                            }
                         }
                     }
                 }
