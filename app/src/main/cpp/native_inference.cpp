@@ -337,8 +337,13 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
     }
     if (!callbackFailed && !flushCallback()) callbackFailed = true;
     const bool hitTokenLimit = !reachedEos && !g_cancel_requested.load() && !callbackFailed && !decodeFailed && sampledTokens >= maxGenerationTokens;
-    if (hitTokenLimit && !env->ExceptionCheck()) {
-        jstring marker = env->NewStringUTF("__POCKETQWEN_STATUS__:TOKEN_LIMIT");
+    const char *terminalMarker = hitTokenLimit
+        ? "__POCKETQWEN_STATUS__:TOKEN_LIMIT"
+        : (decodeFailed || callbackFailed)
+            ? "__POCKETQWEN_STATUS__:INCOMPLETE_ERROR"
+            : nullptr;
+    if (terminalMarker && !env->ExceptionCheck()) {
+        jstring marker = env->NewStringUTF(terminalMarker);
         if (marker) { env->CallVoidMethod(callback, onToken, marker); env->DeleteLocalRef(marker); }
         if (env->ExceptionCheck()) { env->ExceptionClear(); callbackFailed = true; }
     }
@@ -347,10 +352,11 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
     const double totalMs = std::chrono::duration<double, std::milli>(end - generationStart).count();
     const double responseMs = std::chrono::duration<double, std::milli>(end - requestStart).count();
     const double tps = totalMs > 0 ? sampledTokens * 1000.0 / totalMs : 0.0;
-    LOGI("Inference finished sampled_tokens=%d decoded_tokens=%d first_sample_ms=%.3f first_callback_ms=%.3f native_response_ms=%.3f generation_ms=%.3f sample_ms=%.3f decode_ms=%.3f callback_ms=%.3f callback_count=%d sampled_tokens_per_second=%.2f cancelled=%d callback_error=%d",
+    LOGI("Inference finished sampled_tokens=%d decoded_tokens=%d first_sample_ms=%.3f first_callback_ms=%.3f native_response_ms=%.3f generation_ms=%.3f sample_ms=%.3f decode_ms=%.3f callback_ms=%.3f callback_count=%d sampled_tokens_per_second=%.2f cancelled=%d callback_error=%d decode_error=%d token_limit=%d",
          sampledTokens, decodedTokens, firstSampleMs, firstCallbackMs, responseMs, totalMs,
          sampleMs, decodeMs, callbackMs, callbackCount, tps,
-         g_cancel_requested.load() ? 1 : 0, callbackFailed ? 1 : 0);
+         g_cancel_requested.load() ? 1 : 0, callbackFailed ? 1 : 0,
+         decodeFailed ? 1 : 0, hitTokenLimit ? 1 : 0);
 }
 
 static void nativeRelease(JNIEnv *, jobject) {
