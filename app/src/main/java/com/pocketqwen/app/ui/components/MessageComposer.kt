@@ -34,9 +34,10 @@ fun MessageComposer(
     onSend: (String) -> Unit,
     modifier: Modifier = Modifier,
     isGenerating: Boolean = false,
-    onStop: () -> Unit = {}
+    onStop: () -> Unit = {},
+    initialText: String = ""
 ) {
-    var text by remember { mutableStateOf("") }
+    var text by remember(initialText) { mutableStateOf(initialText) }
     val buttonWidth by animateDpAsState(targetValue = if (isGenerating) 62.dp else 48.dp, label = "send-stop-width")
     val cornerRadius by animateDpAsState(targetValue = if (isGenerating) 15.dp else 24.dp, label = "send-stop-corners")
     val canSend = text.isNotBlank()
@@ -45,7 +46,7 @@ fun MessageComposer(
         TextField(
             value = text, onValueChange = { text = it },
             placeholder = { Text("Message PocketQwen…") },
-            singleLine = false, maxLines = 5, shape = RoundedCornerShape(24.dp),
+            singleLine = false, maxLines = 4, shape = RoundedCornerShape(24.dp),
             modifier = Modifier.weight(1f),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
