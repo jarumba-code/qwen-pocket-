@@ -263,6 +263,8 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
     std::string pendingUtf8;
     std::string callbackText;
     bool callbackFailed = false;
+    bool reachedEos = false;
+    bool decodeFailed = false;
     double sampleMs = 0.0;
     double decodeMs = 0.0;
     double callbackMs = 0.0;
@@ -303,7 +305,7 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
         llama_token token = llama_sampler_sample(g_sampler, g_ctx, -1);
         sampleMs += std::chrono::duration<double, std::milli>(
             std::chrono::steady_clock::now() - sampleStart).count();
-        if (token == eos || token == llama_vocab_eot(vocab)) break;
+        if (token == eos || token == llama_vocab_eot(vocab)) { reachedEos = true; break; }
         if (firstSampleMs < 0.0) {
             firstSampleMs = std::chrono::duration<double, std::milli>(
                 std::chrono::steady_clock::now() - requestStart).count();
@@ -330,10 +332,16 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
         const int decodeResult = llama_decode(g_ctx, batch);
         decodeMs += std::chrono::duration<double, std::milli>(
             std::chrono::steady_clock::now() - decodeStart).count();
-        if (decodeResult != 0) { LOGE("Decode failed at generated token %d", i); break; }
+        if (decodeResult != 0) { decodeFailed = true; LOGE("Decode failed at generated token %d", i); break; }
         ++decodedTokens;
     }
     if (!callbackFailed && !flushCallback()) callbackFailed = true;
+    const bool hitTokenLimit = !reachedEos && !g_cancel_requested.load() && !callbackFailed && !decodeFailed && sampledTokens >= maxGenerationTokens;
+    if (hitTokenLimit && !env->ExceptionCheck()) {
+        jstring marker = env->NewStringUTF("__POCKETQWEN_STATUS__:TOKEN_LIMIT");
+        if (marker) { env->CallVoidMethod(callback, onToken, marker); env->DeleteLocalRef(marker); }
+        if (env->ExceptionCheck()) { env->ExceptionClear(); callbackFailed = true; }
+    }
     llama_batch_free(batch);
     const auto end = std::chrono::steady_clock::now();
     const double totalMs = std::chrono::duration<double, std::milli>(end - generationStart).count();
