@@ -3,32 +3,127 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#082dff">
-  <meta name="description" content="PocketQwen is a private, offline-first AI assistant powered by a local Qwen model.">
-  <title>PocketQwen — Private AI, on your device</title>
-  <style>
-    :root{color-scheme:light dark;--blue:#1747ff;--bg:#f6f8ff;--fg:#10172b;--muted:#536078;--card:#fff}
-    @media(prefers-color-scheme:dark){:root{--bg:#080d1d;--fg:#eef2ff;--muted:#aab5ce;--card:#111a32}}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
-    main{max-width:860px;margin:0 auto;padding:72px 24px} .mark{width:72px;height:72px;display:grid;place-items:center;border-radius:22px;background:#082dff;color:white;font-size:36px;font-weight:800}
-    h1{font-size:clamp(2.4rem,7vw,4.4rem);line-height:1.04;letter-spacing:-.05em;margin:28px 0 16px}
-    p{color:var(--muted);max-width:650px}.card{background:var(--card);border:1px solid #7185c522;border-radius:22px;padding:24px;margin-top:32px}
-    a{color:var(--blue);font-weight:650}.links{display:flex;gap:22px;flex-wrap:wrap;margin-top:28px}
-    .eyebrow{color:var(--blue);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.8rem}
-  </style>
+  <meta name="theme-color" content="#fcfaf6">
+  <meta name="description" content="PocketQwen is an offline-first Android AI assistant that runs a lightweight Qwen model directly on your device.">
+  <meta property="og:title" content="PocketQwen — AI, close to home">
+  <meta property="og:description" content="A lightweight, local-first AI assistant for Android.">
+  <meta property="og:type" content="website">
+  <title>PocketQwen — AI, close to home</title>
+  <link rel="icon" href="/assets/pocketqwen-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/site.css"><script src="/assets/site.js" defer></script>
 </head>
-<body><main>
-  <div class="mark" aria-label="PocketQwen logo">Q</div>
-  <p class="eyebrow">Local-first AI</p>
-  <h1>Private AI.<br>On your device.</h1>
-  <p>PocketQwen is an Android project exploring practical on-device AI. Its bundled Qwen model runs locally, so everyday chats do not need cloud inference.</p>
-  <section class="card">
-    <h2>Built for control</h2>
-    <p>Keep ordinary conversations on your device. Optional online features, when enabled, are separate and clearly identified. Local model answers can be inaccurate and should be checked.</p>
-    <div class="links">
-      <a href="/privacy.html">Privacy policy</a>
-      <a href="https://github.com/jarumba-code/qwen-pocket-">Source code</a>
-    </div>
-  </section>
-  <p style="font-size:.85rem;margin-top:40px">PocketQwen is an independent project. Qwen is a model family name; this site does not imply endorsement by its developers.</p>
-</main></body></html>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><div class="container header-inner">
+  <a class="brand" href="/" aria-label="PocketQwen home"><img src="/assets/pocketqwen-mark.svg" alt="" width="42" height="42"><span class="brand-copy"><strong>PocketQwen</strong><small>LOCAL-FIRST AI</small></span></a>
+  <nav class="desktop-nav" aria-label="Main navigation"><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#privacy">Privacy</a><a href="#about">About</a></nav>
+  <div class="header-actions"><a class="button button-small button-dark" href="#download">Release status <span aria-hidden="true">↗</span></a>
+    <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Open menu" aria-controls="mobile-menu" aria-expanded="false"><span></span><span></span></button>
+  </div>
+</div>
+<nav class="mobile-menu" id="mobile-menu" aria-label="Mobile navigation" hidden><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#privacy">Privacy</a><a href="#about">About</a><a href="#download">Release status</a></nav>
+</header>
+
+<main id="main">
+<section class="hero section-shell"><div class="container hero-grid">
+  <div class="hero-copy">
+    <div class="eyebrow"><span class="eyebrow-dot"></span> ANDROID · ON-DEVICE AI</div>
+    <h1>AI that feels<br><em>closer to home.</em></h1>
+    <p class="hero-lede">A lightweight AI assistant built to run directly on your Android device. Keep everyday conversations close, private and available offline.</p>
+    <div class="hero-actions"><a class="button button-gold" href="#features">Explore PocketQwen <span aria-hidden="true">↗</span></a><a class="text-link" href="#how-it-works">See how it works <span aria-hidden="true">→</span></a></div>
+    <div class="hero-note"><span class="note-icon" aria-hidden="true">✳</span><span>Ordinary chat uses local inference. Online features are separate and optional.</span></div>
+  </div>
+  <div class="hero-visual" aria-label="Illustrative PocketQwen chat preview">
+    <div class="visual-glow"></div><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+    <div class="phone-frame"><div class="phone-screen">
+      <div class="phone-status"><span>9:41</span><span class="status-right"><i></i><i></i><i></i></span></div>
+      <div class="chat-topbar"><div class="chat-brand"><img src="/assets/pocketqwen-mark.svg" alt="" width="30" height="30"><span><strong>PocketQwen</strong><small>Local assistant</small></span></div><span class="local-pill"><b></b> LOCAL</span></div>
+      <div class="chat-content"><div class="chat-date">TODAY · LOCAL SESSION</div>
+        <div class="chat-message user-message">Can you explain binary search in simple terms?</div>
+        <div class="assistant-label"><span class="assistant-mark">Q</span> POCKETQWEN</div>
+        <div class="chat-message assistant-message"><p>Binary search finds an item in a <strong>sorted list</strong> by checking the middle and discarding the half that cannot contain the answer.</p>
+          <div class="code-preview"><div class="code-head"><span>binary_search.py</span><span>PYTHON</span></div><pre><code>mid = (low + high) // 2
+if items[mid] == target:
+    return mid</code></pre></div>
+          <div class="answer-foot"><span>● On-device response</span><span>Qwen 0.5B</span></div>
+        </div>
+      </div>
+      <div class="chat-input-preview"><span>Ask PocketQwen…</span><b aria-hidden="true">↑</b></div><div class="phone-home-indicator"></div>
+    </div></div>
+    <div class="floating-chip chip-top"><span>✦</span><span><strong>Local by design</strong><small>No cloud inference for chat</small></span></div>
+    <div class="floating-chip chip-bottom"><span class="chip-spark">◈</span><span><strong>Qwen2.5 · 0.5B</strong><small>Quantized local model</small></span></div>
+  </div>
+</div></section>
+
+<section class="principles-bar" aria-label="Product principles"><div class="container principles-grid">
+  <div><span class="principle-icon">◉</span><span><strong>Runs on your device</strong><small>Local model inference</small></span></div>
+  <div><span class="principle-icon">⌁</span><span><strong>Offline-ready chat</strong><small>No network required for local chat</small></span></div>
+  <div><span class="principle-icon">◇</span><span><strong>Your control matters</strong><small>Online tools kept separate</small></span></div>
+</div></section>
+
+<section class="section section-features" id="features"><div class="container">
+  <div class="section-heading"><div><span class="eyebrow">MADE FOR EVERYDAY USE</span><h2>Small footprint.<br><em>Useful by design.</em></h2></div><p>PocketQwen focuses on the essentials: a local model, a straightforward chat experience and control over when your device goes online.</p></div>
+  <div class="feature-grid">
+    <article class="feature-card feature-card-large"><div class="feature-icon">⌂</div><span class="card-kicker">01 / LOCAL INFERENCE</span><h3>Your chat stays on your device.</h3><p>The bundled Qwen model runs through a native Android inference runtime. Ordinary prompts do not need to be sent to a cloud AI service.</p><div class="card-visual local-visual"><span class="local-ring"></span><span class="local-core">Q</span><span class="local-caption">DEVICE<br>PROCESSING</span></div></article>
+    <article class="feature-card"><div class="feature-icon">⌁</div><span class="card-kicker">02 / OFFLINE ACCESS</span><h3>Useful without a connection.</h3><p>Once the app and its bundled model are installed, local conversations can run without mobile data or Wi-Fi.</p><div class="mini-status"><span class="status-live"></span> Local model · On device</div></article>
+    <article class="feature-card"><div class="feature-icon">{ }</div><span class="card-kicker">03 / CODE &amp; LEARNING</span><h3>Think through problems.</h3><p>Ask for explanations, examples and code drafts. Review generated output carefully before using it in a real project.</p><div class="code-lines"><span><i>01</i> fun understand(problem)</span><span><i>02</i> &nbsp; return clear_explanation</span><span><i>03</i> end</span></div></article>
+    <article class="feature-card feature-card-muted"><div class="feature-icon">◎</div><span class="card-kicker">04 / USER CONTROL</span><h3>Online tools stay separate.</h3><p>Web Search is being developed as a distinct, user-controlled feature. It is not available in the current Android build yet.</p><span class="coming-label"><span></span> IN DEVELOPMENT</span></article>
+  </div>
+</div></section>
+
+<section class="section how-section" id="how-it-works"><div class="container">
+  <div class="center-heading"><span class="eyebrow">UNDER THE HOOD</span><h2>AI, without the extra distance.</h2><p>A simple flow keeps the model close to the conversation.</p></div>
+  <div class="steps-grid">
+    <article class="step-card"><span class="step-number">01</span><div class="step-illustration step-file"><span>Q</span><i></i><i></i><i></i></div><h3>Model included</h3><p>The Android app includes a quantized Qwen model so it can be loaded locally.</p></article>
+    <div class="step-connector" aria-hidden="true">→</div>
+    <article class="step-card"><span class="step-number">02</span><div class="step-illustration step-chip"><span>⌘</span><i></i></div><h3>Native inference</h3><p>A native runtime runs the model on the phone. Actual speed and memory use depend on the device.</p></article>
+    <div class="step-connector" aria-hidden="true">→</div>
+    <article class="step-card"><span class="step-number">03</span><div class="step-illustration step-chat"><span></span><span></span><span></span></div><h3>Response on device</h3><p>The app shows the generated response without cloud inference for ordinary chat.</p></article>
+  </div>
+</div></section>
+
+<section class="privacy-section" id="privacy"><div class="container privacy-panel">
+  <div class="privacy-copy"><span class="eyebrow eyebrow-light">PRIVACY IS AN ARCHITECTURE CHOICE</span><h2>Local first.<br><em>Clear about online.</em></h2><p>Normal chat is processed by the model on your phone. Future online features will be clearly identified and require a separate action, so you can decide when a query leaves your device.</p><a class="button button-light" href="/privacy.html">Read the privacy policy <span aria-hidden="true">↗</span></a></div>
+  <div class="privacy-art" aria-hidden="true"><div class="privacy-halo"></div><div class="privacy-lock"><span>⌑</span><small>LOCAL<br>BY DEFAULT</small></div><div class="privacy-orbit orbit-a"></div><div class="privacy-orbit orbit-b"></div><div class="privacy-caption">YOUR DEVICE<br>YOUR CONVERSATION</div></div>
+</div></section>
+
+<section class="section model-section"><div class="container model-grid">
+  <div><span class="eyebrow">THE MODEL INSIDE</span><h2>Purposefully<br><em>lightweight.</em></h2><p class="model-intro">The current Android app uses a compact Qwen model in a quantized format. It is designed to make local inference practical on supported devices, with trade-offs in reasoning depth and response quality.</p><p class="fine-print">Model answers can be wrong, incomplete or out of date. Verify important information and review code before running it.</p></div>
+  <div class="model-spec-card"><div class="spec-header"><span class="spec-mark">Q</span><span><strong>Current default model</strong><small>Bundled in the Android app</small></span><span class="spec-tag">LOCAL</span></div><div class="spec-model-name">Qwen2.5-0.5B-Instruct</div><div class="spec-divider"></div><div class="spec-row"><span>Quantization</span><strong>Q4_K_M</strong></div><div class="spec-row"><span>Inference runtime</span><strong>llama.cpp · native</strong></div><div class="spec-row"><span>Context configured</span><strong>2,048 tokens</strong></div><div class="spec-row"><span>Acceleration</span><strong>Device-dependent</strong></div><div class="spec-note">We do not publish generic token-speed, battery or NPU claims. Reliable performance figures need repeatable tests on named devices.</div></div>
+</div></section>
+
+<section class="section download-section" id="download"><div class="container download-card">
+  <div class="download-orb" aria-hidden="true">Q</div>
+  <div class="download-copy"><span class="eyebrow">GET POCKETQWEN</span><h2>Built for your<br><em>next everyday device.</em></h2><p>The public APK release is not published yet. We will link a tested build here when installation, signing and device checks are complete.</p></div>
+  <div class="download-action"><span class="release-status"><i></i> PUBLIC RELEASE PENDING</span><a class="button button-dark" href="https://github.com/jarumba-code/qwen-pocket-/releases" target="_blank" rel="noopener noreferrer">Check GitHub Releases <span aria-hidden="true">↗</span></a><a class="text-link" href="https://github.com/jarumba-code/qwen-pocket-" target="_blank" rel="noopener noreferrer">Explore the source code <span aria-hidden="true">→</span></a></div>
+</div></section>
+
+<section class="section faq-section"><div class="container faq-layout">
+  <div class="faq-heading"><span class="eyebrow">GOOD TO KNOW</span><h2>Questions, answered.</h2><p>What to expect from the current PocketQwen build.</p></div>
+  <div class="faq-list">
+    <details><summary>Does PocketQwen work without internet?</summary><p>Ordinary model conversations can run offline after the app and bundled model are installed. Features that need current web information will require a connection when they become available.</p></details>
+    <details><summary>Which model does the app use?</summary><p>The current default is Qwen2.5-0.5B-Instruct in Q4_K_M quantization. Smaller models use fewer resources, but can be less capable than larger cloud models.</p></details>
+    <details><summary>Does it use my phone's NPU?</summary><p>We do not currently claim NPU acceleration. The app uses a native inference runtime, and performance depends on device hardware, available memory and thermal conditions.</p></details>
+    <details><summary>Which Android phones are supported?</summary><p>Device compatibility testing is ongoing. We will publish a tested compatibility list after validation; chipset-family claims should not be treated as a guarantee.</p></details>
+    <details><summary>When can I download the APK?</summary><p>A public release has not been published yet. Check GitHub Releases for the first verified build.</p></details>
+  </div>
+</div></section>
+
+<section class="about-section" id="about"><div class="container about-inner">
+  <div><span class="eyebrow">ABOUT POCKETQWEN</span><h2>More control.<br><em>Less cloud dependence.</em></h2></div>
+  <div class="about-copy"><p>PocketQwen is an independent Android project exploring accessible, on-device AI. The goal is straightforward: bring a useful language model closer to the people using it, while being honest about the trade-offs of running AI on everyday hardware.</p><a class="text-link" href="https://github.com/jarumba-code/qwen-pocket-/issues" target="_blank" rel="noopener noreferrer">Questions or feedback? Visit the project <span aria-hidden="true">↗</span></a></div>
+</div></section>
+</main>
+
+<footer class="site-footer"><div class="container footer-main">
+  <div class="footer-brand"><a class="brand" href="/" aria-label="PocketQwen home"><img src="/assets/pocketqwen-mark.svg" alt="" width="38" height="38"><span class="brand-copy"><strong>PocketQwen</strong><small>LOCAL-FIRST AI</small></span></a><p>Lightweight AI, running closer to you.</p></div>
+  <div class="footer-links"><strong>Explore</strong><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#download">Release status</a></div>
+  <div class="footer-links"><strong>Project</strong><a href="#about">About</a><a href="/privacy.html">Privacy policy</a><a href="https://github.com/jarumba-code/qwen-pocket-/issues" target="_blank" rel="noopener noreferrer">Support &amp; issues</a></div>
+  <div class="footer-links"><strong>Develop</strong><a href="https://github.com/jarumba-code/qwen-pocket-" target="_blank" rel="noopener noreferrer">GitHub repository</a><a href="https://github.com/jarumba-code/qwen-pocket-/releases" target="_blank" rel="noopener noreferrer">Releases</a></div>
+</div><div class="container footer-bottom"><span>© <span id="copyright-year">2026</span> PocketQwen. Independent project.</span><span>Qwen is a model family name. No endorsement is implied.</span></div></footer>
+
+<nav class="mobile-bottom-nav" aria-label="Quick navigation"><a href="#main"><span>⌂</span>Home</a><a href="#features"><span>✧</span>Features</a><a href="#how-it-works"><span>⌘</span>How it works</a><a href="#download"><span>↓</span>Release</a></nav>
+</body>
+</html>
