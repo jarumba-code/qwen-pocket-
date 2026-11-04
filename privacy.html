@@ -1,14 +1,49 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#082dff"><title>Privacy Policy — PocketQwen</title><style>
-:root{color-scheme:light dark;--bg:#f6f8ff;--fg:#10172b;--muted:#536078;--blue:#1747ff}@media(prefers-color-scheme:dark){:root{--bg:#080d1d;--fg:#eef2ff;--muted:#aab5ce}}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 system-ui,sans-serif}main{max-width:780px;margin:auto;padding:48px 24px}h1,h2{line-height:1.2}p,li{color:var(--muted)}a{color:var(--blue)}.draft{padding:14px 16px;border-left:4px solid var(--blue);background:#1747ff12;border-radius:8px}
-</style></head><body><main>
-<a href="/">← PocketQwen home</a><h1>Privacy Policy</h1><p><strong>Effective date:</strong> 4 November 2026</p>
-<p class="draft"><strong>Launch draft:</strong> This policy must be reviewed against the final release, deployed endpoints, retention arrangements and Google Play Data safety form before public launch.</p>
-<h2>Local processing</h2><ul><li>Ordinary chat prompts and model responses are processed by the bundled Qwen model on your Android device.</li><li>Conversation history and preferences are stored in app-private storage.</li><li>Local inference does not require an account or cloud AI service.</li></ul>
-<h2>Optional online features</h2><p>If Web Search is enabled, the search query is sent to the configured search service. Search results are returned to the app for use as reference context. The app should show the source links and make clear that search is online.</p>
-<p>If you submit a report, the report category, optional details, selected response excerpt and app version are sent to the configured report intake service. Do not submit passwords, private keys, payment credentials or other sensitive information.</p>
-<h2>Storage and deletion</h2><p>Local conversations can be deleted in the app. The current app build disables Android backup. Report submissions are forwarded to a configured service; retention and deletion terms must be documented by the operator of that service before the feature is enabled.</p>
-<h2>Age and safety</h2><p>PocketQwen is intended for users aged 13 and older. Model output can be inaccurate and is not a substitute for qualified medical, legal, financial or emergency assistance.</p>
-<h2>Contact</h2><p>For privacy questions, use the project repository's issue/support process. A monitored support contact should be published before the app is publicly released.</p>
-<p><a href="https://github.com/jarumba-code/qwen-pocket-">PocketQwen source repository</a></p>
-</main></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fcfaf6">
+  <meta name="description" content="How PocketQwen handles local conversations and optional online features.">
+  <title>Privacy Policy — PocketQwen</title>
+  <link rel="icon" href="/assets/pocketqwen-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+  <header class="site-header"><div class="container header-inner">
+    <a class="brand" href="/" aria-label="PocketQwen home"><img src="/assets/pocketqwen-mark.svg" alt="" width="42" height="42"><span class="brand-copy"><strong>PocketQwen</strong><small>LOCAL-FIRST AI</small></span></a>
+    <a class="button button-small button-dark" href="/">Back to home <span aria-hidden="true">↗</span></a>
+  </div></header>
+  <main class="privacy-document"><div class="container document-container">
+    <span class="eyebrow">POCKETQWEN · PRIVACY</span>
+    <h1>Privacy, in plain language.</h1>
+    <p class="document-lede">This page explains what happens to your information when you use PocketQwen.</p>
+    <div class="document-notice"><strong>Launch review required.</strong> This policy must be checked against the final app release, deployed services, report-retention arrangements and the Google Play Data safety form before public launch.</div>
+    <p><strong>Effective date:</strong> 5 November 2026</p>
+
+    <h2>1. Local conversations</h2>
+    <p>PocketQwen uses a bundled Qwen language model for ordinary chat. Prompts and responses are processed by the model on your Android device; ordinary local inference does not require a cloud AI service. Conversation history and app preferences are stored in app-private storage on the device.</p>
+
+    <h2>2. Optional online features</h2>
+    <p>Online features are separate from local inference. Web Search is under development and is not available in the current Android build. When an online search feature is released, the app is intended to send the search query—not the full conversation history—to the configured search provider. The app should clearly identify the online action and show its returned sources.</p>
+    <p>A report-submission endpoint exists in the project backend, but its availability depends on deployment configuration. If report submission is enabled in a future build, the report category, optional details, selected response excerpt and app version may be sent to the configured report service. Do not submit passwords, private keys, payment credentials or other sensitive information.</p>
+
+    <h2>3. Data storage and deletion</h2>
+    <p>Local conversations and preferences are stored by the app on your device. You can delete local conversations through the app's available controls. Data sent to a third-party online provider is subject to that provider's own policies. Before any report service is enabled publicly, the operator must publish its retention and deletion arrangements.</p>
+
+    <h2>4. Diagnostics and service providers</h2>
+    <p>This policy does not claim that every device-level diagnostic or platform event is disabled. The final release should be reviewed to identify any analytics, crash reporting, hosting logs, search-provider processing or report-webhook processing and describe them accurately here.</p>
+
+    <h2>5. Age and important limitations</h2>
+    <p>PocketQwen is intended for users aged 13 and older. Model output can be inaccurate, incomplete or out of date. It is not a substitute for qualified medical, legal, financial or emergency assistance.</p>
+
+    <h2>6. Contact and support</h2>
+    <p>For questions or to report an issue, visit the <a href="https://github.com/jarumba-code/qwen-pocket-/issues" target="_blank" rel="noopener noreferrer">PocketQwen GitHub issue tracker</a>. A monitored privacy contact address should be published before public launch.</p>
+
+    <div class="document-footer"><a class="text-link" href="/">← Return to PocketQwen</a><span>Independent project · Qwen is a model family name; no endorsement is implied.</span></div>
+  </div></main>
+  <footer class="site-footer"><div class="container footer-bottom"><span>© 2026 PocketQwen. Independent project.</span><span>Local-first AI for Android.</span></div></footer>
+</body>
+</html>
