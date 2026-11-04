@@ -540,3 +540,33 @@ h1 em,h2 em{font-family:var(--serif);font-weight:400;letter-spacing:-.065em;colo
 .features-more-link{display:flex;justify-content:flex-end;margin-top:23px}
 .features-more-link .text-link{font-size:12px}
 @media(max-width:640px){.features-more-link{justify-content:flex-start}}
+
+/* Friendly feature and download pages */
+.features-friendly-art{min-height:370px;display:grid;place-items:center;position:relative;isolation:isolate}
+.friendly-glow{position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(218,193,132,.35),transparent 70%);z-index:-1}
+.friendly-chat-card{width:min(100%,340px);padding:18px;background:#fffefa;border:1px solid #e8dfce;border-radius:24px;box-shadow:0 25px 65px rgba(70,55,23,.12);transform:rotate(2deg)}
+.friendly-chat-head{display:flex;align-items:center;gap:10px;padding-bottom:15px;border-bottom:1px solid var(--line)}
+.friendly-avatar{width:38px;height:38px;border-radius:13px;background:#e8d8b2;color:#765b22;display:grid;place-items:center;font:800 18px var(--display)}
+.friendly-chat-head>span:nth-child(2){display:flex;flex-direction:column;line-height:1.35}
+.friendly-chat-head b{font:700 13px var(--display)}
+.friendly-chat-head small{font-size:10px;color:var(--muted)}
+.friendly-chat-head i{margin-left:auto;width:8px;height:8px;border-radius:50%;background:#9a9b69}
+.friendly-bubble{padding:13px 14px;margin-top:17px;border-radius:15px;font-size:12px;line-height:1.7}
+.friendly-bubble.user{margin-left:35px;background:#f1eadb;color:#544a35}
+.friendly-bubble.assistant{margin-right:25px;background:#f8f6f0;border:1px solid #eee7d9;color:#575044}
+.friendly-chat-input{margin-top:24px;border:1px solid #e9e2d6;border-radius:30px;padding:9px 10px 9px 14px;color:#a49b8a;font-size:11px;display:flex;justify-content:space-between;align-items:center}
+.friendly-chat-input b{width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#fff}
+.friendly-feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.friendly-feature-card{padding:25px;border:1px solid var(--line);border-radius:20px;background:var(--white);min-height:205px}
+.friendly-feature-card>span{width:40px;height:40px;border-radius:13px;background:#eee4cc;color:#967535;display:grid;place-items:center;font-size:20px;margin-bottom:18px}
+.friendly-feature-card h3{font:700 19px/1.25 var(--display);letter-spacing:-.04em;margin-bottom:9px}
+.friendly-feature-card p{font-size:12px;line-height:1.8;color:var(--muted);margin:0}
+.friendly-feature-card small{display:inline-block;margin-top:14px;color:#9a7b3d;font:500 8px var(--mono);letter-spacing:.1em}
+.friendly-how{background:#f4f0e7}
+.step-friendly-check{font-size:50px;color:#a38443}
+.download-status-panel{margin-top:27px;padding:22px;border:1px solid #e4d7b8;border-radius:18px;background:#fffdf8;box-shadow:0 12px 35px rgba(60,48,23,.06)}
+.download-status-panel .release-status{display:inline-flex;align-items:center;gap:9px;font:500 9px var(--mono);letter-spacing:.08em;color:#8b6c2f}
+.download-status-panel h2{font:700 20px/1.3 var(--display);margin:15px 0 8px}
+.download-status-panel p{font-size:12px;line-height:1.75;color:var(--muted);margin:0}
+@media(max-width:760px){.friendly-feature-grid{grid-template-columns:1fr 1fr}.features-friendly-art{min-height:300px}}
+@media(max-width:520px){.friendly-feature-grid{grid-template-columns:1fr}.friendly-feature-card{min-height:0}.features-friendly-art{min-height:270px}.friendly-chat-card{max-width:300px}}
