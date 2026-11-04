@@ -11,12 +11,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -43,11 +49,14 @@ private fun splitCodeBlocks(text: String): List<Pair<Boolean, String>> {
 @Composable
 fun MessageBubble(
     message: ChatMessage,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onEdit: (String, String) -> Unit = { _, _ -> }
 ) {
     val isUser = message.isUser
     val bubbleColor = if (isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
     val clipboard = LocalClipboardManager.current
+    var editing by remember(message.id) { mutableStateOf(false) }
+    var editedText by remember(message.id, message.text) { mutableStateOf(message.text) }
 
     Row(
         modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
@@ -91,11 +100,37 @@ fun MessageBubble(
                         Text(value, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
+                if (!isUser && message.text.isNotBlank() && message.status != MessageStatus.SENDING) {
+                    TextButton(onClick = { clipboard.setText(AnnotatedString(message.text)) }) { Text("Copy response") }
+                }
+                if (isUser && message.status != MessageStatus.SENDING) {
+                    TextButton(onClick = { editedText = message.text; editing = true }) { Text("Edit") }
+                }
                 if (message.status == MessageStatus.SENDING) {
                     Spacer(modifier = Modifier.width(8.dp))
                     CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                 }
             }
         }
+    }
+
+    if (editing) {
+        AlertDialog(
+            onDismissRequest = { editing = false },
+            title = { Text("Edit message") },
+            text = {
+                OutlinedTextField(
+                    value = editedText,
+                    onValueChange = { editedText = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                    maxLines = 8
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { onEdit(message.id, editedText); editing = false }, enabled = editedText.isNotBlank()) { Text("Resend") }
+            },
+            dismissButton = { TextButton(onClick = { editing = false }) { Text("Cancel") } }
+        )
     }
 }
