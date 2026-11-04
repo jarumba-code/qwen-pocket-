@@ -39,17 +39,8 @@ import com.pocketqwen.app.viewmodel.SettingsViewModel
 private data class AccentOption(val id: String, val label: String, val color: Color)
 
 private val accentOptions = listOf(
-    AccentOption("RED", "Red", Color(0xFFD32F2F)),
-    AccentOption("BLUE", "Blue", Color(0xFF1677FF)),
-    AccentOption("GREEN", "Green", Color(0xFF16834A)),
-    AccentOption("LIGHT_BLUE", "Light blue", Color(0xFF039BE5)),
-    AccentOption("DARK_BLUE", "Dark blue", Color(0xFF173B75)),
-    AccentOption("BLACK", "Black", Color(0xFF252525)),
-    AccentOption("GOLDEN", "Golden", Color(0xFFB8860B)),
-    AccentOption("PINK", "Pink", Color(0xFFD81B60)),
-    AccentOption("PURPLE", "Purple", Color(0xFF7E57C2))
+    AccentOption("BLUE", "Blue", Color(0xFF1677FF))
 )
-
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
@@ -74,7 +65,7 @@ fun SettingsScreen(
             Text("Profile", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 4.dp))
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Personalize Ekip", style = MaterialTheme.typography.titleMedium)
+                    Text("Personalize PocketQwen", style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = nameDraft,
@@ -202,7 +193,7 @@ fun SettingsScreen(
                         }
                     }
                     Text(
-                        "Ekip runs the bundled Qwen model on this device. Ejecting releases the model and inference context from memory; the bundled model file remains available to load again.",
+                        "PocketQwen runs the bundled Qwen model on this device. Ejecting releases the model and inference context from memory; the bundled model file remains available to load again.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
@@ -212,17 +203,17 @@ fun SettingsScreen(
         }
 
         item {
-            Text("About Ekip", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
+            Text("About PocketQwen", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Ekip · Version 1.1.0", style = MaterialTheme.typography.titleMedium)
+                    Text("PocketQwen · Version 1.1.0", style = MaterialTheme.typography.titleMedium)
                     Text("Built by JIMM.tech in Nigeria.", style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        "Ekip is an AI project focused on privacy, data sovereignty, and making local AI more accessible on everyday devices. Founded by Collins Asanya, a Nigerian college student, the project explores how AI can run directly on users' devices, reducing dependence on cloud inference where supported.",
+                        "PocketQwen is an AI project focused on privacy, data sovereignty, and making local AI more accessible on everyday devices. Founded by Collins Asanya, a Nigerian college student, the project explores how AI can run directly on users' devices, reducing dependence on cloud inference where supported.",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        "Ekip uses the Qwen2.5-0.5B-Instruct model. Model output can be inaccurate, and capabilities depend on the model and device. The local chat model does not require cloud inference.",
+                        "PocketQwen uses the Qwen2.5-0.5B-Instruct model. Model output can be inaccurate, and capabilities depend on the model and device. The local chat model does not require cloud inference.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
