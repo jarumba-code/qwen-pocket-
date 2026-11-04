@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fcfaf6">
+  <meta name="description" content="Explore PocketQwen's local model runtime, on-device conversation history, code assistance and current development roadmap.">
+  <title>Features &amp; Architecture — PocketQwen</title>
+  <link rel="icon" href="/assets/pocketqwen-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/site.css">
+  <script src="/assets/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="PocketQwen home">
+        <img src="/assets/pocketqwen-mark.svg" alt="" width="42" height="42">
+        <span class="brand-copy"><strong>PocketQwen</strong><small>LOCAL-FIRST AI</small></span>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="/#features" aria-current="page">Features</a>
+        <a href="/#how-it-works">How it works</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/#about">About</a>
+      </nav>
+      <div class="header-actions">
+        <a class="button button-small button-dark" href="/#download">Release status <span aria-hidden="true">↗</span></a>
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Open menu" aria-controls="mobile-menu" aria-expanded="false"><span></span><span></span></button>
+      </div>
+    </div>
+    <nav class="mobile-menu" id="mobile-menu" aria-label="Mobile navigation" hidden>
+      <a href="/#features">Features</a><a href="/#how-it-works">How it works</a><a href="/privacy.html">Privacy</a><a href="/#about">About</a><a href="/#download">Release status</a>
+    </nav>
+  </header>
+
+  <main id="main" class="features-page">
+    <section class="features-hero">
+      <div class="container features-hero-grid">
+        <div>
+          <span class="eyebrow"><span class="eyebrow-dot"></span> CORE ARCHITECTURE</span>
+          <h1>Designed for<br><em>on-device AI.</em></h1>
+          <p class="features-lede">Explore the components behind PocketQwen: a compact local language model, a native Android runtime, private conversation storage and simple controls for everyday use.</p>
+          <div class="features-hero-tags"><span>ANDROID</span><span>LLAMA.CPP</span><span>GGUF · Q4_K_M</span></div>
+        </div>
+        <div class="architecture-card" aria-label="Illustration of PocketQwen local inference flow">
+          <div class="architecture-orbit architecture-orbit-a"></div>
+          <div class="architecture-orbit architecture-orbit-b"></div>
+          <div class="architecture-node architecture-node-model"><span>Q</span><small>QWEN MODEL</small></div>
+          <div class="architecture-link architecture-link-one"></div>
+          <div class="architecture-node architecture-node-runtime"><span>⌘</span><small>NATIVE RUNTIME</small></div>
+          <div class="architecture-link architecture-link-two"></div>
+          <div class="architecture-node architecture-node-phone"><span>▣</span><small>ANDROID DEVICE</small></div>
+          <div class="architecture-caption">LOCAL INFERENCE FLOW<br><b>NO CLOUD MODEL REQUEST</b></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="feature-status-strip">
+      <div class="container status-strip-grid">
+        <div><span class="status-symbol">◉</span><span><strong>Local model</strong><small>Bundled Qwen weights</small></span></div>
+        <div><span class="status-symbol">⌂</span><span><strong>Device storage</strong><small>App-private chat history</small></span></div>
+        <div><span class="status-symbol">◌</span><span><strong>Online search</strong><small>Android integration in development</small></span></div>
+      </div>
+    </section>
+
+    <section class="section features-modules">
+      <div class="container">
+        <div class="section-heading">
+          <div><span class="eyebrow">THE BUILDING BLOCKS</span><h2>What is inside<br><em>the current app.</em></h2></div>
+          <p>This page separates implemented app behaviour from future ideas. No benchmark or hardware feature is presented as available without verification.</p>
+        </div>
+
+        <div class="module-list">
+          <article class="module-card module-card-featured">
+            <div class="module-topline"><span class="module-number">MODULE 01</span><span class="implementation-state state-live"><i></i> IMPLEMENTED</span></div>
+            <div class="module-content-grid">
+              <div>
+                <div class="module-icon">⌘</div>
+                <h3>Native, offline-first model runtime</h3>
+                <p>The Android app loads a bundled Qwen model through a native llama.cpp-based runtime. Ordinary model prompts are processed on the device rather than sent to a cloud inference API.</p>
+                <ul class="module-checks">
+                  <li>Bundled Qwen2.5-0.5B-Instruct model</li>
+                  <li>GGUF Q4_K_M quantization</li>
+                  <li>Native inference through the app's C++ runtime</li>
+                  <li>Configured context window: 2,048 tokens</li>
+                </ul>
+              </div>
+              <div class="runtime-visual">
+                <div class="runtime-stage"><small>01 · INPUT</small><strong>Prompt</strong><span>Conversation text</span></div>
+                <div class="runtime-arrow">↓</div>
+                <div class="runtime-stage runtime-stage-highlight"><small>02 · PROCESS</small><strong>Qwen + llama.cpp</strong><span>Local model inference</span></div>
+                <div class="runtime-arrow">↓</div>
+                <div class="runtime-stage"><small>03 · OUTPUT</small><strong>Response</strong><span>Rendered in chat</span></div>
+                <p class="visual-footnote">Conceptual flow; speed and memory use vary by device.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="module-card">
+            <div class="module-topline"><span class="module-number">MODULE 02</span><span class="implementation-state state-live"><i></i> IMPLEMENTED</span></div>
+            <div class="module-heading-row"><div class="module-icon">✳</div><div><h3>Chat, explanations and code assistance</h3><p>Ask questions, request explanations and draft code inside the conversation. The model generates text; it does not provide an integrated code execution sandbox or REPL.</p></div></div>
+            <div class="code-example">
+              <div class="code-example-header">
+                <div class="code-tabs" role="group" aria-label="Choose code example language">
+                  <button type="button" class="code-tab is-active" data-code-tab="python" aria-pressed="true">Python</button>
+                  <button type="button" class="code-tab" data-code-tab="kotlin" aria-pressed="false">Kotlin</button>
+                  <button type="button" class="code-tab" data-code-tab="rust" aria-pressed="false">Rust</button>
+                </div>
+                <div class="code-actions"><span id="sample-file">binary_search.py</span><button type="button" id="copy-sample" class="copy-sample">Copy example</button></div>
+              </div>
+              <pre class="code-sample" id="code-sample" aria-live="polite"><code>def binary_search(items, target):
+    low, high = 0, len(items) - 1
+
+    while low &lt;= high:
+        mid = (low + high) // 2
+        if items[mid] == target:
+            return mid
+        if items[mid] &lt; target:
+            low = mid + 1
+        else:
+            high = mid - 1
+
+    return -1</code></pre>
+              <p class="code-disclaimer">Illustrative code sample only. The website does not execute this code.</p>
+            </div>
+          </article>
+
+          <article class="module-card">
+            <div class="module-topline"><span class="module-number">MODULE 03</span><span class="implementation-state state-live"><i></i> IMPLEMENTED</span></div>
+            <div class="module-heading-row"><div class="module-icon">▤</div><div><h3>Local conversation history</h3><p>Conversation records and messages are stored in an app-private SQLite database on the device. The current implementation does not claim hardware-backed encryption or semantic vector search.</p></div></div>
+            <div class="storage-visual">
+              <div class="storage-database"><span>▤</span><strong>pocketqwen_history.db</strong><small>APP-PRIVATE SQLITE</small></div>
+              <div class="storage-branches"><i></i><i></i></div>
+              <div class="storage-records"><div><b>Conversation</b><span>Title · Updated time</span></div><div><b>Messages</b><span>Text · Role · Timestamp · Order</span></div></div>
+            </div>
+            <div class="module-note"><strong>Storage note</strong><span>Chat history is stored locally in app-private storage. Do not describe it as AES-256 encrypted unless that is separately implemented and verified.</span></div>
+          </article>
+
+          <article class="module-card">
+            <div class="module-topline"><span class="module-number">MODULE 04</span><span class="implementation-state state-live"><i></i> IMPLEMENTED</span></div>
+            <div class="module-heading-row"><div class="module-icon">☼</div><div><h3>Personalisation and performance modes</h3><p>Choose the app's appearance and select one of the implemented CPU execution profiles. These settings change the app configuration; they are not a manual RAM or quantization control panel.</p></div></div>
+            <div class="settings-preview-grid">
+              <div class="settings-preview">
+                <span class="settings-label">APPEARANCE</span>
+                <div class="appearance-options"><span class="appearance-option"><i class="appearance-light"></i>Light</span><span class="appearance-option selected"><i class="appearance-dark"></i>Dark</span><span class="appearance-option"><i class="appearance-system"></i>System</span></div>
+                <small>Theme options available in app settings.</small>
+              </div>
+              <div class="settings-preview">
+                <span class="settings-label">CPU EXECUTION PROFILE</span>
+                <div class="profile-option"><span><b>Balanced</b><small>Uses about half available CPU threads</small></span><i class="profile-dot"></i></div>
+                <div class="profile-option"><span><b>Performance</b><small>Uses all available CPU threads</small></span><i class="profile-dot"></i></div>
+                <small>Performance mode may use more battery and generate more heat.</small>
+              </div>
+            </div>
+          </article>
+
+          <article class="module-card module-card-roadmap">
+            <div class="module-topline"><span class="module-number">MODULE 05</span><span class="implementation-state state-roadmap"><i></i> IN DEVELOPMENT</span></div>
+            <div class="module-heading-row"><div class="module-icon">◎</div><div><h3>Optional Web Search</h3><p>A server-side search endpoint has been added to the project, but the Android search switch, user flow, source cards and model-context integration are not yet implemented. This feature is not available in the current Android build.</p></div></div>
+            <div class="roadmap-flow">
+              <div><span>01</span><b>User chooses Search</b><small>Future Android UI</small></div><i>→</i>
+              <div><span>02</span><b>Query sent securely</b><small>Backend search proxy</small></div><i>→</i>
+              <div><span>03</span><b>Sources shown</b><small>Links + short snippets</small></div>
+            </div>
+            <div class="module-note roadmap-note"><strong>Privacy boundary</strong><span>The intended design sends only the search query, not the full chat history. This is a planned behaviour, not a claim about a released feature.</span></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section capability-section">
+      <div class="container capability-grid">
+        <div>
+          <span class="eyebrow">DEVICE COMPATIBILITY</span>
+          <h2>Built for ARM64<br><em>Android devices.</em></h2>
+          <p>The current Android build declares API 24 as its minimum SDK and packages the native runtime for ARM64. That is a build configuration, not a promise that every device at that level has sufficient memory or performance.</p>
+        </div>
+        <div class="compatibility-card">
+          <div class="compatibility-row"><span>Declared minimum SDK</span><strong>Android 7.0 · API 24</strong></div>
+          <div class="compatibility-row"><span>Native ABI filter</span><strong>arm64-v8a</strong></div>
+          <div class="compatibility-row"><span>Current model</span><strong>Qwen2.5-0.5B · Q4_K_M</strong></div>
+          <div class="compatibility-row"><span>Device benchmark matrix</span><strong class="not-published">Not published</strong></div>
+          <p>Physical-device compatibility testing is still in progress. No token-per-second, battery or RAM figures are published here until repeatable tests are available.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="features-bottom-cta">
+      <div class="container features-cta-inner">
+        <div><span class="eyebrow eyebrow-light">A LOCAL-FIRST APPROACH</span><h2>Useful AI.<br><em>Closer to you.</em></h2><p>Follow the project as the Android app and its online features continue to develop.</p></div>
+        <div class="features-cta-actions"><a class="button button-light" href="/#download">Check release status <span aria-hidden="true">↗</span></a><a class="features-source-link" href="https://github.com/jarumba-code/qwen-pocket-" target="_blank" rel="noopener noreferrer">View source code <span aria-hidden="true">→</span></a></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="container footer-main">
+    <div class="footer-brand"><a class="brand" href="/" aria-label="PocketQwen home"><img src="/assets/pocketqwen-mark.svg" alt="" width="38" height="38"><span class="brand-copy"><strong>PocketQwen</strong><small>LOCAL-FIRST AI</small></span></a><p>Lightweight AI, running closer to you.</p></div>
+    <div class="footer-links"><strong>Explore</strong><a href="/#features">Features</a><a href="/#how-it-works">How it works</a><a href="/#download">Release status</a></div>
+    <div class="footer-links"><strong>Project</strong><a href="/#about">About</a><a href="/privacy.html">Privacy policy</a><a href="https://github.com/jarumba-code/qwen-pocket-/issues" target="_blank" rel="noopener noreferrer">Support &amp; issues</a></div>
+    <div class="footer-links"><strong>Develop</strong><a href="https://github.com/jarumba-code/qwen-pocket-" target="_blank" rel="noopener noreferrer">GitHub repository</a><a href="https://github.com/jarumba-code/qwen-pocket-/releases" target="_blank" rel="noopener noreferrer">Releases</a></div>
+  </div><div class="container footer-bottom"><span>© <span id="copyright-year">2026</span> PocketQwen. Independent project.</span><span>Qwen is a model family name. No endorsement is implied.</span></div></footer>
+
+  <nav class="mobile-bottom-nav" aria-label="Quick navigation"><a href="/"><span>⌂</span>Home</a><a href="/#features" aria-current="page"><span>✧</span>Features</a><a href="/#how-it-works"><span>⌘</span>How it works</a><a href="/#download"><span>↓</span>Release</a></nav>
+</body>
+</html>
