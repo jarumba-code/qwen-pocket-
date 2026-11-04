@@ -117,7 +117,6 @@ class NativeAiRepository(private val context: Context) : AiRepository {
     }
 
     override val contextWindowTokens: Int get() = configuredContextTokens
-
     override suspend fun configureContextWindow(tokens: Int) = withContext(Dispatchers.IO) {
         require(tokens == 1024 || tokens == 2048) { "Supported context windows are 1,024 and 2,048 tokens." }
         synchronized(initializationLock) {
@@ -127,16 +126,13 @@ class NativeAiRepository(private val context: Context) : AiRepository {
             if (wasLoaded) {
                 modelOperationInProgress = true
                 try {
-                    nativeCancelGeneration()
-                    nativeRelease()
-                    loaded = false
+                    nativeCancelGeneration(); nativeRelease(); loaded = false
                     status = "Reloading model with $tokens-token context…"
                     initializeLocked()
                 } finally { modelOperationInProgress = false }
             }
         }
     }
-
     override suspend fun countContextTokens(messages: List<ChatMessage>): Int? = withContext(Dispatchers.IO) {
         if (!loaded || messages.isEmpty()) return@withContext 0
         runCatching {
@@ -145,9 +141,7 @@ class NativeAiRepository(private val context: Context) : AiRepository {
             nativeCountTokens(buildPrompt(messages, budget, null))
         }.getOrNull()?.takeIf { it >= 0 }
     }
-
     override fun generateResponse(messages: List<ChatMessage>): Flow<String> = generateResponse(messages, null)
-
     override fun generateResponse(messages: List<ChatMessage>, additionalContext: String?): Flow<String> = callbackFlow {
         val latestUserMessage = messages.lastOrNull { it.isUser }?.text.orEmpty()
         val outputBudget = selectOutputBudget(latestUserMessage)
@@ -214,7 +208,7 @@ For programming, explain assumptions, provide complete code where appropriate, a
 For factual, legal, financial, and technical questions, distinguish known facts from estimates. Admit uncertainty and do not invent sources, citations, capabilities, or current information.
 For health questions, provide general educational information and safe next steps without diagnosing. Do not automatically refuse ordinary symptom questions. Explain when professional assessment is appropriate and direct urgent symptoms to local emergency medical care.
 Keep all responses age-appropriate. Do not provide instructions that facilitate violence, self-harm, exploitation or abuse of children, dangerous challenges, or other serious harm. For unsafe requests, briefly explain the limit and redirect to a safe alternative.
-When no web-search context is supplied, do not claim to browse the internet or use external tools. When web-search excerpts are supplied, you may summarize those excerpts and cite their provided URLs, while making clear that results can be incomplete or stale. The local model may be wrong; be transparent when confidence is limited."""
+When no web-search context is supplied, do not claim to browse the internet or use external tools. When web-search excerpts are supplied, you may summarize them and cite their URLs while noting possible incompleteness or staleness. The local model may be wrong; be transparent when confidence is limited."""
         val searchLimit = if (configuredContextTokens <= 1024) 1400 else 3600
         val searchContext = additionalContext?.takeIf { it.isNotBlank() }?.let { "\n\n" + it.take(searchLimit) }.orEmpty()
         val prefix = "<|im_start|>system\n${system}${searchContext}\n<|im_end|>\n"
@@ -233,9 +227,7 @@ When no web-search context is supplied, do not claim to browse the internet or u
         var prompt = render()
         var tokenCount = nativeCountTokens(prompt)
         while (tokenCount > promptBudget && retained.size > 1) {
-            retained.removeAt(0)
-            prompt = render()
-            tokenCount = nativeCountTokens(prompt)
+            retained.removeAt(0); prompt = render(); tokenCount = nativeCountTokens(prompt)
         }
         if (tokenCount < 0 || tokenCount > promptBudget || retained.none { it.id == latestUser.id }) {
             throw IllegalArgumentException("This request exceeds the selected ${configuredContextTokens}-token context window. Shorten it or select a larger context.")

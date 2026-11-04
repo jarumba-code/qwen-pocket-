@@ -43,7 +43,7 @@ class ChatViewModel(
 
     fun setWebSearchEnabled(enabled: Boolean) {
         _webSearchEnabled.value = enabled
-        _searchStatus.value = if (enabled) "Web Search is on. Each message you send while enabled will be searched online." else ""
+        _searchStatus.value = if (enabled) "Web Search is on. Each message sent while enabled will be searched online." else ""
     }
 
     fun refreshContextUsage() {
@@ -67,9 +67,7 @@ class ChatViewModel(
         if (trimmed.isEmpty()) return
         val key = activeKey
         if (jobs[key]?.isActive == true) return
-        conversations.getOrPut(key) { mutableListOf() }.add(
-            ChatMessage(UUID.randomUUID().toString(), trimmed, true, status = MessageStatus.SENT)
-        )
+        conversations.getOrPut(key) { mutableListOf() }.add(ChatMessage(UUID.randomUUID().toString(), trimmed, true, status = MessageStatus.SENT))
         _error.value = null
         startGeneration(key, _webSearchEnabled.value)
     }
@@ -133,9 +131,8 @@ class ChatViewModel(
                         }
                     }
                 }
-                if (output.isEmpty()) {
-                    updateAssistant(key, assistantId, "Generation ended without text. Try again.", MessageStatus.ERROR)
-                } else {
+                if (output.isEmpty()) updateAssistant(key, assistantId, "Generation ended without text. Try again.", MessageStatus.ERROR)
+                else {
                     if (tokenLimit || nativeError) output.append(
                         if (tokenLimit) "\n\n⚠️ Response may be incomplete: the local model reached its generation limit."
                         else "\n\n⚠️ Generation stopped unexpectedly; this response may be incomplete."
@@ -143,9 +140,7 @@ class ChatViewModel(
                     if (searchNotice.isNotBlank()) output.append("\n\n").append(searchNotice)
                     if (results.isNotEmpty()) {
                         output.append("\n\nSources")
-                        results.forEachIndexed { i, result ->
-                            output.append("\n${i + 1}. ${result.title}\n${result.url}")
-                        }
+                        results.forEachIndexed { i, result -> output.append("\n${i + 1}. ${result.title}\n${result.url}") }
                     }
                     updateAssistant(key, assistantId, output.toString(), MessageStatus.SENT)
                 }

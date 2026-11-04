@@ -45,7 +45,6 @@ fun ThinkingDots() {
         Text("Ekip is thinking…", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
-
 @Composable
 private fun StreamingIndicator() {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp),
@@ -56,7 +55,6 @@ private fun StreamingIndicator() {
         Text("Ekip is writing…", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
-
 @Composable
 fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
     val messages by viewModel.messages.collectAsState()
@@ -68,9 +66,7 @@ fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
     val tokenCount by viewModel.contextTokensUsed.collectAsState()
     val contextLimit = viewModel.contextWindowTokens
     val listState = rememberLazyListState()
-    LaunchedEffect(messages, contextLimit, loading) {
-        if (!loading) viewModel.refreshContextUsage()
-    }
+    LaunchedEffect(messages, contextLimit, loading) { if (!loading) viewModel.refreshContextUsage() }
     LaunchedEffect(messages.size, messages.lastOrNull()?.text, loading, thinking) {
         val count = messages.size + if (thinking || (loading && !thinking)) 1 else 0
         if (count > 0) listState.animateScrollToItem(count - 1)
@@ -100,8 +96,7 @@ fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
         Text("Local inference · Web Search is optional and sends only the current query",
             style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 2.dp))
-        MessageComposer(onSend = viewModel::sendMessage, isGenerating = loading,
-            onStop = viewModel::stopGeneration, webSearchEnabled = searchEnabled,
-            onWebSearchChange = viewModel::setWebSearchEnabled, searchStatus = searchStatus)
+        MessageComposer(onSend = viewModel::sendMessage, isGenerating = loading, onStop = viewModel::stopGeneration,
+            webSearchEnabled = searchEnabled, onWebSearchChange = viewModel::setWebSearchEnabled, searchStatus = searchStatus)
     }
 }
