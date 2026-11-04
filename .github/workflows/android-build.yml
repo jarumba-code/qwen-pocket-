@@ -75,8 +75,8 @@ jobs:
           echo "NDK: $ANDROID_HOME/ndk/29.0.14206865"
           grep -m1 'Pkg.Revision' "$ANDROID_HOME/ndk/29.0.14206865/source.properties"
 
-      - name: Build optimized release APK
-        run: ./gradlew assembleRelease --no-daemon --stacktrace
+      - name: Build optimized release and installable debug APKs
+        run: ./gradlew assembleRelease assembleDebug --no-daemon --stacktrace
 
       - name: Capture generated native CMake configuration
         if: always()
@@ -95,12 +95,20 @@ jobs:
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --no-daemon
 
-      - name: Upload optimized release APK artifact
+      - name: Upload optimized release APK artifact (unsigned unless protected signing secrets are configured)
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: pocketqwen-release-apk
           path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Upload installable debug APK for device testing
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketqwen-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
       - name: Upload native build diagnostics
