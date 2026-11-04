@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -55,6 +56,7 @@ fun SettingsScreen(
     val userName by viewModel.userName.collectAsState()
     val accentColor by viewModel.accentColor.collectAsState()
     var nameDraft by remember(userName) { mutableStateOf(userName) }
+    var showPrivacy by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -203,6 +205,17 @@ fun SettingsScreen(
         }
 
         item {
+            Text("Privacy", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
+            Card(modifier = Modifier.fillMaxWidth(), onClick = { showPrivacy = true }) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("How PocketQwen handles your data", style = MaterialTheme.typography.titleMedium)
+                    Text("Local chats are processed on this device. Optional online features, when enabled, may send the specific query or report details to their service.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    TextButton(onClick = { showPrivacy = true }) { Text("Read privacy information") }
+                }
+            }
+        }
+
+        item {
             Text("About PocketQwen", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -221,4 +234,14 @@ fun SettingsScreen(
             }
         }
     }
+
+    if (showPrivacy) {
+        AlertDialog(
+            onDismissRequest = { showPrivacy = false },
+            title = { Text("PocketQwen privacy") },
+            text = { Text("Offline chat prompts and responses are processed by the bundled model on your device. Conversation history and settings are stored in app-private storage. Web Search, if enabled, sends your search query to the configured search service. Submitting a report sends only the information shown in the report form. Do not submit passwords, private keys, or sensitive account information. Model answers may be inaccurate.") },
+            confirmButton = { TextButton(onClick = { showPrivacy = false }) { Text("Close") } }
+        )
+    }
+
 }
