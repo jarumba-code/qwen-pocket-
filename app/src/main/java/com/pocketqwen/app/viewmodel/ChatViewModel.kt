@@ -43,7 +43,7 @@ class ChatViewModel(
 
     fun setWebSearchEnabled(enabled: Boolean) {
         _webSearchEnabled.value = enabled
-        _searchStatus.value = if (enabled) "Web Search is on. Only the next message query is sent online." else ""
+        _searchStatus.value = if (enabled) "Web Search is on. Each message you send while enabled will be searched online." else ""
     }
 
     fun refreshContextUsage() {

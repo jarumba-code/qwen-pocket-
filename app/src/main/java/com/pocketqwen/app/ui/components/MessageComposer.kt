@@ -54,7 +54,7 @@ fun MessageComposer(
         }
         if (searchStatus.isNotBlank()) Text(
             searchStatus, style = MaterialTheme.typography.labelSmall,
-            color = if (searchStatus.startsWith("Web Search failed") || searchStatus.startsWith("Web Search found no"))
+            color = if (searchStatus.startsWith("Web Search failed") || searchStatus.startsWith("Web Search found no results"))
                 MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
         )

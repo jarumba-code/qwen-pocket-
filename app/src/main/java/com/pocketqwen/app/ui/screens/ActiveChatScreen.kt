@@ -68,7 +68,9 @@ fun ActiveChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
     val tokenCount by viewModel.contextTokensUsed.collectAsState()
     val contextLimit = viewModel.contextWindowTokens
     val listState = rememberLazyListState()
-    LaunchedEffect(messages, contextLimit) { viewModel.refreshContextUsage() }
+    LaunchedEffect(messages, contextLimit, loading) {
+        if (!loading) viewModel.refreshContextUsage()
+    }
     LaunchedEffect(messages.size, messages.lastOrNull()?.text, loading, thinking) {
         val count = messages.size + if (thinking || (loading && !thinking)) 1 else 0
         if (count > 0) listState.animateScrollToItem(count - 1)
