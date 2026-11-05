@@ -108,6 +108,8 @@ jobs:
 
           echo "Checking native ABI..."
           unzip -Z1 "$APK_PATH" | grep -F 'lib/arm64-v8a/' | tee /tmp/pocketqwen-native-libs.txt
+          test -s /tmp/pocketqwen-native-libs.txt
+          echo "Verified ARM64 native libraries for Redmi A5."
         if: always()
         run: |
           mkdir -p native-build-diagnostics
