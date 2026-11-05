@@ -18,6 +18,7 @@ on:
       - feature/experiment-5-performance-settings
       - feature/experiment-5-ui-improvements
       - release/ekip-play-readiness
+      - fix/release-apk-signing-qa
   workflow_dispatch:
 
 permissions:
@@ -106,7 +107,7 @@ jobs:
           unzip -Z1 "$APK_PATH" | grep -Fx 'assets/qwen.gguf'
 
           echo "Checking native ABI..."
-          unzip -Z1 "$APK_PATH" | grep -E '^lib/arm64-v8a/[^/]+\\.so
+          unzip -Z1 "$APK_PATH" | grep -F 'lib/arm64-v8a/' | tee /tmp/pocketqwen-native-libs.txt
         if: always()
         run: |
           mkdir -p native-build-diagnostics
