@@ -78,6 +78,88 @@ jobs:
       - name: Build optimized release and installable debug APKs
         run: ./gradlew assembleRelease assembleDebug --no-daemon --stacktrace
 
+      - name: Verify release APK signature, alignment, bundled model, and ABI
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK_PATH="app/build/outputs/apk/release/app-release.apk"
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          ZIPALIGN="$ANDROID_HOME/build-tools/36.0.0/zipalign"
+
+          test -s "$APK_PATH"
+          if [[ "$APK_PATH" == *unsigned* ]]; then
+            echo "::error::Refusing to publish an unsigned APK."
+            exit 1
+          fi
+
+          echo "APK size:"
+          stat -c '%n %s bytes' "$APK_PATH"
+          du -h "$APK_PATH"
+
+          echo "Checking APK alignment..."
+          "$ZIPALIGN" -c -v 4 "$APK_PATH"
+
+          echo "Verifying APK signature and printing certificate..."
+          "$APKSIGNER" verify --verbose --print-certs "$APK_PATH"
+
+          echo "Checking bundled GGUF model..."
+          unzip -Z1 "$APK_PATH" | grep -Fx 'assets/qwen.gguf'
+
+          echo "Checking native ABI..."
+          unzip -Z1 "$APK_PATH" | grep -E '^lib/arm64-v8a/[^/]+\\.so
+        if: always()
+        run: |
+          mkdir -p native-build-diagnostics
+          find app/.cxx -type f -name CMakeCache.txt -print 2>/dev/null | tee native-build-diagnostics/cmake-cache-paths.txt || true
+          while IFS= read -r cache; do
+            [ -f "$cache" ] || continue
+            {
+              echo "===== $cache ====="
+              grep -E '^(CMAKE_BUILD_TYPE|CMAKE_C_FLAGS_RELEASE|CMAKE_CXX_FLAGS_RELEASE|GGML_NATIVE|GGML_OPENMP|GGML_CPU_KLEIDIAI|GGML_LLAMAFILE|LLAMA_OPENSSL|GGML_VULKAN):' "$cache" || true
+            } >> native-build-diagnostics/native-cmake-options.txt
+          done < native-build-diagnostics/cmake-cache-paths.txt
+          cat native-build-diagnostics/native-cmake-options.txt 2>/dev/null || true
+
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest --no-daemon
+
+      - name: Upload verified, signed release APK artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketqwen-release-apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Upload installable debug APK for device testing
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketqwen-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload native build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketqwen-native-build-diagnostics
+          path: native-build-diagnostics/
+          if-no-files-found: ignore
+
+      - name: Upload build and test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-failure-reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          if-no-files-found: ignore
+ | tee /tmp/pocketqwen-native-libs.txt
+          test -s /tmp/pocketqwen-native-libs.txt
+          echo "Verified ARM64 native libraries for Redmi A5."
+
       - name: Capture generated native CMake configuration
         if: always()
         run: |
