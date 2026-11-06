@@ -366,6 +366,7 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
     for (int i = 0; i < maxGenerationTokens && !g_cancel_requested.load(); ++i) {
         const auto sampleStart = std::chrono::steady_clock::now();
         llama_token token = llama_sampler_sample(g_sampler, g_ctx, -1);
+        llama_sampler_accept(g_sampler, token);
         sampleMs += std::chrono::duration<double, std::milli>(
             std::chrono::steady_clock::now() - sampleStart).count();
         if (token == eos || token == llama_vocab_eot(vocab)) { reachedEos = true; break; }
