@@ -28,7 +28,7 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p _site
-          cp index.html privacy.html _site/
+          cp index.html privacy.html terms.html _site/
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

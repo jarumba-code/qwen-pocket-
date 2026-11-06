@@ -35,14 +35,14 @@ export default async function handler(request: Request): Promise<Response> {
         query,
         search_depth: "basic",
         topic: "general",
-        max_results: 4,
+        max_results: 3,
         include_answer: false,
         include_raw_content: false,
       }),
     });
     if (!upstream.ok) return Response.json({ error: "Search provider request failed." }, { status: 502 });
     const data = await upstream.json() as { results?: Array<{ title?: string; url?: string; content?: string }> };
-    const results = (data.results ?? []).slice(0, 4).map((item) => ({
+    const results = (data.results ?? []).slice(0, 3).map((item) => ({
       title: String(item.title ?? "").slice(0, 180),
       url: String(item.url ?? "").slice(0, 1000),
       snippet: String(item.content ?? "").slice(0, 1200),

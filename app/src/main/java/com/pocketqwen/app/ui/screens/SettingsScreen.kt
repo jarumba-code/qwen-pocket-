@@ -1,6 +1,7 @@
 package com.pocketqwen.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pocketqwen.app.settings.PerformanceMode
@@ -42,7 +44,15 @@ import com.pocketqwen.app.viewmodel.SettingsViewModel
 private data class AccentOption(val id: String, val label: String, val color: Color)
 
 private val accentOptions = listOf(
-    AccentOption("BLUE", "Blue", Color(0xFF1677FF))
+    AccentOption("RED", "Red", Color(0xFFC44747)),
+    AccentOption("BLUE", "Blue", Color(0xFF3267C8)),
+    AccentOption("GREEN", "Green", Color(0xFF34845B)),
+    AccentOption("LIGHT_BLUE", "Light blue", Color(0xFF39A9D6)),
+    AccentOption("DARK_BLUE", "Dark blue", Color(0xFF243B73)),
+    AccentOption("BLACK", "Black", Color(0xFF333333)),
+    AccentOption("GOLDEN", "Champagne gold", Color(0xFFC5A04A)),
+    AccentOption("PINK", "Pink", Color(0xFFD65B9B)),
+    AccentOption("PURPLE", "Purple", Color(0xFF8054B8))
 )
 @Composable
 fun SettingsScreen(
@@ -52,16 +62,17 @@ fun SettingsScreen(
 ) {
     val themeMode by viewModel.themeMode.collectAsState()
     val performanceMode by viewModel.performanceMode.collectAsState()
+    val contextWindow by viewModel.contextWindow.collectAsState()
     val modelStatus by viewModel.modelStatus.collectAsState()
     val isModelLoading by viewModel.isModelLoading.collectAsState()
     val isModelLoaded by viewModel.isModelLoaded.collectAsState()
     val userName by viewModel.userName.collectAsState()
     val accentColor by viewModel.accentColor.collectAsState()
     var nameDraft by remember(userName) { mutableStateOf(userName) }
-    var showPrivacy by remember { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
 
     LazyColumn(
-        modifier = modifier.fillMaxSize().imePadding(),
+        modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -92,11 +103,11 @@ fun SettingsScreen(
             }
         }
 
-        item { Text("Accent color", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)) }
+        item { Text("Brand accent", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)) }
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Choose a color for buttons and highlights. Your light or dark background stays unchanged.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Champagne gold is the PocketQwen brand accent.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     accentOptions.chunked(3).forEach { rowOptions ->
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             rowOptions.forEach { option ->
@@ -172,11 +183,26 @@ fun SettingsScreen(
         }
         item {
             Text(
-                "Both modes keep the context window at 2,048 tokens. Performance uses all available CPU threads; Balanced uses about half. Changing modes applies the selected CPU thread count.",
+                "Balanced uses about half of the available CPU threads; Performance uses all available threads. Context size is configured separately and can increase memory use.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
+        }
+
+        item {
+            Text("Context window", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("${contextWindow.toString().replace(Regex("(\\d)(?=(\\d{3})+$)"), "$1,")} tokens selected automatically",
+                        style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "PocketQwen detects physical and available RAM. 2–3 GB devices use 2,048–4,096 tokens; 4 GB-class devices and above can use up to 8,192 tokens. The app may reduce this target when memory is tight.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
 
         item {
@@ -197,7 +223,7 @@ fun SettingsScreen(
                         }
                     }
                     Text(
-                        "PocketQwen runs the bundled Qwen model on this device. Ejecting releases the model and inference context from memory; the bundled model file remains available to load again.",
+                        "PocketQwen runs the bundled Qwen model on this device. Ejecting releases model and inference memory; the bundled model file remains available to load again. Changing the context window reloads the model.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
@@ -207,12 +233,29 @@ fun SettingsScreen(
         }
 
         item {
-            Text("Privacy", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
-            Card(modifier = Modifier.fillMaxWidth(), onClick = { showPrivacy = true }) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("How PocketQwen handles your data", style = MaterialTheme.typography.titleMedium)
-                    Text("Local chats are processed on this device. Optional online features, when enabled, may send the specific query or report details to their service.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    TextButton(onClick = { showPrivacy = true }) { Text("Read privacy information") }
+            Text("Legal", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
+            Card(modifier = Modifier.fillMaxWidth(), onClick = {
+                runCatching { uriHandler.openUri("https://qwen-pocket.vercel.app/privacy.html") }
+            }) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Text("Privacy Policy", style = MaterialTheme.typography.titleMedium)
+                    Text("Read how local conversations and optional online features handle data on our website.",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    TextButton(onClick = { runCatching { uriHandler.openUri("https://qwen-pocket.vercel.app/privacy.html") } }) {
+                        Text("Open Privacy Policy")
+                    }
+                }
+            }
+            Card(modifier = Modifier.fillMaxWidth(), onClick = {
+                runCatching { uriHandler.openUri("https://qwen-pocket.vercel.app/terms.html") }
+            }) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Text("User Agreement", style = MaterialTheme.typography.titleMedium)
+                    Text("Review the terms governing use of PocketQwen.",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    TextButton(onClick = { runCatching { uriHandler.openUri("https://qwen-pocket.vercel.app/terms.html") } }) {
+                        Text("Open User Agreement")
+                    }
                 }
             }
         }
@@ -235,15 +278,6 @@ fun SettingsScreen(
                 }
             }
         }
-    }
-
-    if (showPrivacy) {
-        AlertDialog(
-            onDismissRequest = { showPrivacy = false },
-            title = { Text("PocketQwen privacy") },
-            text = { Text("Offline chat prompts and responses are processed on this device. Optional Web Search sends your query to the configured provider. Reports send only the category, details, selected excerpt and app version to the configured report service. Do not submit passwords, private keys or financial credentials. Model answers can be inaccurate. Online services are unavailable until the deployment is configured.") },
-            confirmButton = { TextButton(onClick = { showPrivacy = false }) { Text("Close") } }
-        )
     }
 
 }
