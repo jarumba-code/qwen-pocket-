@@ -268,7 +268,7 @@ When no web-search context is supplied, do not claim to browse the internet or u
             text.contains("500-word") || text.contains("600 word") ||
             text.contains("700 word") || text.contains("800 word") ||
             text.contains("1000 word") || text.contains("long-form") ||
-            text.contains("detailed report")
+            text.contains("detailed report") || text.contains("full explanation")
         val detailed = text.contains("explain") || text.contains("comprehensive") ||
             text.contains("in depth") || text.contains("step by step") ||
             text.contains("long answer") || text.contains("detailed") ||
@@ -283,13 +283,18 @@ When no web-search context is supplied, do not claim to browse the internet or u
             text.contains("create") || text.contains("build")) &&
             (text.contains("code") || text.contains("program") || text.contains("script") ||
             text.contains("function") || text.contains("class") || text.contains("app"))
+
+        // Preserve room for the system prompt and latest user turn. Larger
+        // context windows can generate up to 1,536 tokens; smaller windows
+        // automatically receive a lower safe ceiling.
+        val outputCeiling = (configuredContextTokens - 768).coerceIn(512, 1536)
         return when {
             concise -> 128
-            essay || detailed -> 1024
-            code -> 768
-            text.length > 700 -> 384
-            text.length < 80 -> 192
-            else -> 256
+            essay -> minOf(1536, outputCeiling)
+            detailed || code -> minOf(1024, outputCeiling)
+            text.length > 700 -> minOf(768, outputCeiling)
+            text.length < 80 -> minOf(256, outputCeiling)
+            else -> minOf(512, outputCeiling)
         }
     }
 
