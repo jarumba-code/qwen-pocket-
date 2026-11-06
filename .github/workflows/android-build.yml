@@ -20,6 +20,7 @@ on:
       - release/ekip-play-readiness
       - fix/release-apk-signing-qa
       - feature/pocketqwen-8192-memory-web-gold
+      - feature/pocketqwen-gold-site-1024plus
   workflow_dispatch:
 
 permissions:
