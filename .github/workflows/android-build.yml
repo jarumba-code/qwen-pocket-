@@ -19,6 +19,7 @@ on:
       - feature/experiment-5-ui-improvements
       - release/ekip-play-readiness
       - fix/release-apk-signing-qa
+      - feature/pocketqwen-8192-memory-web-gold
   workflow_dispatch:
 
 permissions:

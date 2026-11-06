@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
 import com.pocketqwen.app.repository.AiRepository
+import com.pocketqwen.app.memory.LocalMemoryStore
 import com.pocketqwen.app.repository.NativeAiRepository
 import com.pocketqwen.app.settings.ThemeMode
 import com.pocketqwen.app.ui.theme.PocketQwenTheme
@@ -23,11 +24,11 @@ import com.pocketqwen.app.ui.screens.MainScreen
 import com.pocketqwen.app.viewmodel.ChatViewModel
 import com.pocketqwen.app.viewmodel.SettingsViewModel
 
-class ChatViewModelFactory(private val repository: AiRepository) : ViewModelProvider.Factory {
+class ChatViewModelFactory(private val repository: AiRepository, private val memoryStore: LocalMemoryStore) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ChatViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ChatViewModel(repository) as T
+            return ChatViewModel(repository, memoryStore = memoryStore) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: $modelClass")
     }
@@ -49,7 +50,7 @@ class SettingsViewModelFactory(
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, true)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         val repository: AiRepository = NativeAiRepository(applicationContext)
         setContent {
             val settingsViewModel: SettingsViewModel = viewModel(
@@ -77,7 +78,7 @@ class MainActivity : ComponentActivity() {
                     color = scheme.background
                 ) {
                     val chatViewModel: ChatViewModel = viewModel(
-                        factory = ChatViewModelFactory(repository)
+                        factory = ChatViewModelFactory(repository, LocalMemoryStore(applicationContext))
                     )
                     MainScreen(
                         chatViewModel = chatViewModel,
