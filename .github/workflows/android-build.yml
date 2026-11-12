@@ -56,6 +56,9 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      - name: Run baseline unit tests before native build or APK assembly
+        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+
       - name: Fetch pinned llama.cpp native engine
         run: |
           git clone https://github.com/ggml-org/llama.cpp.git app/src/main/cpp/llama.cpp
@@ -125,9 +128,6 @@ jobs:
             } >> native-build-diagnostics/native-cmake-options.txt
           done < native-build-diagnostics/cmake-cache-paths.txt
           cat native-build-diagnostics/native-cmake-options.txt 2>/dev/null || true
-
-      - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --no-daemon
 
       - name: Upload verified, signed release APK artifact
         if: success()
