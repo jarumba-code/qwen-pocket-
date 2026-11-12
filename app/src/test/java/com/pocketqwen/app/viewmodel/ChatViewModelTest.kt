@@ -131,13 +131,14 @@ class ChatViewModelTest {
         assertEquals(3, repository.generateCalls)
     }
 
-    @Test fun tokenLimitShowsIncompleteWarning() = runTest(dispatcher) {
-        repository.response = flowOf("Partial response", "__POCKETQWEN_STATUS__:TOKEN_LIMIT")
+    @Test fun contextLimitExplainsThatTheModelReachedItsContextWindow() = runTest(dispatcher) {
+        repository.response = flowOf("Partial response", "__POCKETQWEN_STATUS__:CONTEXT_LIMIT")
         viewModel.sendMessage("Write a report")
         advanceUntilIdle()
         val assistant = viewModel.messages.value.last()
-        assertTrue(assistant.text.contains("may be incomplete"))
-        assertTrue(assistant.text.contains("generation limit"))
+        assertTrue(assistant.text.contains("Partial response"))
+        assertTrue(assistant.text.contains("context window filled"))
+        assertFalse(assistant.text.contains("generation limit"))
     }
 
     @Test fun nativeDecodeErrorShowsIncompleteWarning() = runTest(dispatcher) {
