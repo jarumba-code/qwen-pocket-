@@ -32,11 +32,11 @@ enum class ThemeMode {
 enum class PerformanceMode(val nativeValue: Int, val description: String) {
     BALANCED(
         nativeValue = 0,
-        description = "Uses about half of the available CPU threads to balance speed, battery use, and responsiveness."
+        description = "Uses half of the available logical CPU threads for prompt processing and token generation."
     ),
     PERFORMANCE(
         nativeValue = 1,
-        description = "Uses all available CPU threads for faster text generation. May use more battery and produce more heat."
+        description = "Uses all available logical CPU threads for prompt processing and token generation. May use more battery and produce more heat."
     )
 }
 
@@ -49,7 +49,7 @@ class AppSettings(private val context: Context) {
     }
 
     fun getPerformanceModeFlow(): Flow<PerformanceMode> = dataStore.data.map { preferences ->
-        val savedValue = preferences[AppSettingsKey.PERFORMANCE_MODE] ?: PerformanceMode.BALANCED.name
+        val savedValue = preferences[AppSettingsKey.PERFORMANCE_MODE] ?: PerformanceMode.PERFORMANCE.name
         runCatching { PerformanceMode.valueOf(savedValue) }.getOrDefault(PerformanceMode.BALANCED)
     }
 

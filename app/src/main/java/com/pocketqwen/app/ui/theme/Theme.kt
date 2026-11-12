@@ -14,7 +14,7 @@ private fun accentFor(name: String): Color = when (name) {
     "BLACK" -> Color(0xFF333333)
     "PINK" -> Color(0xFFD65B9B)
     "PURPLE" -> Color(0xFF8054B8)
-    else -> Color(0xFFB58A35)
+    else -> Color(0xFF755B07)
 }
 
 @Composable

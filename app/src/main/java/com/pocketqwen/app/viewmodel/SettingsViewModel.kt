@@ -20,7 +20,7 @@ class SettingsViewModel(
     private val appSettings = AppSettings(context)
     private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
-    private val _performanceMode = MutableStateFlow(PerformanceMode.BALANCED)
+    private val _performanceMode = MutableStateFlow(PerformanceMode.PERFORMANCE)
     val performanceMode: StateFlow<PerformanceMode> = _performanceMode.asStateFlow()
     private val _userName = MutableStateFlow("")
     val userName: StateFlow<String> = _userName.asStateFlow()

@@ -16,8 +16,8 @@ class WebSearchRepository(private val endpoint: String = SEARCH_ENDPOINT) {
         require(clean.length in 2..400) { "Enter a search query between 2 and 400 characters." }
         val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"
-            connectTimeout = 12_000
-            readTimeout = 20_000
+            connectTimeout = 5_000
+            readTimeout = 10_000
             doOutput = true
             setRequestProperty("Content-Type", "application/json; charset=utf-8")
             setRequestProperty("Accept", "application/json")

@@ -105,7 +105,7 @@ class ChatViewModel(
         }
         val job = viewModelScope.launch(start = CoroutineStart.LAZY) {
             val output = StringBuilder()
-            var tokenLimit = false
+            var contextLimit = false
             var nativeError = false
             var results: List<WebSearchResult> = emptyList()
             var searchNotice = ""
@@ -133,7 +133,7 @@ class ChatViewModel(
                 var lastUiPublishNs = 0L
                 aiRepository.generateResponse(contextMessages, retrievedContext).collect { chunk ->
                     when (chunk) {
-                        "__POCKETQWEN_STATUS__:TOKEN_LIMIT" -> tokenLimit = true
+                        "__POCKETQWEN_STATUS__:CONTEXT_LIMIT" -> contextLimit = true
                         "__POCKETQWEN_STATUS__:INCOMPLETE_ERROR" -> nativeError = true
                         else -> if (chunk.isNotEmpty() && !chunk.startsWith("[End of")) {
                             output.append(chunk)
@@ -149,8 +149,8 @@ class ChatViewModel(
                 }
                 if (output.isEmpty()) updateAssistant(key, assistantId, "Generation ended without text. Try again.", MessageStatus.ERROR)
                 else {
-                    if (tokenLimit || nativeError) output.append(
-                        if (tokenLimit) "\n\n⚠️ Response may be incomplete: the local model reached its generation limit."
+                    if (contextLimit || nativeError) output.append(
+                        if (contextLimit) "\n\nThe local context window filled before the model ended its response."
                         else "\n\n⚠️ Generation stopped unexpectedly; this response may be incomplete."
                     )
                     if (searchNotice.isNotBlank()) output.append("\n\n").append(searchNotice)

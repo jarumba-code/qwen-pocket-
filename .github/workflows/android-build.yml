@@ -83,6 +83,9 @@ jobs:
       - name: Build optimized release and installable debug APKs
         run: ./gradlew assembleRelease assembleDebug --no-daemon --stacktrace
 
+      - name: Run post-change unit tests
+        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+
       - name: Verify release APK signature, alignment, bundled model, and ABI
         shell: bash
         run: |

@@ -80,7 +80,7 @@ fun SettingsScreen(
             Text("Profile", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 4.dp))
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    Text("Personalize PocketQwen", style = MaterialTheme.typography.titleMedium)
+                    Text("Personalize EKIP", style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(5.dp))
                     OutlinedTextField(
                         value = nameDraft,
@@ -107,7 +107,7 @@ fun SettingsScreen(
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Champagne gold is the PocketQwen brand accent.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Champagne gold is the EKIP brand accent.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     accentOptions.chunked(3).forEach { rowOptions ->
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             rowOptions.forEach { option ->
@@ -167,7 +167,7 @@ fun SettingsScreen(
 
         item { Text("Performance", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)) }
         items(2) { index ->
-            val mode = listOf(PerformanceMode.BALANCED, PerformanceMode.PERFORMANCE)[index]
+            val mode = listOf(PerformanceMode.PERFORMANCE, PerformanceMode.BALANCED)[index]
             Card(modifier = Modifier.fillMaxWidth(), onClick = { viewModel.setPerformanceMode(mode) }, enabled = !isModelLoading) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
@@ -183,7 +183,7 @@ fun SettingsScreen(
         }
         item {
             Text(
-                "Balanced uses about half of the available CPU threads; Performance uses all available threads. Context size is configured separately and can increase memory use.",
+                "Performance uses all available logical CPU threads for prompt processing and token generation. Balanced uses half for both.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 4.dp)
@@ -197,7 +197,7 @@ fun SettingsScreen(
                     Text("${contextWindow.toString().replace(Regex("(\\d)(?=(\\d{3})+$)"), "$1,")} tokens selected automatically",
                         style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "PocketQwen detects physical and available RAM. 2–3 GB devices use 2,048–4,096 tokens; 4 GB-class devices and above can use up to 8,192 tokens. The app may reduce this target when memory is tight.",
+                        "EKIP detects physical and available RAM. 2–3 GB devices use 2,048–4,096 tokens; 4 GB-class devices and above can use up to 8,192 tokens. The app may reduce this target when memory is tight.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -223,7 +223,7 @@ fun SettingsScreen(
                         }
                     }
                     Text(
-                        "PocketQwen runs the bundled Qwen model on this device. Ejecting releases model and inference memory; the bundled model file remains available to load again. Changing the context window reloads the model.",
+                        "EKIP runs the bundled Qwen model on this device. Ejecting releases model and inference memory; the bundled model file remains available to load again. Changing the context window reloads the model.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
@@ -251,7 +251,7 @@ fun SettingsScreen(
             }) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text("User Agreement", style = MaterialTheme.typography.titleMedium)
-                    Text("Review the terms governing use of PocketQwen.",
+                    Text("Review the terms governing use of EKIP.",
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     TextButton(onClick = { runCatching { uriHandler.openUri("https://qwen-pocket.vercel.app/terms.html") } }) {
                         Text("Open User Agreement")
@@ -261,17 +261,17 @@ fun SettingsScreen(
         }
 
         item {
-            Text("About PocketQwen", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
+            Text("About EKIP", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("PocketQwen · Version 1.1.0", style = MaterialTheme.typography.titleMedium)
+                    Text("EKIP · Version 1.1.0", style = MaterialTheme.typography.titleMedium)
                     Text("Built by JIMM.tech in Nigeria.", style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        "PocketQwen is an AI project focused on privacy, data sovereignty, and making local AI more accessible on everyday devices. Founded by Collins Asanya, a Nigerian college student, the project explores how AI can run directly on users' devices, reducing dependence on cloud inference where supported.",
+                        "EKIP is an AI project focused on privacy, data sovereignty, and making local AI more accessible on everyday devices. Founded by Collins Asanya, a Nigerian college student, the project explores how AI can run directly on users' devices, reducing dependence on cloud inference where supported.",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        "PocketQwen uses the Qwen2.5-0.5B-Instruct model. Model output can be inaccurate, and capabilities depend on the model and device. The local chat model does not require cloud inference.",
+                        "EKIP uses the Qwen2.5-0.5B-Instruct model. Model output can be inaccurate, and capabilities depend on the model and device. The local chat model does not require cloud inference.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

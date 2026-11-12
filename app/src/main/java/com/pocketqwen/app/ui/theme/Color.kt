@@ -6,11 +6,11 @@ import androidx.compose.ui.graphics.Color
 
 // PocketQwen visual identity: warm ivory, deep ink navy and restrained champagne gold.
 val PocketQwenLightColorScheme = lightColorScheme(
-    primary = Color(0xFFB58A35),
+    primary = Color(0xFF755B07),
     onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFFF1E2BD),
     onPrimaryContainer = Color(0xFF352609),
-    secondary = Color(0xFF9A742C),
+    secondary = Color(0xFF795900),
     onSecondary = Color(0xFFFFFFFF),
     tertiary = Color(0xFF24334D),
     onTertiary = Color(0xFFFFFFFF),
@@ -25,7 +25,7 @@ val PocketQwenLightColorScheme = lightColorScheme(
     surfaceContainer = Color(0xFFF0ECE3),
     surfaceContainerHigh = Color(0xFFE9E4DA),
     surfaceContainerHighest = Color(0xFFDED8CC),
-    surfaceTint = Color(0xFFB58A35),
+    surfaceTint = Color(0xFF755B07),
     secondaryContainer = Color(0xFFF4E8CB),
     onSecondaryContainer = Color(0xFF493713),
     tertiaryContainer = Color(0xFFE5E9EF),

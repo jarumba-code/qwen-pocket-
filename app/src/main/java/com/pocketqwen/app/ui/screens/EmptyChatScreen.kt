@@ -1,14 +1,10 @@
 package com.pocketqwen.app.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -18,17 +14,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.pocketqwen.app.ui.components.MessageComposer
 import com.pocketqwen.app.viewmodel.ChatViewModel
 
 @Composable
@@ -37,8 +29,6 @@ fun EmptyChatScreen(
     userName: String = "",
     modifier: Modifier = Modifier
 ) {
-    val searchEnabled by viewModel.webSearchEnabled.collectAsState()
-    val searchStatus by viewModel.searchStatus.collectAsState()
     val suggestions = listOf(
         Triple("Explain a difficult concept", "Break a topic into clear, simple steps.", "school"),
         Triple("Help me write some code", "Work through a programming problem.", "code"),
@@ -53,25 +43,11 @@ fun EmptyChatScreen(
                 .padding(horizontal = 20.dp, vertical = 22.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
-                    contentDescription = "PocketQwen golden mark",
-                    modifier = Modifier.size(42.dp)
-                )
-                Column(modifier = Modifier.padding(start = 12.dp)) {
-                    Text(
-                        "POCKETQWEN",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        "LOCAL SESSION",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+            Column {
+                Text("EKIP", style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                Text("LOCAL SESSION", style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             Text(
@@ -130,12 +106,5 @@ fun EmptyChatScreen(
             }
         }
 
-        MessageComposer(
-            onSend = viewModel::sendMessage,
-            modifier = Modifier.fillMaxWidth(),
-            webSearchEnabled = searchEnabled,
-            onWebSearchChange = viewModel::setWebSearchEnabled,
-            searchStatus = searchStatus
-        )
     }
 }

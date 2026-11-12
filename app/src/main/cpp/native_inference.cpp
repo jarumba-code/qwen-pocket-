@@ -108,10 +108,10 @@ static llama_sampler * create_request_sampler(const std::string &prompt, const l
     llama_sampler_chain_add(sampler, llama_sampler_init_top_k(40));
     llama_sampler_chain_add(sampler, llama_sampler_init_top_p(brainstorm ? 0.94f : 0.90f, 1));
     llama_sampler_chain_add(sampler, llama_sampler_init_penalties(
-        llama_vocab_n_tokens(vocab), 64,
-        brainstorm ? 1.15f : 1.10f,
-        brainstorm ? 0.12f : 0.08f,
-        brainstorm ? 0.08f : 0.04f));
+        llama_vocab_n_tokens(vocab), 128,
+        brainstorm ? 1.18f : 1.14f,
+        brainstorm ? 0.13f : 0.10f,
+        brainstorm ? 0.08f : 0.06f));
     llama_sampler_chain_add(sampler, llama_sampler_init_temp(brainstorm ? 0.86f : 0.72f));
     static std::atomic<uint32_t> nextSeed{0x5EED1234u};
     llama_sampler_chain_add(sampler, llama_sampler_init_dist(nextSeed.fetch_add(0x9E3779B9u)));
@@ -134,12 +134,12 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode, j
     mp.n_gpu_layers = 0;
     const unsigned int availableThreads = std::max(1u, std::thread::hardware_concurrency());
     const bool performanceMode = mode != 0;
-    // Generation always uses every detected logical CPU thread. Balanced mode
-    // only moderates prompt-prefill parallelism to reduce sustained heat.
-    const int inferenceThreads = static_cast<int>(availableThreads);
-    const int batchThreads = performanceMode
-        ? inferenceThreads
+    // Performance uses all runtime-reported logical threads for prompt processing
+    // and token generation. Balanced uses half for both, rounded down (minimum one).
+    const int inferenceThreads = performanceMode
+        ? static_cast<int>(availableThreads)
         : std::max(1, static_cast<int>(availableThreads / 2));
+    const int batchThreads = inferenceThreads;
     const uint32_t selectedContext = static_cast<uint32_t>(std::clamp(contextTokens, 2048, 8192));
     LOGI("Loading model; selected_mode=%s available_cpu_threads=%u inference_threads=%d context=%u batch=512 ubatch=256 gpu_layers=0",
          performanceMode ? "performance" : "balanced", availableThreads, inferenceThreads, selectedContext);
@@ -210,7 +210,7 @@ static void nativeCancelGeneration(JNIEnv *, jobject) {
     LOGI("Cancellation requested");
 }
 
-static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint requestedMaxTokens, jobject callback) {
+static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint availableOutputTokens, jobject callback) {
     if (!input || !callback) return;
     const char *raw = env->GetStringUTFChars(input, nullptr);
     if (!raw) return;
@@ -254,11 +254,15 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
         count = llama_tokenize(vocab, prompt.c_str(), static_cast<int32_t>(prompt.size()), tokens.data(), static_cast<int32_t>(tokens.size()), true, true);
     }
     const auto tokenizeEnd = std::chrono::steady_clock::now();
-    const int maxGenerationTokens = std::clamp(static_cast<int>(requestedMaxTokens), 128, 1024);
-    if (count <= 0 || count > static_cast<int32_t>(llama_n_ctx(g_ctx)) - maxGenerationTokens - 8) {
+    const int remainingContextTokens = static_cast<int>(llama_n_ctx(g_ctx)) - count;
+    const int maxGenerationTokens = std::min(
+        std::max(0, static_cast<int>(availableOutputTokens)),
+        std::max(0, remainingContextTokens));
+    if (count <= 0 || maxGenerationTokens <= 0) {
         jclass ex = env->FindClass("java/lang/IllegalArgumentException");
-        if (ex) env->ThrowNew(ex, "Message is too long for the local context window. Please shorten it.");
-        LOGE("Prompt rejected: tokens=%d context=%u", count, llama_n_ctx(g_ctx));
+        if (ex) env->ThrowNew(ex, "The local context window is full. Shorten the prompt or start a new chat.");
+        LOGE("Prompt rejected: prompt_tokens=%d context=%u available_output_tokens=%d",
+             count, llama_n_ctx(g_ctx), maxGenerationTokens);
         return;
     }
     const auto promptBatchStart = std::chrono::steady_clock::now();
@@ -400,9 +404,9 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
         ++decodedTokens;
     }
     if (!callbackFailed && !flushCallback()) callbackFailed = true;
-    const bool hitTokenLimit = !reachedEos && !g_cancel_requested.load() && !callbackFailed && !decodeFailed && sampledTokens >= maxGenerationTokens;
-    const char *terminalMarker = hitTokenLimit
-        ? "__POCKETQWEN_STATUS__:TOKEN_LIMIT"
+    const bool hitContextLimit = !reachedEos && !g_cancel_requested.load() && !callbackFailed && !decodeFailed && sampledTokens >= maxGenerationTokens;
+    const char *terminalMarker = hitContextLimit
+        ? "__POCKETQWEN_STATUS__:CONTEXT_LIMIT"
         : (decodeFailed || callbackFailed)
             ? "__POCKETQWEN_STATUS__:INCOMPLETE_ERROR"
             : nullptr;
@@ -416,11 +420,11 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
     const double totalMs = std::chrono::duration<double, std::milli>(end - generationStart).count();
     const double responseMs = std::chrono::duration<double, std::milli>(end - requestStart).count();
     const double tps = totalMs > 0 ? sampledTokens * 1000.0 / totalMs : 0.0;
-    LOGI("Inference finished sampled_tokens=%d decoded_tokens=%d first_sample_ms=%.3f first_callback_ms=%.3f native_response_ms=%.3f generation_ms=%.3f sample_ms=%.3f decode_ms=%.3f callback_ms=%.3f callback_count=%d sampled_tokens_per_second=%.2f cancelled=%d callback_error=%d decode_error=%d token_limit=%d",
+    LOGI("Inference finished sampled_tokens=%d decoded_tokens=%d first_sample_ms=%.3f first_callback_ms=%.3f native_response_ms=%.3f generation_ms=%.3f sample_ms=%.3f decode_ms=%.3f callback_ms=%.3f callback_count=%d sampled_tokens_per_second=%.2f cancelled=%d callback_error=%d decode_error=%d context_limit=%d",
          sampledTokens, decodedTokens, firstSampleMs, firstCallbackMs, responseMs, totalMs,
          sampleMs, decodeMs, callbackMs, callbackCount, tps,
          g_cancel_requested.load() ? 1 : 0, callbackFailed ? 1 : 0,
-         decodeFailed ? 1 : 0, hitTokenLimit ? 1 : 0);
+         decodeFailed ? 1 : 0, hitContextLimit ? 1 : 0);
 }
 
 static void nativeRelease(JNIEnv *, jobject) {

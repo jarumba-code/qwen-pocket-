@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,7 +44,7 @@ fun MessageComposer(
     onWebSearchChange: (Boolean) -> Unit = {},
     searchStatus: String = ""
 ) {
-    var text by remember(initialText) { mutableStateOf(initialText) }
+    var text by rememberSaveable(initialText) { mutableStateOf(initialText) }
     val buttonWidth by animateDpAsState(if (isGenerating) 62.dp else 48.dp, label = "send-stop-width")
     val radius by animateDpAsState(if (isGenerating) 15.dp else 24.dp, label = "send-stop-radius")
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
@@ -57,7 +58,7 @@ fun MessageComposer(
                 MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
         Row(verticalAlignment = Alignment.Bottom) {
-            TextField(value = text, onValueChange = { text = it }, placeholder = { Text("Message PocketQwen…") },
+            TextField(value = text, onValueChange = { text = it }, placeholder = { Text("Message EKIP…") },
                 singleLine = false, maxLines = 4, shape = RoundedCornerShape(24.dp), modifier = Modifier.weight(1f),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,

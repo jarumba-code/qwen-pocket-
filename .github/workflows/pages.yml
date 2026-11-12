@@ -1,4 +1,4 @@
-name: Publish PocketQwen website
+name: Publish EKIP website
 
 on:
   push:
@@ -7,6 +7,12 @@ on:
     paths:
       - index.html
       - privacy.html
+      - terms.html
+      - features.html
+      - how-it-works.html
+      - about.html
+      - download.html
+      - assets/**
       - .github/workflows/pages.yml
   workflow_dispatch:
 
@@ -28,7 +34,8 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p _site
-          cp index.html privacy.html terms.html _site/
+          cp index.html privacy.html terms.html features.html how-it-works.html about.html download.html _site/
+          cp -R assets _site/
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

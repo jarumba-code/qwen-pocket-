@@ -18,7 +18,11 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -95,7 +99,9 @@ fun MessageBubble(
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                                 Text(language, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-                                TextButton(onClick = { clipboard.setText(AnnotatedString(code)) }) { Text("Copy") }
+                                IconButton(onClick = { clipboard.setText(AnnotatedString(code)) }) {
+                                    Icon(Icons.Default.ContentCopy, contentDescription = "Copy code")
+                                }
                             }
                             Text(
                                 text = code,
@@ -133,7 +139,9 @@ fun MessageBubble(
                     }
                 }
                 if (!isUser && message.text.isNotBlank() && message.status != MessageStatus.SENDING) {
-                    TextButton(onClick = { clipboard.setText(AnnotatedString(message.text)) }) { Text("Copy response") }
+                    IconButton(onClick = { clipboard.setText(AnnotatedString(message.text)) }) {
+                        Icon(Icons.Default.ContentCopy, contentDescription = "Copy response")
+                    }
                 }
                 if (isUser && message.status != MessageStatus.SENDING) {
                     TextButton(onClick = { editedText = message.text; editing = true }) { Text("Edit") }

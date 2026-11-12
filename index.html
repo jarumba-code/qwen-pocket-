@@ -1,34 +1,83 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#082dff">
-  <meta name="description" content="PocketQwen is a private, offline-first AI assistant powered by a local Qwen model.">
-  <title>PocketQwen — Private AI, on your device</title>
-  <style>
-    :root{color-scheme:light dark;--blue:#1747ff;--bg:#f6f8ff;--fg:#10172b;--muted:#536078;--card:#fff}
-    @media(prefers-color-scheme:dark){:root{--bg:#080d1d;--fg:#eef2ff;--muted:#aab5ce;--card:#111a32}}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
-    main{max-width:860px;margin:0 auto;padding:72px 24px} .mark{width:72px;height:72px;display:grid;place-items:center;border-radius:22px;background:#082dff;color:white;font-size:36px;font-weight:800}
-    h1{font-size:clamp(2.4rem,7vw,4.4rem);line-height:1.04;letter-spacing:-.05em;margin:28px 0 16px}
-    p{color:var(--muted);max-width:650px}.card{background:var(--card);border:1px solid #7185c522;border-radius:22px;padding:24px;margin-top:32px}
-    a{color:var(--blue);font-weight:650}.links{display:flex;gap:22px;flex-wrap:wrap;margin-top:28px}
-    .eyebrow{color:var(--blue);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.8rem}
-  </style>
-</head>
-<body><main>
-  <div class="mark" aria-label="PocketQwen logo">Q</div>
-  <p class="eyebrow">Local-first AI</p>
-  <h1>Private AI.<br>On your device.</h1>
-  <p>PocketQwen is an Android project exploring practical on-device AI. Its bundled Qwen model runs locally, so everyday chats do not need cloud inference.</p>
-  <section class="card">
-    <h2>Built for control</h2>
-    <p>Keep ordinary conversations on your device. Optional online features, when enabled, are separate and clearly identified. Local model answers can be inaccurate and should be checked.</p>
-    <div class="links">
-      <a href="/privacy.html">Privacy policy</a>
-      <a href="https://github.com/jarumba-code/qwen-pocket-">Source code</a>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fcf9f8"><meta name="description" content="EKIP is a lightweight Android AI assistant designed around on-device conversations.">
+<title>Home — EKIP</title>
+<link rel="icon" href="/assets/pocketqwen-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={darkMode:"class",theme:{extend:{colors:{
+"on-primary":"#ffffff","on-primary-container":"#5b4500","primary":"#755b07","primary-container":"#d6b45d",
+"secondary":"#795900","secondary-container":"#fed173","background":"#fcf9f8","surface":"#fcf9f8",
+"on-surface":"#1b1c1c","on-surface-variant":"#4d4638","surface-container":"#f0eded",
+"surface-container-low":"#f6f3f2","surface-container-high":"#eae7e7","surface-container-highest":"#e5e2e1",
+"surface-container-lowest":"#ffffff","outline":"#7e7666","outline-variant":"#d0c5b2","inverse-surface":"#303030",
+"tertiary":"#5f5e5e","error":"#ba1a1a","error-container":"#ffdad6","primary-fixed":"#ffdf93","secondary-fixed":"#ffdea0"
+},fontFamily:{display:["Manrope"],body:["Inter"],mono:["JetBrains Mono"]},borderRadius:{xl:"1rem","2xl":"1.25rem","3xl":"1.5rem"}}}};
+</script>
+<link rel="stylesheet" href="/assets/site.css"><script src="/assets/site.js" defer></script>
+</head><body class="min-h-screen bg-background font-body text-on-surface antialiased"><header class="site-header fixed top-0 z-40 w-full pt-safe">
+  <div class="site-header-inner mx-auto flex h-20 items-center justify-between px-5">
+    <a class="site-brand flex items-center gap-3" href="/" aria-label="EKIP home">
+      <img src="/assets/pocketqwen-mark.svg" alt="" class="h-10 w-10">
+      <span class="flex flex-col"><strong class="font-display text-[18px] leading-tight">EKIP</strong><small class="font-mono text-[9px] uppercase tracking-[.2em] text-on-surface-variant">Local-first AI</small></span>
+    </a>
+    <nav class="site-desktop-nav hidden items-center gap-9 text-sm font-medium" aria-label="Main navigation">
+      <a href="/features.html">Features</a><a href="/how-it-works.html">How it works</a><a href="/privacy.html">Privacy</a><a href="/about.html">About</a>
+    </nav>
+    <div class="flex items-center gap-3">
+      <a href="/download.html" class="site-release-link hidden sm:inline-flex items-center gap-3 rounded-full px-5 py-3 text-sm font-semibold">Release status <span aria-hidden="true">↗</span></a>
+      <button id="menu-open" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-drawer" class="site-menu-button grid h-11 w-11 place-items-center rounded-full"><span class="material-symbols-outlined text-[24px]">menu</span></button>
     </div>
-  </section>
-  <p style="font-size:.85rem;margin-top:40px">PocketQwen is an independent project. Qwen is a model family name; this site does not imply endorsement by its developers.</p>
-</main><footer><a href="/privacy.html">Privacy Policy</a> · <a href="/terms.html">User Agreement</a></footer></body></html>
+  </div>
+</header>
+<div id="drawer-backdrop" class="fixed inset-0 z-50 hidden bg-black/30 backdrop-blur-[2px]" aria-hidden="true"></div>
+<aside id="mobile-drawer" class="fixed right-0 top-0 z-[60] flex h-full w-[86%] max-w-[340px] translate-x-full flex-col justify-between bg-surface pt-safe shadow-2xl transition-transform duration-300" aria-label="Site menu" aria-hidden="true">
+<div class="p-6"><div class="flex items-center justify-between border-b border-outline-variant/50 pb-4"><a class="flex items-center gap-2" href="/"><img src="/assets/pocketqwen-mark.svg" alt="" class="h-8 w-8"><strong class="font-display text-lg">EKIP</strong></a><button id="menu-close" type="button" aria-label="Close menu" class="grid h-11 w-11 place-items-center rounded-full hover:bg-surface-container"><span class="material-symbols-outlined">close</span></button></div>
+<div class="mt-5 flex items-center gap-2 rounded-xl bg-surface-container-low p-3 text-sm text-on-surface-variant"><span class="h-2 w-2 rounded-full bg-primary"></span>Local-first Android assistant</div>
+<nav class="mt-5 flex flex-col gap-1">
+<a href="/" class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-on-surface hover:bg-surface-container-low"><span class="material-symbols-outlined text-[21px] text-primary">home</span>Home</a><a href="/features.html" class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-on-surface hover:bg-surface-container-low"><span class="material-symbols-outlined text-[21px] text-primary">tune</span>Features</a><a href="/how-it-works.html" class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-on-surface hover:bg-surface-container-low"><span class="material-symbols-outlined text-[21px] text-primary">neurology</span>How it works</a><a href="/download.html" class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-on-surface hover:bg-surface-container-low"><span class="material-symbols-outlined text-[21px] text-primary">download</span>Download APK</a><a href="/about.html" class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-on-surface hover:bg-surface-container-low"><span class="material-symbols-outlined text-[21px] text-primary">info</span>About</a><a href="/privacy.html" class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-on-surface hover:bg-surface-container-low"><span class="material-symbols-outlined text-[21px] text-primary">verified_user</span>Privacy policy</a>
+</nav></div>
+<div class="bg-surface-container-low p-6"><p class="font-mono text-[10px] uppercase tracking-wider text-on-surface-variant">EKIP · Android</p><p class="mt-1 text-xs text-on-surface-variant">Simple conversations, closer to home.</p></div></aside><main class="mx-auto min-h-screen max-w-3xl px-0 pt-20"><section class="home-hero relative overflow-hidden">
+  <div class="hero-copy">
+    <div class="hero-eyebrow"><span></span> ANDROID <i>·</i> ON-DEVICE AI</div>
+    <h1>AI that feels<br><em>closer to home.</em></h1>
+    <p>A lightweight AI assistant built to run directly on your Android device. Keep everyday conversations close, private and available offline.</p>
+    <div class="hero-actions">
+      <a class="hero-primary" href="/features.html">Explore EKIP <span aria-hidden="true">↗</span></a>
+      <a class="hero-secondary" href="/how-it-works.html">See how it works <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="hero-note"><span class="hero-note-dot"></span> Local-first by design <span class="hero-note-separator">·</span> No cloud inference for standard chat</div>
+  </div>
+  <div class="hero-visual" aria-label="Illustration of a EKIP conversation on a phone">
+    <div class="hero-orbit hero-orbit-one"></div><div class="hero-orbit hero-orbit-two"></div>
+    <div class="hero-phone">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span>9:41</span><span>● ▮</span></div>
+      <div class="phone-appbar"><img src="/assets/pocketqwen-mark.svg" alt=""><div><strong>EKIP</strong><small>Local assistant</small></div><span class="phone-local-pill">● LOCAL</span></div>
+      <div class="phone-session">TODAY&nbsp;&nbsp; LOCAL SESSION</div>
+      <div class="phone-user-message">Can you explain binary search in simple terms?</div>
+      <div class="phone-answer">
+        <div class="phone-answer-label"><span>Q</span> EKIP</div>
+        <p>Binary search finds an item in a sorted list by checking the middle and narrowing down the half that could contain the answer.</p>
+        <div class="phone-code"><small>binary_search.py <span>PYTHON</span></small><code>mid = (low + high) // 2<br>if items[mid] == target:<br>&nbsp;&nbsp;return mid</code></div>
+        <small class="phone-answer-foot">On-device response · Example preview</small>
+      </div>
+      <div class="phone-input"><span>Ask EKIP…</span><b>↑</b></div>
+    </div>
+    <div class="hero-float-card"><span>✦</span><div><strong>Local by design</strong><small>No cloud inference for chat</small></div></div>
+    <div class="hero-orbit-dot">◉</div>
+  </div>
+</section>
+<section class="px-5 py-5"><div class="relative min-h-[155px] overflow-hidden rounded-2xl bg-inverse-surface p-5 text-left text-white shadow-md"><div class="absolute -right-10 -top-12 h-48 w-48 rounded-full border-[14px] border-primary-container/20"></div><span class="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-primary">BUILT AROUND YOUR DEVICE</span><h2 class="relative mt-2 max-w-sm font-display text-xl font-bold leading-7">Keep everyday conversations close.</h2><p class="relative mt-2 max-w-sm text-xs leading-5 text-white/70">Standard chat is designed to run locally. Search and other online features are separate.</p></div></section>
+<section class="flex flex-col gap-4 px-5 py-5"><div><span class="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-primary">MADE FOR EVERYDAY USE</span><h2 class="mt-1 font-display text-2xl font-bold">Useful, without the fuss.</h2><p class="mt-2 text-sm leading-6 text-on-surface-variant">A familiar chat experience for questions, learning and getting started on ideas.</p></div><div class="grid grid-cols-1 gap-3 sm:grid-cols-2"><article class="rounded-2xl bg-surface-container-lowest p-5 shadow-sm"><div class="mb-4 grid h-11 w-11 place-items-center rounded-xl bg-primary-container/25 text-primary"><span class="material-symbols-outlined text-[23px]">lock</span></div><h3 class="font-display text-lg font-bold">On-device conversations</h3><p class="mt-2 text-sm leading-6 text-on-surface-variant">Ordinary chat is processed by the model on your phone. No cloud AI chat service is needed for local inference.</p></article><article class="rounded-2xl bg-surface-container-lowest p-5 shadow-sm"><div class="mb-4 grid h-11 w-11 place-items-center rounded-xl bg-primary-container/25 text-primary"><span class="material-symbols-outlined text-[23px]">wifi_off</span></div><h3 class="font-display text-lg font-bold">Offline-ready chat</h3><p class="mt-2 text-sm leading-6 text-on-surface-variant">After installation and model setup, ordinary conversations can work without mobile data or Wi-Fi.</p></article><article class="rounded-2xl bg-surface-container-lowest p-5 shadow-sm"><div class="mb-4 grid h-11 w-11 place-items-center rounded-xl bg-primary-container/25 text-primary"><span class="material-symbols-outlined text-[23px]">school</span></div><h3 class="font-display text-lg font-bold">Learn and explore</h3><p class="mt-2 text-sm leading-6 text-on-surface-variant">Ask for explanations, examples, summaries or help breaking a topic into manageable steps.</p></article><article class="rounded-2xl bg-surface-container-lowest p-5 shadow-sm"><div class="mb-4 grid h-11 w-11 place-items-center rounded-xl bg-primary-container/25 text-primary"><span class="material-symbols-outlined text-[23px]">tune</span></div><h3 class="font-display text-lg font-bold">Your preferences</h3><p class="mt-2 text-sm leading-6 text-on-surface-variant">Choose an available appearance and adjust supported app settings.</p></article></div></section>
+<section class="px-5 py-5"><div class="rounded-3xl bg-surface-container-low p-5"><div class="text-center"><span class="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-primary">A SIMPLE FLOW</span><h2 class="mt-1 font-display text-2xl font-bold">Open. Ask. Explore.</h2><p class="mt-2 text-sm text-on-surface-variant">Getting started should feel familiar.</p></div><div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3"><div class="rounded-2xl bg-white p-4"><span class="font-mono text-xs text-primary">STEP 1</span><h3 class="mt-2 font-display font-bold">Open the app</h3><p class="mt-1 text-xs leading-5 text-on-surface-variant">Start a new conversation on your Android phone.</p></div><div class="rounded-2xl bg-white p-4"><span class="font-mono text-xs text-primary">STEP 2</span><h3 class="mt-2 font-display font-bold">Ask naturally</h3><p class="mt-1 text-xs leading-5 text-on-surface-variant">Write a question or describe what you need help with.</p></div><div class="rounded-2xl bg-white p-4"><span class="font-mono text-xs text-primary">STEP 3</span><h3 class="mt-2 font-display font-bold">Review the answer</h3><p class="mt-1 text-xs leading-5 text-on-surface-variant">Read the response, ask a follow-up and check important facts.</p></div></div><a href="/how-it-works.html" class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">Read how it works <span class="material-symbols-outlined text-[18px]">arrow_forward</span></a></div></section>
+<section class="px-5 py-5"><div class="flex flex-col gap-3 rounded-3xl bg-surface-container-lowest p-5 shadow-sm"><span class="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-primary">PRIVACY & CONTROL</span><h2 class="font-display text-2xl font-bold">Local first.<br><span class="text-primary">Clear about online.</span></h2><p class="text-sm leading-6 text-on-surface-variant">The standard chat experience runs on your phone. Web Search is being developed separately and is not available in the current Android build.</p><a href="/privacy.html" class="inline-flex items-center gap-1 text-sm font-semibold text-primary">Read the privacy policy <span class="material-symbols-outlined text-[18px]">arrow_forward</span></a></div></section>
+<section class="px-5 py-5"><div class="flex flex-col gap-3"><span class="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-primary">GOOD TO KNOW</span><h2 class="font-display text-2xl font-bold">Questions, answered.</h2><details class="rounded-2xl bg-white p-4 shadow-sm"><summary class="cursor-pointer text-sm font-semibold">Can it work without internet?</summary><p class="mt-3 text-sm leading-6 text-on-surface-variant">Ordinary local conversations can work offline after the app and its bundled model are installed. Online features require a connection when available.</p></details><details class="rounded-2xl bg-white p-4 shadow-sm"><summary class="cursor-pointer text-sm font-semibold">Can I download it now?</summary><p class="mt-3 text-sm leading-6 text-on-surface-variant">A verified public APK has not been published yet. Check the download page for release status.</p></details><details class="rounded-2xl bg-white p-4 shadow-sm"><summary class="cursor-pointer text-sm font-semibold">Will it run equally well on every phone?</summary><p class="mt-3 text-sm leading-6 text-on-surface-variant">No. Performance and compatibility vary by device. A tested compatibility list will be published after validation.</p></details></div></section><section class="px-5 pb-8 pt-2"><div class="relative overflow-hidden rounded-3xl bg-primary-container p-6 text-center shadow-md"><div class="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full border-[12px] border-on-primary-container/10"></div><div class="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full border-[12px] border-on-primary-container/10"></div><h2 class="relative font-display text-2xl font-extrabold text-on-primary-container">Ready to explore EKIP?</h2><p class="relative mx-auto mt-2 max-w-sm text-sm leading-6 text-on-primary-container/85">See the current release status and what to know before installing.</p><a class="relative mt-5 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-on-primary-container px-6 text-sm font-semibold text-white" href="/download.html">View download information<span class="material-symbols-outlined text-[18px]">arrow_forward</span></a></div></section></main><footer class="mt-8 bg-surface-container-low px-5 pb-24 pt-9"><div class="mx-auto max-w-3xl"><div class="flex items-center gap-2"><img src="/assets/pocketqwen-mark.svg" alt="" class="h-8 w-8"><strong class="font-display text-lg">EKIP</strong></div><p class="mt-2 max-w-sm text-sm leading-6 text-on-surface-variant">An independent Android project exploring useful, on-device AI conversations.</p><div class="mt-6 grid grid-cols-2 gap-6"><div class="flex flex-col gap-3"><strong class="text-xs uppercase tracking-wider">Explore</strong><a class="text-sm text-on-surface-variant" href="/features.html">Features</a><a class="text-sm text-on-surface-variant" href="/how-it-works.html">How it works</a><a class="text-sm text-on-surface-variant" href="/download.html">Download</a></div><div class="flex flex-col gap-3"><strong class="text-xs uppercase tracking-wider">Information</strong><a class="text-sm text-on-surface-variant" href="/about.html">About</a><a class="text-sm text-on-surface-variant" href="/privacy.html">Privacy policy</a></div></div><div class="mt-7 flex items-center justify-between border-t border-outline-variant/60 pt-4 text-[11px] text-on-surface-variant"><span>© <span id="copyright-year">2026</span> EKIP</span><span>Independent project</span></div></div></footer>
+<nav class="fixed bottom-0 z-40 w-full border-t border-outline-variant/40 bg-surface/95 pb-safe backdrop-blur-xl"><div class="mx-auto flex h-16 max-w-3xl items-center justify-around px-2">
+<a href="/" aria-current="page" class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-primary"><span class="material-symbols-outlined text-[22px]">home</span><span class="text-[10px] font-semibold">Home</span></a><a href="/features.html"  class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-on-surface-variant"><span class="material-symbols-outlined text-[22px]">tune</span><span class="text-[10px] font-semibold">Features</span></a><a href="/how-it-works.html"  class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-on-surface-variant"><span class="material-symbols-outlined text-[22px]">neurology</span><span class="text-[10px] font-semibold">How it works</span></a><a href="/download.html"  class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-on-surface-variant"><span class="material-symbols-outlined text-[22px]">download</span><span class="text-[10px] font-semibold">APK</span></a>
+</div></nav></body></html>
