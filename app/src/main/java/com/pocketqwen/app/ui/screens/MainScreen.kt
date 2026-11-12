@@ -240,11 +240,13 @@ fun MainScreen(
                     actions = {
                         if (!showSettings) {
                             IconButton(onClick = {
-                                val id = activeConversationId ?: java.util.UUID.randomUUID().toString()
-                                val title = messages.firstOrNull { it.isUser }?.text?.take(42) ?: "New conversation"
-                                val index = conversations.indexOfFirst { it.id == id }
-                                val item = Conversation(id = id, title = title, messages = messages.toList())
-                                if (index >= 0) conversations[index] = item else conversations.add(0, item)
+                                if (messages.isNotEmpty()) {
+                                    val id = activeConversationId
+                                    val title = messages.firstOrNull { it.isUser }?.text?.take(42) ?: "New conversation"
+                                    val index = conversations.indexOfFirst { it.id == id }
+                                    val item = Conversation(id = id, title = title, messages = messages.toList())
+                                    if (index >= 0) conversations[index] = item else conversations.add(0, item)
+                                }
                                 activeConversationId = java.util.UUID.randomUUID().toString()
                                 chatViewModel.clearMessages()
                             }) {
