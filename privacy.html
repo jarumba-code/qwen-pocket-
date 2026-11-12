@@ -1,49 +1,96 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#fcf9f8"><meta name="description" content="Read how EKIP is designed to handle local conversations and online features.">
-<title>Privacy Policy — EKIP</title>
-<link rel="icon" href="/assets/pocketqwen-mark.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config={darkMode:"class",theme:{extend:{colors:{
-"on-primary":"#ffffff","on-primary-container":"#5b4500","primary":"#755b07","primary-container":"#d6b45d",
-"secondary":"#795900","secondary-container":"#fed173","background":"#fcf9f8","surface":"#fcf9f8",
-"on-surface":"#1b1c1c","on-surface-variant":"#4d4638","surface-container":"#f0eded",
-"surface-container-low":"#f6f3f2","surface-container-high":"#eae7e7","surface-container-highest":"#e5e2e1",
-"surface-container-lowest":"#ffffff","outline":"#7e7666","outline-variant":"#d0c5b2","inverse-surface":"#303030",
-"tertiary":"#5f5e5e","error":"#ba1a1a","error-container":"#ffdad6","primary-fixed":"#ffdf93","secondary-fixed":"#ffdea0"
-},fontFamily:{display:["Manrope"],body:["Inter"],mono:["JetBrains Mono"]},borderRadius:{xl:"1rem","2xl":"1.25rem","3xl":"1.5rem"}}}};
-</script>
-<link rel="stylesheet" href="/assets/site.css"><script src="/assets/site.js" defer></script>
-</head><body class="min-h-screen bg-background font-body text-on-surface antialiased"><header class="site-header fixed top-0 z-40 w-full pt-safe">
-  <div class="site-header-inner mx-auto flex h-20 items-center justify-between px-5">
-    <a class="site-brand flex items-center gap-3" href="/" aria-label="EKIP home">
-      <img src="/assets/pocketqwen-mark.svg" alt="" class="h-10 w-10">
-      <span class="flex flex-col"><strong class="font-display text-[18px] leading-tight">EKIP</strong><small class="font-mono text-[9px] uppercase tracking-[.2em] text-on-surface-variant">Local-first AI</small></span>
-    </a>
-    <nav class="site-desktop-nav hidden items-center gap-9 text-sm font-medium" aria-label="Main navigation">
-      <a href="/features.html">Features</a><a href="/how-it-works.html">How it works</a><a href="/privacy.html">Privacy</a><a href="/about.html">About</a>
-    </nav>
-    <div class="flex items-center gap-3">
-      <a href="/download.html" class="site-release-link hidden sm:inline-flex items-center gap-3 rounded-full px-5 py-3 text-sm font-semibold">Release status <span aria-hidden="true">↗</span></a>
-      <button id="menu-open" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-drawer" class="site-menu-button grid h-11 w-11 place-items-center rounded-full"><span class="material-symbols-outlined text-[24px]">menu</span></button>
-    </div>
-  </div>
-</header>
-<div id="drawer-backdrop" class="fixed inset-0 z-50 hidden bg-black/30 backdrop-blur-[2px]" aria-hidden="true"></div>
-<aside id="mobile-drawer" class="fixed right-0 top-0 z-[60] flex h-full w-[86%] max-w-[340px] translate-x-full flex-col justify-between bg-surface pt-safe shadow-2xl transition-transform duration-300" aria-label="Site menu" aria-hidden="true">
-<div class="p-6"><div class="flex items-center justify-between border-b border-outline-variant/50 pb-4"><a class="flex items-center gap-2" href="/"><img src="/assets/pocketqwen-mark.svg" alt="" class="h-8 w-8"><strong class="font-display text-lg">EKIP</strong></a><button id="menu-close" type="button" aria-label="Close menu" class="grid h-11 w-11 place-items-center rounded-full hover:bg-surface-container"><span class="material-symbols-outlined">close</span></button></div>
-<div class="mt-5 flex items-center gap-2 rounded-xl bg-surface-container-low p-3 text-sm text-on-surface-variant"><span class="h-2 w-2 rounded-full bg-primary"></span>Local-first Android assistant</div>
-<nav class="mt-5 flex flex-col gap-1">
-<a href="/" class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-on-surface hover:bg-surface-container-low"><span class="material-symbols-outlined text-[21px] text-primary">home</span>Home</a><a href="/features.html" class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-on-surface hover:bg-surface-container-low"><span class="material-symbols-outlined text-[21px] text-primary">tune</span>Features</a><a href="/how-it-works.html" class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-on-surface hover:bg-surface-container-low"><span class="material-symbols-outlined text-[21px] text-primary">neurology</span>How it works</a><a href="/download.html" class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-on-surface hover:bg-surface-container-low"><span class="material-symbols-outlined text-[21px] text-primary">download</span>Download APK</a><a href="/about.html" class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-on-surface hover:bg-surface-container-low"><span class="material-symbols-outlined text-[21px] text-primary">info</span>About</a><a href="/privacy.html" class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold bg-secondary-container/40 text-secondary"><span class="material-symbols-outlined text-[21px] text-primary">verified_user</span>Privacy policy</a>
-</nav></div>
-<div class="bg-surface-container-low p-6"><p class="font-mono text-[10px] uppercase tracking-wider text-on-surface-variant">EKIP · Android</p><p class="mt-1 text-xs text-on-surface-variant">Simple conversations, closer to home.</p></div></aside><main class="mx-auto min-h-screen max-w-3xl px-0 pt-20"><section class="px-5 pb-4 pt-8"><span class="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-primary">EKIP · PRIVACY</span><h1 class="mt-3 font-display text-[34px] font-extrabold leading-tight">Privacy, in<br><span class="text-primary">plain language.</span></h1><p class="mt-4 text-sm leading-6 text-on-surface-variant">This page explains how EKIP is designed to handle information. It must be checked against the final public app and services before launch.</p><div class="mt-5 rounded-2xl border border-secondary/20 bg-secondary-container/20 p-4"><div class="flex items-center gap-2 font-semibold text-secondary"><span class="material-symbols-outlined">info</span>Launch review notice</div><p class="mt-2 text-xs leading-5 text-on-surface-variant">The public release has not been published yet. This policy is a working description and needs a final technical and legal review before public distribution.</p></div><p class="mt-4 font-mono text-[11px] text-on-surface-variant">Effective date: 5 November 2026</p></section>
-<section class="flex flex-col gap-3 px-5 pb-8"><article class="rounded-2xl bg-surface-container-lowest p-5 shadow-sm"><h2 class="font-display text-lg font-bold">1. Local conversations</h2><p class="mt-2 text-sm leading-6 text-on-surface-variant">EKIP uses a model included with the Android app for ordinary chat. Prompts and responses are processed on your device. Local inference does not require sending the conversation to a cloud AI chat service. Conversation history and app preferences are stored in app-private storage on the device.</p></article><article class="rounded-2xl bg-surface-container-lowest p-5 shadow-sm"><h2 class="font-display text-lg font-bold">2. Online features</h2><p class="mt-2 text-sm leading-6 text-on-surface-variant">Web Search is under development and is not available in the current Android build. If it is released, a search query may be sent to the configured search provider to retrieve current information. The app should clearly identify that online action before it happens.</p></article><article class="rounded-2xl bg-surface-container-lowest p-5 shadow-sm"><h2 class="font-display text-lg font-bold">3. Reports and feedback</h2><p class="mt-2 text-sm leading-6 text-on-surface-variant">A report-submission endpoint exists in the project backend, but whether it is enabled depends on deployment configuration. If report submission is enabled in a future build, the information shown in the report form will be sent to the configured service. Avoid including passwords, private keys, payment details or other sensitive information.</p></article><article class="rounded-2xl bg-surface-container-lowest p-5 shadow-sm"><h2 class="font-display text-lg font-bold">4. Storage and deletion</h2><p class="mt-2 text-sm leading-6 text-on-surface-variant">Local conversations and preferences are stored by the app on your device. Use the app's available controls to delete local conversation data. Information sent to an online provider may also be subject to that provider's own retention and deletion policies.</p></article><article class="rounded-2xl bg-surface-container-lowest p-5 shadow-sm"><h2 class="font-display text-lg font-bold">5. Diagnostics and service providers</h2><p class="mt-2 text-sm leading-6 text-on-surface-variant">This policy does not claim that all device-level diagnostics, crash reports or hosting logs are disabled. Before public release, the final app and its services must be reviewed so any analytics, diagnostics and third-party processing can be described accurately.</p></article><article class="rounded-2xl bg-surface-container-lowest p-5 shadow-sm"><h2 class="font-display text-lg font-bold">6. Important limitations</h2><p class="mt-2 text-sm leading-6 text-on-surface-variant">AI responses can be inaccurate, incomplete or out of date. Do not rely on EKIP as a substitute for qualified medical, legal, financial or emergency assistance. Check important information independently.</p></article><article class="rounded-2xl bg-surface-container-lowest p-5 shadow-sm"><h2 class="font-display text-lg font-bold">7. Contact</h2><p class="mt-2 text-sm leading-6 text-on-surface-variant">A monitored privacy contact address has not yet been published. Contact details should be added here before the public release.</p></article></section></main><footer class="mt-8 bg-surface-container-low px-5 pb-24 pt-9"><div class="mx-auto max-w-3xl"><div class="flex items-center gap-2"><img src="/assets/pocketqwen-mark.svg" alt="" class="h-8 w-8"><strong class="font-display text-lg">EKIP</strong></div><p class="mt-2 max-w-sm text-sm leading-6 text-on-surface-variant">An independent Android project exploring useful, on-device AI conversations.</p><div class="mt-6 grid grid-cols-2 gap-6"><div class="flex flex-col gap-3"><strong class="text-xs uppercase tracking-wider">Explore</strong><a class="text-sm text-on-surface-variant" href="/features.html">Features</a><a class="text-sm text-on-surface-variant" href="/how-it-works.html">How it works</a><a class="text-sm text-on-surface-variant" href="/download.html">Download</a></div><div class="flex flex-col gap-3"><strong class="text-xs uppercase tracking-wider">Information</strong><a class="text-sm text-on-surface-variant" href="/about.html">About</a><a class="text-sm text-on-surface-variant" href="/privacy.html">Privacy policy</a></div></div><div class="mt-7 flex items-center justify-between border-t border-outline-variant/60 pt-4 text-[11px] text-on-surface-variant"><span>© <span id="copyright-year">2026</span> EKIP</span><span>Independent project</span></div></div></footer>
-<nav class="fixed bottom-0 z-40 w-full border-t border-outline-variant/40 bg-surface/95 pb-safe backdrop-blur-xl"><div class="mx-auto flex h-16 max-w-3xl items-center justify-around px-2">
-<a href="/"  class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-on-surface-variant"><span class="material-symbols-outlined text-[22px]">home</span><span class="text-[10px] font-semibold">Home</span></a><a href="/features.html"  class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-on-surface-variant"><span class="material-symbols-outlined text-[22px]">tune</span><span class="text-[10px] font-semibold">Features</span></a><a href="/how-it-works.html"  class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-on-surface-variant"><span class="material-symbols-outlined text-[22px]">neurology</span><span class="text-[10px] font-semibold">How it works</span></a><a href="/download.html"  class="flex min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-on-surface-variant"><span class="material-symbols-outlined text-[22px]">download</span><span class="text-[10px] font-semibold">APK</span></a>
-</div></nav></body></html>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#faf8f3">
+  <meta name="description" content="EKIP Privacy Policy: how the Android app and optional online search handle information.">
+  <title>Privacy Policy — EKIP</title>
+  <style>
+    :root{color-scheme:light;--paper:#faf8f3;--card:#fff;--ink:#24252a;--muted:#5b606b;--gold:#755b07;--line:#e7dfd0}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.7 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+    main{max-width:850px;margin:0 auto;padding:36px 20px 72px}header{padding:18px 0 26px;border-bottom:1px solid var(--line);margin-bottom:24px}
+    .brand{font-weight:800;letter-spacing:.16em;color:var(--gold);font-size:.75rem}h1{font-size:clamp(2.1rem,7vw,3.1rem);line-height:1.1;margin:.6rem 0}
+    h2{font-size:1.2rem;line-height:1.3;margin:0 0 8px}p,li{color:var(--muted)}.date{font-size:.9rem;color:#6c6b70}
+    section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin:13px 0}
+    a{color:var(--gold);text-underline-offset:3px}footer{border-top:1px solid var(--line);margin-top:30px;padding-top:18px;color:var(--muted);font-size:.9rem}
+    code{overflow-wrap:anywhere;background:#f1ede4;padding:2px 5px;border-radius:5px}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="brand">EKIP · JIMM.TECH</div>
+    <h1>Privacy Policy</h1>
+    <p>This policy explains what information EKIP handles, what stays on your Android device, and what may leave the device when online search is used.</p>
+    <p class="date">Effective date: 13 November 2026 · Applies to EKIP Android preview version 1.1.0 and this website.</p>
+  </header>
+
+  <section>
+    <h2>1. Who operates EKIP</h2>
+    <p>EKIP is an independent Android software project maintained by JIMM.tech in Nigeria. This policy describes the app's current implementation and its configured online services. Features and service providers may change; this page will be updated when material changes are made.</p>
+  </section>
+
+  <section>
+    <h2>2. Information kept on your device</h2>
+    <p>EKIP includes a local language model. During ordinary local chat, your prompts are processed by that model on your Android device. The chat engine does not send your conversation to a cloud AI model for inference.</p>
+    <p>Conversation history, local memory notes, your optional profile name, and app preferences are stored in the app's private storage on your device. EKIP does not require you to create an account to use local chat.</p>
+    <p>Local information remains on the device unless you choose to share it through an online feature, or use Android/device tools that expose it. Clearing EKIP's app data or uninstalling the app can remove locally stored information.</p>
+  </section>
+
+  <section>
+    <h2>3. Optional web search</h2>
+    <p>EKIP can use online search for current information. A search may be sent when you enable Web Search, or when the app recognises a query as asking for time-sensitive information—for example, a request about current news, weather, prices, exchange rates, or the latest version of something. You can ask the app not to search, such as by saying “do not search” or “offline only”.</p>
+    <p>When a search is made, the app sends the current search query—not your entire conversation history or local memory—to the configured EKIP search endpoint at <code>https://qwen-pocket.vercel.app/api/search</code>. The service forwards that query to Tavily, a third-party search provider, and returns a small set of result titles, links, and excerpts. Those excerpts may be supplied to the local model as context. The response itself is generated on your device.</p>
+    <p>Online search requires an internet connection. The request may be processed by the hosting provider and search provider, including ordinary network and service metadata such as IP address, request time, and the query needed to perform the search. Their own privacy and retention terms also apply. If the search service is unavailable, the app may answer using only its local model.</p>
+  </section>
+
+  <section>
+    <h2>4. Website and hosting</h2>
+    <p>This policy and the EKIP website are served as static website files. The hosting provider may process standard web-request information for delivery, security, and reliability. Other pages on the website may load fonts or interface resources from third-party content delivery services, which receive the network information needed to provide those resources.</p>
+  </section>
+
+  <section>
+    <h2>5. Reports, analytics, and advertising</h2>
+    <p>Ordinary local chat is not automatically submitted to a feedback or report service. The project repository contains a report-intake endpoint, but that endpoint only accepts submissions when it is configured and called; it is not part of the normal local-chat generation path.</p>
+    <p>This policy does not claim that Android, device manufacturers, app distribution platforms, or website and hosting providers collect no diagnostics or operational logs. Review the relevant provider policies for their handling of that information.</p>
+  </section>
+
+  <section>
+    <h2>6. Data sharing and retention</h2>
+    <p>EKIP does not operate a cloud account or conversation-sync service in the current app. Local conversations and preferences stay in app-private storage unless you choose to share information through an online feature.</p>
+    <p>Search queries are sent to the services described above. Their processing and retention are governed by their own terms and privacy policies. EKIP's project maintainer does not provide a control to delete information from those providers' systems.</p>
+  </section>
+
+  <section>
+    <h2>7. Your choices</h2>
+    <ul>
+      <li>Use ordinary local chat without enabling Web Search. Note that the app may still recognise certain current-information queries and initiate a search; say “do not search” or “offline only” to suppress that search for a prompt.</li>
+      <li>Do not put passwords, private keys, recovery phrases, payment details, or other secrets into search queries.</li>
+      <li>Delete conversations in the app where the available conversation controls permit, or clear EKIP's app data/uninstall through Android settings to remove local app data.</li>
+      <li>Use provider privacy controls or contact the relevant provider for requests about data it processes.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>8. Children and age</h2>
+    <p>EKIP is intended for people aged 13 and older. It is not designed for children under 13, and the project does not knowingly seek personal information from children under 13.</p>
+  </section>
+
+  <section>
+    <h2>9. AI limitations</h2>
+    <p>AI responses can be inaccurate, incomplete, or outdated. Do not treat EKIP as a substitute for qualified medical, legal, financial, or emergency assistance. Check important information independently.</p>
+  </section>
+
+  <section>
+    <h2>10. Contact and policy updates</h2>
+    <p>For general project questions, use the <a href="https://github.com/jarumba-code/qwen-pocket-/issues">EKIP project issue tracker</a>. It is a public channel: do not post private information, passwords, account details, or sensitive personal data there. A dedicated private privacy-contact address has not yet been published; that contact method should be added before broad public distribution.</p>
+    <p>When this policy changes, the updated version and effective date will be published on this page.</p>
+  </section>
+
+  <footer>
+    <a href="./index.html">EKIP website</a> · <a href="./terms.html">User Agreement</a> · <a href="https://github.com/jarumba-code/qwen-pocket-">Source repository</a>
+  </footer>
+</main>
+</body>
+</html>
