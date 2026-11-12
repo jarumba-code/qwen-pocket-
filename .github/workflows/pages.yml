@@ -1,12 +1,10 @@
-name: Publish PocketQwen website
+name: Publish EKIP website
 
 on:
   push:
     branches:
-      - release/ekip-play-readiness
+      - main
     paths:
-      - index.html
-      - privacy.html
       - .github/workflows/pages.yml
   workflow_dispatch:
 
@@ -23,12 +21,39 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout deployment workflow
         uses: actions/checkout@v4
-      - name: Prepare site
+      - name: Checkout EKIP website source
+        uses: actions/checkout@v4
+        with:
+          ref: feature/pocketqwen-8192-memory-web-gold
+          path: website-source
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Prepare project site
+        env:
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
         run: |
+          set -euo pipefail
           mkdir -p _site
-          cp index.html privacy.html _site/
+          cp website-source/index.html website-source/privacy.html website-source/terms.html website-source/features.html website-source/how-it-works.html website-source/about.html website-source/download.html _site/
+          cp -R website-source/assets _site/
+          touch _site/.nojekyll
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          base = "/" + os.environ["REPOSITORY_NAME"].strip("/") + "/"
+          for path in Path("_site").rglob("*"):
+              if path.is_file() and path.suffix.lower() in {".html", ".css", ".js"}:
+                  content = path.read_text(encoding="utf-8")
+                  for attribute in ("href", "src", "action", "poster"):
+                      content = content.replace(f'{attribute}="/', f'{attribute}="{base}')
+                  content = content.replace("url(/", f"url({base}")
+                  path.write_text(content, encoding="utf-8")
+          PY
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
