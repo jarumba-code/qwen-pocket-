@@ -235,25 +235,25 @@ fun SettingsScreen(
         item {
             Text("Legal", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                runCatching { uriHandler.openUri("https://qwen-pocket.vercel.app/privacy.html") }
+                runCatching { uriHandler.openUri("https://jarumba-code.github.io/qwen-pocket-/privacy.html") }
             }) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text("Privacy Policy", style = MaterialTheme.typography.titleMedium)
                     Text("Read how local conversations and optional online features handle data on our website.",
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    TextButton(onClick = { runCatching { uriHandler.openUri("https://qwen-pocket.vercel.app/privacy.html") } }) {
+                    TextButton(onClick = { runCatching { uriHandler.openUri("https://jarumba-code.github.io/qwen-pocket-/privacy.html") } }) {
                         Text("Open Privacy Policy")
                     }
                 }
             }
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                runCatching { uriHandler.openUri("https://qwen-pocket.vercel.app/terms.html") }
+                runCatching { uriHandler.openUri("https://jarumba-code.github.io/qwen-pocket-/terms.html") }
             }) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text("User Agreement", style = MaterialTheme.typography.titleMedium)
                     Text("Review the terms governing use of EKIP.",
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    TextButton(onClick = { runCatching { uriHandler.openUri("https://qwen-pocket.vercel.app/terms.html") } }) {
+                    TextButton(onClick = { runCatching { uriHandler.openUri("https://jarumba-code.github.io/qwen-pocket-/terms.html") } }) {
                         Text("Open User Agreement")
                     }
                 }
