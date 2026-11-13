@@ -1,12 +1,19 @@
-name: Publish PocketQwen website
+name: Publish EKIP website
 
 on:
   push:
     branches:
+      - feature/pocketqwen-8192-memory-web-gold
       - release/ekip-play-readiness
     paths:
       - index.html
       - privacy.html
+      - terms.html
+      - features.html
+      - how-it-works.html
+      - about.html
+      - download.html
+      - assets/**
       - .github/workflows/pages.yml
   workflow_dispatch:
 
@@ -25,10 +32,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Prepare site
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Prepare site for project-page URL
+        env:
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
         run: |
+          set -euo pipefail
           mkdir -p _site
-          cp index.html privacy.html _site/
+          cp index.html privacy.html terms.html features.html how-it-works.html about.html download.html _site/
+          cp -R assets _site/
+          touch _site/.nojekyll
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          base = "/" + os.environ["REPOSITORY_NAME"].strip("/") + "/"
+          extensions = {".html", ".css", ".js"}
+          for path in Path("_site").rglob("*"):
+              if path.is_file() and path.suffix.lower() in extensions:
+                  content = path.read_text(encoding="utf-8")
+                  for attribute in ("href", "src", "action", "poster"):
+                      content = content.replace(f'{attribute}="/', f'{attribute}="{base}')
+                  content = content.replace("url(/", f"url({base}")
+                  path.write_text(content, encoding="utf-8")
+          PY
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

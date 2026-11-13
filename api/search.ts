@@ -29,26 +29,30 @@ export default async function handler(request: Request): Promise<Response> {
   try {
     const upstream = await fetch("https://api.tavily.com/search", {
       method: "POST",
+      signal: AbortSignal.timeout(8_000),
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         api_key: apiKey,
         query,
-        search_depth: "basic",
+        search_depth: "ultra-fast",
         topic: "general",
-        max_results: 4,
+        max_results: 3,
         include_answer: false,
         include_raw_content: false,
       }),
     });
     if (!upstream.ok) return Response.json({ error: "Search provider request failed." }, { status: 502 });
     const data = await upstream.json() as { results?: Array<{ title?: string; url?: string; content?: string }> };
-    const results = (data.results ?? []).slice(0, 4).map((item) => ({
+    const results = (data.results ?? []).slice(0, 3).map((item) => ({
       title: String(item.title ?? "").slice(0, 180),
       url: String(item.url ?? "").slice(0, 1000),
       snippet: String(item.content ?? "").slice(0, 1200),
     })).filter((item) => item.url.startsWith("https://") && item.snippet.length > 0);
     return Response.json({ query, results });
-  } catch {
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "TimeoutError") {
+      return Response.json({ error: "Web Search timed out. Try again." }, { status: 504 });
+    }
     return Response.json({ error: "Search is temporarily unavailable." }, { status: 502 });
   }
 }

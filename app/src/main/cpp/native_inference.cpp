@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <android/log.h>
 #include <algorithm>
+#include <cctype>
 #include <atomic>
 #include <chrono>
 #include <limits>
@@ -86,7 +87,38 @@ static jstring utf8_to_jstring(JNIEnv *env, const std::string &utf8) {
     return env->NewString(utf16.data(), static_cast<jsize>(utf16.size()));
 }
 
-static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode) {
+static llama_sampler * create_request_sampler(const std::string &prompt, const llama_vocab *vocab) {
+    std::string normalized = prompt;
+    std::transform(normalized.begin(), normalized.end(), normalized.begin(),
+        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    const size_t lastUser = normalized.rfind("<|im_start|>user");
+    const std::string latestTurn = lastUser == std::string::npos
+        ? normalized : normalized.substr(lastUser);
+    const bool brainstorm = latestTurn.find("brainstorm") != std::string::npos ||
+        latestTurn.find("ideas") != std::string::npos ||
+        latestTurn.find("idea") != std::string::npos ||
+        latestTurn.find("alternatives") != std::string::npos ||
+        latestTurn.find("options") != std::string::npos;
+
+    llama_sampler *sampler = llama_sampler_chain_init(llama_sampler_chain_default_params());
+    if (!sampler) return nullptr;
+
+    // Greedy decoding caused repeated wording and duplicated brainstorm items.
+    // Sampling adds controlled variation; penalties discourage reusing recent tokens.
+    llama_sampler_chain_add(sampler, llama_sampler_init_top_k(40));
+    llama_sampler_chain_add(sampler, llama_sampler_init_top_p(brainstorm ? 0.94f : 0.90f, 1));
+    llama_sampler_chain_add(sampler, llama_sampler_init_penalties(
+        llama_vocab_n_tokens(vocab), 128,
+        brainstorm ? 1.18f : 1.14f,
+        brainstorm ? 0.13f : 0.10f,
+        brainstorm ? 0.08f : 0.06f));
+    llama_sampler_chain_add(sampler, llama_sampler_init_temp(brainstorm ? 0.86f : 0.72f));
+    static std::atomic<uint32_t> nextSeed{0x5EED1234u};
+    llama_sampler_chain_add(sampler, llama_sampler_init_dist(nextSeed.fetch_add(0x9E3779B9u)));
+    return sampler;
+}
+
+static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode, jint contextTokens) {
     if (!path) return JNI_FALSE;
     std::lock_guard<std::mutex> loadLock(g_load_mutex);
     const char *p = env->GetStringUTFChars(path, nullptr);
@@ -102,11 +134,15 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode) {
     mp.n_gpu_layers = 0;
     const unsigned int availableThreads = std::max(1u, std::thread::hardware_concurrency());
     const bool performanceMode = mode != 0;
+    // Performance uses all runtime-reported logical threads for prompt processing
+    // and token generation. Balanced uses half for both, rounded down (minimum one).
     const int inferenceThreads = performanceMode
         ? static_cast<int>(availableThreads)
         : std::max(1, static_cast<int>(availableThreads / 2));
-    LOGI("Loading model; selected_mode=%s available_cpu_threads=%u inference_threads=%d context=2048 batch=512 ubatch=256 gpu_layers=0",
-         performanceMode ? "performance" : "balanced", availableThreads, inferenceThreads);
+    const int batchThreads = inferenceThreads;
+    const uint32_t selectedContext = static_cast<uint32_t>(std::clamp(contextTokens, 2048, 8192));
+    LOGI("Loading model; selected_mode=%s available_cpu_threads=%u inference_threads=%d context=%u batch=512 ubatch=256 gpu_layers=0",
+         performanceMode ? "performance" : "balanced", availableThreads, inferenceThreads, selectedContext);
     const auto start = std::chrono::steady_clock::now();
     const auto modelLoadStart = std::chrono::steady_clock::now();
     g_model = llama_model_load_from_file(p, mp);
@@ -114,22 +150,21 @@ static jboolean nativeLoadModel(JNIEnv *env, jobject, jstring path, jint mode) {
     env->ReleaseStringUTFChars(path, p);
     if (!g_model) { LOGE("Model load failed; verify GGUF integrity and available RAM"); return JNI_FALSE; }
     llama_context_params cp = llama_context_default_params();
-    cp.n_ctx = 2048;
+    cp.n_ctx = selectedContext;
     cp.n_batch = 512;
     cp.n_ubatch = 256;
     // Experiment 5: Performance uses all runtime-reported threads; Balanced
-    // uses half, rounded down, with a minimum of one. Both modes keep context=2048.
+    // uses half, rounded down, with a minimum of one. Context is independently configurable.
     // Thread count is a policy choice, not a guarantee of better sustained speed.
     cp.n_threads = inferenceThreads;
-    cp.n_threads_batch = inferenceThreads;
+    cp.n_threads_batch = batchThreads;
     const auto contextInitStart = std::chrono::steady_clock::now();
-    LOGI("Experiment 5 params selected_mode=%s available_cpu_threads=%u inference_threads=%d context=%u batch=%u ubatch=%u gpu_layers=0",
-         performanceMode ? "performance" : "balanced", availableThreads, inferenceThreads, cp.n_ctx, cp.n_batch, cp.n_ubatch);
+    LOGI("Inference params mode=%s cpu_threads=%u batch_threads=%d context=%u batch=%u ubatch=%u gpu_layers=0",
+         performanceMode ? "performance" : "balanced", availableThreads, batchThreads, cp.n_ctx, cp.n_batch, cp.n_ubatch);
     g_ctx = llama_init_from_model(g_model, cp);
     const auto contextInitEnd = std::chrono::steady_clock::now();
     if (!g_ctx) { release_locked(); LOGE("Context creation failed; likely memory pressure"); return JNI_FALSE; }
-    g_sampler = llama_sampler_init_greedy();
-    if (!g_sampler) { release_locked(); return JNI_FALSE; }
+    g_sampler = nullptr;
     g_initialized = true;
     const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
     LOGI("Model and context ready model_load_ms=%.3f context_init_ms=%.3f total_init_ms=%lld",
@@ -149,12 +184,33 @@ static jstring nativeGetModelStatus(JNIEnv *env, jobject) {
     return env->NewStringUTF(g_initialized ? "loaded" : "not_loaded");
 }
 
+static jint nativeCountTokens(JNIEnv *env, jobject, jstring input) {
+    if (!input) return -1;
+    const char *raw = env->GetStringUTFChars(input, nullptr);
+    if (!raw) return -1;
+    std::string prompt(raw);
+    env->ReleaseStringUTFChars(input, raw);
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (!g_initialized || !g_model) return -1;
+    if (prompt.size() > static_cast<size_t>(std::numeric_limits<int32_t>::max())) return -1;
+    const llama_vocab *vocab = llama_model_get_vocab(g_model);
+    std::vector<llama_token> tokens(prompt.size() + 32);
+    int32_t count = llama_tokenize(vocab, prompt.c_str(), static_cast<int32_t>(prompt.size()),
+        tokens.data(), static_cast<int32_t>(tokens.size()), true, true);
+    if (count < 0 && count != std::numeric_limits<int32_t>::min()) {
+        tokens.resize(static_cast<size_t>(-count));
+        count = llama_tokenize(vocab, prompt.c_str(), static_cast<int32_t>(prompt.size()),
+            tokens.data(), static_cast<int32_t>(tokens.size()), true, true);
+    }
+    return count > 0 ? count : -1;
+}
+
 static void nativeCancelGeneration(JNIEnv *, jobject) {
     g_cancel_requested.store(true);
     LOGI("Cancellation requested");
 }
 
-static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint requestedMaxTokens, jobject callback) {
+static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint availableOutputTokens, jobject callback) {
     if (!input || !callback) return;
     const char *raw = env->GetStringUTFChars(input, nullptr);
     if (!raw) return;
@@ -162,7 +218,7 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
     std::string prompt(raw);
     env->ReleaseStringUTFChars(input, raw);
     std::lock_guard<std::mutex> lock(g_mutex);
-    if (!g_initialized || !g_model || !g_ctx || !g_sampler) {
+    if (!g_initialized || !g_model || !g_ctx) {
         jclass ex = env->FindClass("java/lang/IllegalStateException");
         if (ex) env->ThrowNew(ex, "Local model is not loaded. Check model status and retry.");
         return;
@@ -171,6 +227,13 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
     const auto requestStart = std::chrono::steady_clock::now();
     llama_memory_clear(llama_get_memory(g_ctx), true);
     const llama_vocab *vocab = llama_model_get_vocab(g_model);
+    if (g_sampler) { llama_sampler_free(g_sampler); g_sampler = nullptr; }
+    g_sampler = create_request_sampler(prompt, vocab);
+    if (!g_sampler) {
+        jclass ex = env->FindClass("java/lang/IllegalStateException");
+        if (ex) env->ThrowNew(ex, "Could not initialize the local text sampler.");
+        return;
+    }
     if (prompt.size() > static_cast<size_t>(std::numeric_limits<int32_t>::max())) {
         jclass ex = env->FindClass("java/lang/IllegalArgumentException");
         if (ex) env->ThrowNew(ex, "Message is too long to tokenize for the local context window.");
@@ -191,11 +254,15 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
         count = llama_tokenize(vocab, prompt.c_str(), static_cast<int32_t>(prompt.size()), tokens.data(), static_cast<int32_t>(tokens.size()), true, true);
     }
     const auto tokenizeEnd = std::chrono::steady_clock::now();
-    const int maxGenerationTokens = std::clamp(static_cast<int>(requestedMaxTokens), 128, 1024);
-    if (count <= 0 || count > static_cast<int32_t>(llama_n_ctx(g_ctx)) - maxGenerationTokens - 8) {
+    const int remainingContextTokens = static_cast<int>(llama_n_ctx(g_ctx)) - count;
+    const int maxGenerationTokens = std::min(
+        std::max(0, static_cast<int>(availableOutputTokens)),
+        std::max(0, remainingContextTokens));
+    if (count <= 0 || maxGenerationTokens <= 0) {
         jclass ex = env->FindClass("java/lang/IllegalArgumentException");
-        if (ex) env->ThrowNew(ex, "Message is too long for the local context window. Please shorten it.");
-        LOGE("Prompt rejected: tokens=%d context=%u", count, llama_n_ctx(g_ctx));
+        if (ex) env->ThrowNew(ex, "The local context window is full. Shorten the prompt or start a new chat.");
+        LOGE("Prompt rejected: prompt_tokens=%d context=%u available_output_tokens=%d",
+             count, llama_n_ctx(g_ctx), maxGenerationTokens);
         return;
     }
     const auto promptBatchStart = std::chrono::steady_clock::now();
@@ -303,6 +370,7 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
     for (int i = 0; i < maxGenerationTokens && !g_cancel_requested.load(); ++i) {
         const auto sampleStart = std::chrono::steady_clock::now();
         llama_token token = llama_sampler_sample(g_sampler, g_ctx, -1);
+        llama_sampler_accept(g_sampler, token);
         sampleMs += std::chrono::duration<double, std::milli>(
             std::chrono::steady_clock::now() - sampleStart).count();
         if (token == eos || token == llama_vocab_eot(vocab)) { reachedEos = true; break; }
@@ -336,9 +404,9 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
         ++decodedTokens;
     }
     if (!callbackFailed && !flushCallback()) callbackFailed = true;
-    const bool hitTokenLimit = !reachedEos && !g_cancel_requested.load() && !callbackFailed && !decodeFailed && sampledTokens >= maxGenerationTokens;
-    const char *terminalMarker = hitTokenLimit
-        ? "__POCKETQWEN_STATUS__:TOKEN_LIMIT"
+    const bool hitContextLimit = !reachedEos && !g_cancel_requested.load() && !callbackFailed && !decodeFailed && sampledTokens >= maxGenerationTokens;
+    const char *terminalMarker = hitContextLimit
+        ? "__POCKETQWEN_STATUS__:CONTEXT_LIMIT"
         : (decodeFailed || callbackFailed)
             ? "__POCKETQWEN_STATUS__:INCOMPLETE_ERROR"
             : nullptr;
@@ -352,11 +420,11 @@ static void nativeGenerateResponse(JNIEnv *env, jobject, jstring input, jint req
     const double totalMs = std::chrono::duration<double, std::milli>(end - generationStart).count();
     const double responseMs = std::chrono::duration<double, std::milli>(end - requestStart).count();
     const double tps = totalMs > 0 ? sampledTokens * 1000.0 / totalMs : 0.0;
-    LOGI("Inference finished sampled_tokens=%d decoded_tokens=%d first_sample_ms=%.3f first_callback_ms=%.3f native_response_ms=%.3f generation_ms=%.3f sample_ms=%.3f decode_ms=%.3f callback_ms=%.3f callback_count=%d sampled_tokens_per_second=%.2f cancelled=%d callback_error=%d decode_error=%d token_limit=%d",
+    LOGI("Inference finished sampled_tokens=%d decoded_tokens=%d first_sample_ms=%.3f first_callback_ms=%.3f native_response_ms=%.3f generation_ms=%.3f sample_ms=%.3f decode_ms=%.3f callback_ms=%.3f callback_count=%d sampled_tokens_per_second=%.2f cancelled=%d callback_error=%d decode_error=%d context_limit=%d",
          sampledTokens, decodedTokens, firstSampleMs, firstCallbackMs, responseMs, totalMs,
          sampleMs, decodeMs, callbackMs, callbackCount, tps,
          g_cancel_requested.load() ? 1 : 0, callbackFailed ? 1 : 0,
-         decodeFailed ? 1 : 0, hitTokenLimit ? 1 : 0);
+         decodeFailed ? 1 : 0, hitContextLimit ? 1 : 0);
 }
 
 static void nativeRelease(JNIEnv *, jobject) {
@@ -367,11 +435,12 @@ static void nativeRelease(JNIEnv *, jobject) {
 }
 
 static JNINativeMethod methods[] = {
-    {const_cast<char*>("nativeLoadModel"), const_cast<char*>("(Ljava/lang/String;I)Z"), (void*)nativeLoadModel},
+    {const_cast<char*>("nativeLoadModel"), const_cast<char*>("(Ljava/lang/String;II)Z"), (void*)nativeLoadModel},
     {const_cast<char*>("nativeGenerateResponse"), const_cast<char*>("(Ljava/lang/String;ILcom/pocketqwen/app/repository/TokenCallback;)V"), (void*)nativeGenerateResponse},
     {const_cast<char*>("nativeCancelGeneration"), const_cast<char*>("()V"), (void*)nativeCancelGeneration},
     {const_cast<char*>("nativeIsModelAvailable"), const_cast<char*>("()Z"), (void*)nativeIsModelAvailable},
     {const_cast<char*>("nativeGetModelStatus"), const_cast<char*>("()Ljava/lang/String;"), (void*)nativeGetModelStatus},
+    {const_cast<char*>("nativeCountTokens"), const_cast<char*>("(Ljava/lang/String;)I"), (void*)nativeCountTokens},
     {const_cast<char*>("nativeRelease"), const_cast<char*>("()V"), (void*)nativeRelease}
 };
 

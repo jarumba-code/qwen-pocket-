@@ -42,14 +42,14 @@ fun WelcomeScreen(
         horizontalAlignment = Alignment.Start
     ) {
         Text(
-            text = "Welcome to PocketQwen",
+            text = "Welcome to EKIP",
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            text = "Your AI. Your device. Your privacy.",
+            text = "AI that feels closer to home.",
             style = MaterialTheme.typography.titleMedium
         )
         Spacer(Modifier.height(8.dp))

@@ -7,6 +7,10 @@ import com.pocketqwen.app.settings.PerformanceMode
 /** Isolates local inference from the UI. Implementations must not send prompts to a cloud service. */
 interface AiRepository {
     fun generateResponse(messages: List<ChatMessage>): Flow<String>
+    fun generateResponse(messages: List<ChatMessage>, additionalContext: String?): Flow<String> = generateResponse(messages)
+    val contextWindowTokens: Int get() = 2048
+    suspend fun countContextTokens(messages: List<ChatMessage>): Int? = null
+    suspend fun configureContextWindow(tokens: Int) {}
     fun isModelAvailable(): Boolean
     fun getModelStatus(): String
 

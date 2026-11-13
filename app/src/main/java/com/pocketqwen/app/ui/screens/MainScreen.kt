@@ -1,13 +1,15 @@
 package com.pocketqwen.app.ui.screens
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
@@ -45,11 +48,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import com.pocketqwen.app.model.Conversation
+import com.pocketqwen.app.ui.components.MessageComposer
 import com.pocketqwen.app.storage.ConversationStore
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.pocketqwen.app.model.ChatMessage
 import com.pocketqwen.app.viewmodel.ChatViewModel
 import com.pocketqwen.app.viewmodel.SettingsViewModel
@@ -72,6 +76,9 @@ fun MainScreen(
     val conversationStore = remember(context) { ConversationStore(context) }
     val conversations = remember { mutableStateListOf<Conversation>().apply { addAll(conversationStore.loadAll()) } }
     val messages by chatViewModel.messages.collectAsState()
+    val isGenerating by chatViewModel.isLoading.collectAsState()
+    val webSearchEnabled by chatViewModel.webSearchEnabled.collectAsState()
+    val searchStatus by chatViewModel.searchStatus.collectAsState()
     val isFirstLaunch by settingsViewModel.isFirstLaunch.collectAsState()
     val userName by settingsViewModel.userName.collectAsState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -133,21 +140,9 @@ fun MainScreen(
                 drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 modifier = Modifier.width(304.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 18.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
-                        contentDescription = "Official Qwen model logo",
-                        modifier = Modifier.padding(end = 10.dp).size(36.dp)
-                    )
-                    Text(
-                        "PocketQwen",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+                Text("EKIP", style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 18.dp))
                 NavigationDrawerItem(
                     label = { Text("New chat") },
                     selected = false,
@@ -236,56 +231,70 @@ fun MainScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (!showSettings) {
-                                Image(
-                                    painter = painterResource(id = com.pocketqwen.app.R.drawable.ic_qwen_logo),
-                                    contentDescription = "PocketQwen app icon",
-                                    modifier = Modifier.padding(end = 8.dp).size(28.dp)
-                                )
-                            }
-                            Text(if (showSettings) "Settings" else "PocketQwen")
-                        }
-                    },
+                    title = { Text(if (showSettings) "Settings" else "EKIP") },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Open sidebar")
                         }
                     },
                     actions = {
-                        if (messages.isNotEmpty() && !showSettings) {
-                            TextButton(onClick = {
-                                val id = activeConversationId ?: java.util.UUID.randomUUID().toString()
-                                val title = messages.firstOrNull { it.isUser }?.text?.take(42) ?: "New conversation"
-                                val index = conversations.indexOfFirst { it.id == id }
-                                val item = Conversation(id = id, title = title, messages = messages.toList())
-                                if (index >= 0) conversations[index] = item else conversations.add(0, item)
+                        if (!showSettings) {
+                            IconButton(onClick = {
+                                if (messages.isNotEmpty()) {
+                                    val id = activeConversationId
+                                    val title = messages.firstOrNull { it.isUser }?.text?.take(42) ?: "New conversation"
+                                    val index = conversations.indexOfFirst { it.id == id }
+                                    val item = Conversation(id = id, title = title, messages = messages.toList())
+                                    if (index >= 0) conversations[index] = item else conversations.add(0, item)
+                                }
                                 activeConversationId = java.util.UUID.randomUUID().toString()
                                 chatViewModel.clearMessages()
-                            }) { Text("New chat") }
+                            }) {
+                                Box(
+                                    modifier = Modifier.size(36.dp).border(
+                                        1.dp,
+                                        MaterialTheme.colorScheme.outlineVariant,
+                                        RoundedCornerShape(10.dp)
+                                    ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Edit, contentDescription = "New chat",
+                                        modifier = Modifier.size(18.dp))
+                                }
+                            }
                         }
                     }
                 )
             }
         ) { padding ->
-            Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            Column(modifier = Modifier.fillMaxSize().padding(padding).imePadding()) {
                 if (showSettings) {
                     SettingsScreen(
                         viewModel = settingsViewModel,
                         onNavigateBack = { showSettings = false },
                         modifier = Modifier.weight(1f).fillMaxWidth()
                     )
-                } else if (messages.isEmpty()) {
-                    EmptyChatScreen(
-                        viewModel = chatViewModel,
-                        userName = userName,
-                        modifier = Modifier.weight(1f).fillMaxWidth()
-                    )
                 } else {
-                    ActiveChatScreen(
-                        viewModel = chatViewModel,
-                        modifier = Modifier.weight(1f).fillMaxWidth()
+                    if (messages.isEmpty()) {
+                        EmptyChatScreen(
+                            viewModel = chatViewModel,
+                            userName = userName,
+                            modifier = Modifier.weight(1f).fillMaxWidth()
+                        )
+                    } else {
+                        ActiveChatScreen(
+                            viewModel = chatViewModel,
+                            modifier = Modifier.weight(1f).fillMaxWidth()
+                        )
+                    }
+                    MessageComposer(
+                        onSend = chatViewModel::sendMessage,
+                        modifier = Modifier.fillMaxWidth(),
+                        isGenerating = isGenerating,
+                        onStop = chatViewModel::stopGeneration,
+                        webSearchEnabled = webSearchEnabled,
+                        onWebSearchChange = chatViewModel::setWebSearchEnabled,
+                        searchStatus = searchStatus
                     )
                 }
             }

@@ -20,12 +20,14 @@ class SettingsViewModel(
     private val appSettings = AppSettings(context)
     private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
-    private val _performanceMode = MutableStateFlow(PerformanceMode.BALANCED)
+    private val _performanceMode = MutableStateFlow(PerformanceMode.PERFORMANCE)
     val performanceMode: StateFlow<PerformanceMode> = _performanceMode.asStateFlow()
     private val _userName = MutableStateFlow("")
     val userName: StateFlow<String> = _userName.asStateFlow()
-    private val _accentColor = MutableStateFlow("BLUE")
+    private val _accentColor = MutableStateFlow("GOLDEN")
     val accentColor: StateFlow<String> = _accentColor.asStateFlow()
+    private val _contextWindow = MutableStateFlow(aiRepository.contextWindowTokens)
+    val contextWindow: StateFlow<Int> = _contextWindow.asStateFlow()
     private val _isFirstLaunch = MutableStateFlow(true)
     val isFirstLaunch: StateFlow<Boolean> = _isFirstLaunch.asStateFlow()
     private val _modelStatus = MutableStateFlow("Preparing local model…")
@@ -42,6 +44,7 @@ class SettingsViewModel(
             _isFirstLaunch.value = appSettings.isFirstLaunch()
             _userName.value = appSettings.getUserNameFlow().first()
             _accentColor.value = appSettings.getAccentColorFlow().first()
+            _contextWindow.value = aiRepository.contextWindowTokens
             aiRepository.configurePerformanceMode(_performanceMode.value)
             refreshModelStatus()
         }
@@ -61,6 +64,7 @@ class SettingsViewModel(
             try {
                 aiRepository.initializeModel()
                 _isModelLoaded.value = aiRepository.isModelAvailable()
+                _contextWindow.value = aiRepository.contextWindowTokens
                 _modelStatus.value = aiRepository.getModelStatus()
             } catch (e: Exception) {
                 _isModelLoaded.value = false
@@ -125,12 +129,9 @@ class SettingsViewModel(
     }
 
     fun setAccentColor(color: String) {
-        viewModelScope.launch {
-            appSettings.setAccentColor(color)
-            _accentColor.value = color
-        }
+        if (color !in AppSettings.ACCENT_COLORS) return
+        viewModelScope.launch { appSettings.setAccentColor(color); _accentColor.value = color }
     }
-
     fun dismissFirstLaunch() {
         viewModelScope.launch {
             appSettings.setFirstLaunch(false)

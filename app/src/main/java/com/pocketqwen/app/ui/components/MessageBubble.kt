@@ -1,6 +1,11 @@
 package com.pocketqwen.app.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +18,11 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -57,6 +66,7 @@ fun MessageBubble(
     val isUser = message.isUser
     val bubbleColor = if (isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
     val clipboard = LocalClipboardManager.current
+    val uriHandler = LocalUriHandler.current
     var editing by remember(message.id) { mutableStateOf(false) }
     var editedText by remember(message.id, message.text) { mutableStateOf(message.text) }
 
@@ -89,7 +99,9 @@ fun MessageBubble(
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                                 Text(language, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-                                TextButton(onClick = { clipboard.setText(AnnotatedString(code)) }) { Text("Copy") }
+                                IconButton(onClick = { clipboard.setText(AnnotatedString(code)) }) {
+                                    Icon(Icons.Default.ContentCopy, contentDescription = "Copy code")
+                                }
                             }
                             Text(
                                 text = code,
@@ -99,11 +111,37 @@ fun MessageBubble(
                             )
                         }
                     } else if (value.isNotBlank()) {
-                        Text(value, color = MaterialTheme.colorScheme.onSurface)
+                        val linkedText = buildAnnotatedString {
+                            val regex = Regex("https://[^\\s)]+")
+                            var cursor = 0
+                            regex.findAll(value).forEach { match ->
+                                append(value.substring(cursor, match.range.first))
+                                val url = match.value.trimEnd('.', ',', ';')
+                                pushStringAnnotation("URL", url)
+                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary,
+                                    textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline)) { append(url) }
+                                pop()
+                                cursor = match.range.last + 1
+                            }
+                            if (cursor < value.length) append(value.substring(cursor))
+                        }
+                        if (linkedText.getStringAnnotations("URL", 0, linkedText.length).isEmpty()) {
+                            Text(value, color = MaterialTheme.colorScheme.onSurface)
+                        } else {
+                            ClickableText(text = linkedText,
+                                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                                onClick = { offset ->
+                                    linkedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
+                                        runCatching { uriHandler.openUri(it.item) }
+                                    }
+                                })
+                        }
                     }
                 }
                 if (!isUser && message.text.isNotBlank() && message.status != MessageStatus.SENDING) {
-                    TextButton(onClick = { clipboard.setText(AnnotatedString(message.text)) }) { Text("Copy response") }
+                    IconButton(onClick = { clipboard.setText(AnnotatedString(message.text)) }) {
+                        Icon(Icons.Default.ContentCopy, contentDescription = "Copy response")
+                    }
                 }
                 if (isUser && message.status != MessageStatus.SENDING) {
                     TextButton(onClick = { editedText = message.text; editing = true }) { Text("Edit") }
