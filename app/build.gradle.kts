@@ -45,10 +45,15 @@ android {
 
     buildTypes {
         release {
-            // Never fall back to the debug certificate for a release build.
-            // Configure the four POCKETQWEN_RELEASE_* environment variables in
-            // a protected CI secret environment to produce a Play-uploadable APK.
-            if (hasReleaseSigning) signingConfig = signingConfigs.getByName("releaseUpload")
+            // Use the protected upload key when all release secrets are present.
+            // For QA builds without those secrets, sign with the standard debug
+            // certificate so Android can install the APK. This fallback is NOT
+            // suitable for Google Play production releases.
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("releaseUpload")
+            } else {
+                signingConfigs.getByName("debug")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
