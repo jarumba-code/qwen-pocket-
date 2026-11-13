@@ -1,5 +1,6 @@
 package com.pocketqwen.app.repository
 
+import com.pocketqwen.app.model.ChatMessage
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -17,7 +18,10 @@ class MockAiRepositoryTest {
     @Test
     fun responseIsClearlyMarkedAsMock() = runBlocking {
         val emissions = mutableListOf<String>()
-        repository.generateResponse("hello").collect { emissions += it }
+        repository.generateResponse(
+            listOf(ChatMessage(id = "test-user", text = "hello", isUser = true))
+        ).collect { emissions += it }
+
         assertTrue(emissions.any { it.startsWith("[Mock response]") })
         assertTrue(emissions.any { it.startsWith("[End of placeholder") })
     }

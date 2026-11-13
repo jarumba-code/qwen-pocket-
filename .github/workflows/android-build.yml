@@ -1,4 +1,4 @@
-name: Android Build
+name: Ekip Android Build
 
 concurrency:
   group: pocketqwen-android-build-${{ github.ref }}
@@ -18,6 +18,7 @@ on:
       - feature/experiment-5-performance-settings
       - feature/experiment-5-ui-improvements
       - release/ekip-play-readiness
+      - feat/android-ivory-gold-ui
   workflow_dispatch:
 
 permissions:
@@ -74,6 +75,9 @@ jobs:
           grep -nE 'GGML_NATIVE|GGML_OPENMP|GGML_CPU_KLEIDIAI|GGML_LLAMAFILE|LLAMA_OPENSSL|GGML_VULKAN' app/src/main/cpp/CMakeLists.txt
           echo "NDK: $ANDROID_HOME/ndk/29.0.14206865"
           grep -m1 'Pkg.Revision' "$ANDROID_HOME/ndk/29.0.14206865/source.properties"
+
+      - name: Run unit tests before packaging
+        run: ./gradlew testDebugUnitTest --no-daemon
 
       - name: Build optimized release and installable debug APKs
         run: ./gradlew assembleRelease assembleDebug --no-daemon --stacktrace
