@@ -61,7 +61,7 @@ class StudyViewModelTest {
         viewModel.generate(StudyMode.EXPLAIN)
         advanceUntilIdle()
 
-        assertTrue(repository.lastMessages.single().text.contains("daily life in Nigeria"))
+        assertTrue(repository.lastMessages.single().text.contains("one familiar everyday analogy"))
         assertTrue(repository.lastMessages.single().text.contains("Do not impose an arbitrary word limit"))
         assertTrue(viewModel.uiState.value is StudyUiState.Done)
     }
