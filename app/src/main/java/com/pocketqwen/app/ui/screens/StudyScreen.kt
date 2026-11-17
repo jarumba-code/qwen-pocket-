@@ -2,6 +2,7 @@ package com.pocketqwen.app.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -144,7 +145,8 @@ fun StudyScreen(
                 enabled = !busy,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 184.dp, max = 280.dp),
+                    .heightIn(min = 184.dp, max = 280.dp)
+                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(10.dp)),
                 placeholder = {
                     Text(
                         "Paste or type your class notes here…",
@@ -158,13 +160,7 @@ fun StudyScreen(
                     fontSize = 18.sp,
                     lineHeight = 25.sp
                 ),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                )
+                colors = OutlinedTextFieldDefaults.colors()
             )
 
             Row(
