@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#faf8f3">
-  <meta name="description" content="EKIP Privacy Policy: how the Android app and optional online search handle information.">
+  <meta name="description" content="EKIP Privacy Policy: how the Android study partner handles information processed on your device.">
   <title>Privacy Policy — EKIP</title>
   <style>
     :root{color-scheme:light;--paper:#faf8f3;--card:#fff;--ink:#24252a;--muted:#5b606b;--gold:#755b07;--line:#e7dfd0}
@@ -22,7 +22,7 @@
   <header>
     <div class="brand">EKIP · JIMM.TECH</div>
     <h1>Privacy Policy</h1>
-    <p>This policy explains what information EKIP handles, what stays on your Android device, and what may leave the device when online search is used.</p>
+    <p>This policy explains what information the EKIP Android study partner handles and how its local processing works.</p>
     <p class="date">Effective date: 13 November 2026 · Applies to EKIP Android preview version 1.1.0 and this website.</p>
   </header>
 
@@ -35,14 +35,12 @@
     <h2>2. Information kept on your device</h2>
     <p>EKIP includes a local language model. During ordinary local chat, your prompts are processed by that model on your Android device. The chat engine does not send your conversation to a cloud AI model for inference.</p>
     <p>Conversation history, local memory notes, your optional profile name, and app preferences are stored in the app's private storage on your device. EKIP does not require you to create an account to use local chat.</p>
-    <p>Local information remains on the device unless you choose to share it through an online feature, or use Android/device tools that expose it. Clearing EKIP's app data or uninstalling the app can remove locally stored information.</p>
+    <p>Local information remains in the app's private storage unless you use Android/device tools to share or expose it. Clearing EKIP's app data or uninstalling the app can remove locally stored information.</p>
   </section>
 
   <section>
-    <h2>3. Optional web search</h2>
-    <p>EKIP can use online search for current information. A search may be sent when you enable Web Search, or when the app recognises a query as asking for time-sensitive information—for example, a request about current news, weather, prices, exchange rates, or the latest version of something. You can ask the app not to search, such as by saying “do not search” or “offline only”.</p>
-    <p>When a search is made, the app sends the current search query—not your entire conversation history or local memory—to the configured EKIP search endpoint at <code>https://qwen-pocket.vercel.app/api/search</code>. The service forwards that query to Tavily, a third-party search provider, and returns a small set of result titles, links, and excerpts. Those excerpts may be supplied to the local model as context. The response itself is generated on your device.</p>
-    <p>Online search requires an internet connection. The request may be processed by the hosting provider and search provider, including ordinary network and service metadata such as IP address, request time, and the query needed to perform the search. Their own privacy and retention terms also apply. If the search service is unavailable, the app may answer using only its local model.</p>
+    <h2>3. Local study processing</h2>
+    <p>The current EKIP Android study partner has no web-search feature and does not declare the Android internet permission. Notes submitted for summarising or explanation are processed by the bundled language model on the device. The study flow does not send notes or prompts to a cloud AI or search provider.</p>
   </section>
 
   <section>
@@ -58,17 +56,16 @@
 
   <section>
     <h2>6. Data sharing and retention</h2>
-    <p>EKIP does not operate a cloud account or conversation-sync service in the current app. Local conversations and preferences stay in app-private storage unless you choose to share information through an online feature.</p>
-    <p>Search queries are sent to the services described above. Their processing and retention are governed by their own terms and privacy policies. EKIP's project maintainer does not provide a control to delete information from those providers' systems.</p>
+    <p>EKIP does not operate a cloud account or conversation-sync service in the current app. Local conversations and preferences stay in app-private storage. The study flow does not transmit them to a search provider or cloud AI service.</p>
+    <p>The Android study flow does not submit prompts or notes to a search provider. Website hosting and third-party resources loaded by the website may process ordinary web-request information as described above.</p>
   </section>
 
   <section>
     <h2>7. Your choices</h2>
     <ul>
-      <li>Use ordinary local chat without enabling Web Search. Note that the app may still recognise certain current-information queries and initiate a search; say “do not search” or “offline only” to suppress that search for a prompt.</li>
-      <li>Do not put passwords, private keys, recovery phrases, payment details, or other secrets into search queries.</li>
-      <li>Delete conversations in the app where the available conversation controls permit, or clear EKIP's app data/uninstall through Android settings to remove local app data.</li>
-      <li>Use provider privacy controls or contact the relevant provider for requests about data it processes.</li>
+      <li>Use the study tools offline after the app and model have been installed.</li>
+      <li>Avoid entering passwords, private keys, recovery phrases, payment details, or other secrets into study notes.</li>
+      <li>Clear EKIP's app data or uninstall through Android settings to remove locally stored app information.</li>
     </ul>
   </section>
 
