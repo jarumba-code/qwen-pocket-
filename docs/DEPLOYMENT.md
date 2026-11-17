@@ -19,4 +19,4 @@ The receiving service must be controlled by the project operator and have approp
 
 ## 3. Privacy and network behaviour
 
-The Ekip Study Partner's notes processing and model inference run locally. Web search is not included in this release. No internet permission is declared in the Android manifest. The optional report endpoint is a separate server route and is not used by the study flow.
+The Ekip Study Partner's notes processing and model inference run locally. No internet permission is declared in the Android manifest. The optional report endpoint is a separate server route and is not used by the study flow.
