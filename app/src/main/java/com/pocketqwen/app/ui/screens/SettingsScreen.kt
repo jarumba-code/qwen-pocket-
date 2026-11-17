@@ -34,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pocketqwen.app.settings.PerformanceMode
@@ -69,10 +68,9 @@ fun SettingsScreen(
     val userName by viewModel.userName.collectAsState()
     val accentColor by viewModel.accentColor.collectAsState()
     var nameDraft by remember(userName) { mutableStateOf(userName) }
-    val uriHandler = LocalUriHandler.current
 
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().imePadding(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -228,34 +226,6 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
                     )
-                }
-            }
-        }
-
-        item {
-            Text("Legal", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
-            Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                runCatching { uriHandler.openUri("https://jarumba-code.github.io/qwen-pocket-/privacy.html") }
-            }) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text("Privacy Policy", style = MaterialTheme.typography.titleMedium)
-                    Text("Read how local conversations and optional online features handle data on our website.",
-                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    TextButton(onClick = { runCatching { uriHandler.openUri("https://jarumba-code.github.io/qwen-pocket-/privacy.html") } }) {
-                        Text("Open Privacy Policy")
-                    }
-                }
-            }
-            Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                runCatching { uriHandler.openUri("https://jarumba-code.github.io/qwen-pocket-/terms.html") }
-            }) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text("User Agreement", style = MaterialTheme.typography.titleMedium)
-                    Text("Review the terms governing use of EKIP.",
-                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    TextButton(onClick = { runCatching { uriHandler.openUri("https://jarumba-code.github.io/qwen-pocket-/terms.html") } }) {
-                        Text("Open User Agreement")
-                    }
                 }
             }
         }

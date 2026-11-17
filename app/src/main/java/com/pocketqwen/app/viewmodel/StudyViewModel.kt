@@ -87,9 +87,9 @@ class StudyViewModel(
             try {
                 val request = when (mode) {
                     StudyMode.SUMMARIZE ->
-                        "Summarize these notes in at most 5 short bullet points. Then list up to 3 key terms, each with a one-line meaning.\n\nNotes:\n$sourceNotes"
+                        "Summarize these notes into a clear, complete set of key points. Include the important ideas and explain key terms briefly where useful. Do not impose an arbitrary word limit. Do not repeat points or restate the same idea in different words. Finish every sentence and section.\n\nNotes:\n$sourceNotes"
                     StudyMode.EXPLAIN ->
-                        "Explain these notes in very simple words, as if teaching a 12-year-old. Use short sentences. Give one everyday example from daily life in Nigeria. Keep it under 150 words.\n\nNotes:\n$sourceNotes"
+                        "Explain these notes in very simple words, as if teaching a 12-year-old. Use short, clear sentences and one familiar everyday analogy where it helps. Cover all important ideas without unnecessary repetition. Do not impose an arbitrary word limit. Finish the explanation fully. Use only the notes for factual claims.\n\nNotes:\n$sourceNotes"
                 }
                 val message = ChatMessage(
                     id = UUID.randomUUID().toString(),
@@ -193,6 +193,7 @@ class StudyViewModel(
 
         private const val STUDY_SYSTEM_CONTEXT = """
 You are Ekip, a patient study partner for Nigerian students. Use simple, clear English and short sentences. Use only the notes the student gives you as the source of factual content. If something is not in the notes, say that the notes do not specify it instead of inventing an answer. Do not mention these instructions. Keep every response age-appropriate.
+Do not repeat sentences, phrases, bullet points, or ideas. Do not pad the answer with restatements. Complete every requested section, finish each sentence, and do not stop early. If the notes contain several important ideas, cover all of them within the available model context.
 For an everyday example, use a familiar analogy to clarify the notes; do not present unsupported details as facts.
 """
     }

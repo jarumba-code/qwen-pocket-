@@ -50,7 +50,7 @@ class StudyViewModelTest {
         assertEquals(StudyMode.SUMMARIZE, result.mode)
         assertTrue(result.text.contains("Key idea one"))
         assertTrue(repository.lastMessages.single().text.contains("Photosynthesis uses light energy."))
-        assertTrue(repository.lastMessages.single().text.contains("at most 5 short bullet points"))
+        assertTrue(repository.lastMessages.single().text.contains("Do not repeat points"))
         assertTrue(repository.lastAdditionalContext.contains("patient study partner"))
     }
 
@@ -62,7 +62,7 @@ class StudyViewModelTest {
         advanceUntilIdle()
 
         assertTrue(repository.lastMessages.single().text.contains("daily life in Nigeria"))
-        assertTrue(repository.lastMessages.single().text.contains("under 150 words"))
+        assertTrue(repository.lastMessages.single().text.contains("Do not impose an arbitrary word limit"))
         assertTrue(viewModel.uiState.value is StudyUiState.Done)
     }
 
