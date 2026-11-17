@@ -254,7 +254,7 @@ fun StudyScreen(
                     ResultHeading(result.mode.heading.uppercase())
                     Text(
                         result.partialText.ifBlank { "Working through your notes…" },
-                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp, lineHeight = 25.sp),
+                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp, lineHeight = 26.sp),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     OutlinedButton(
@@ -283,7 +283,7 @@ fun StudyScreen(
                     }
                     Text(
                         result.text,
-                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp, lineHeight = 25.sp),
+                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp, lineHeight = 26.sp),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     OutlinedButton(
