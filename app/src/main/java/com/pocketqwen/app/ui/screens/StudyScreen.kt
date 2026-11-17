@@ -117,7 +117,7 @@ fun StudyScreen(
             )
             Text(
                 "Paste what you have from class. Get the main ideas or a simpler explanation, right on your phone.",
-                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 17.sp, lineHeight = 25.sp),
+                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp, lineHeight = 26.sp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -155,7 +155,7 @@ fun StudyScreen(
                 maxLines = 10,
                 shape = RoundedCornerShape(10.dp),
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
-                    fontSize = 17.sp,
+                    fontSize = 18.sp,
                     lineHeight = 25.sp
                 ),
                 colors = OutlinedTextFieldDefaults.colors(

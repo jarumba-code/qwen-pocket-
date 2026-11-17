@@ -108,6 +108,18 @@ class StudyViewModelTest {
         assertFalse(viewModel.uiState.value is StudyUiState.Error)
     }
 
+    @Test
+    fun incompleteNativeGenerationIsClearlyMarked() = runTest(dispatcher) {
+        repository.response = flowOf("Partial answer", "__POCKETQWEN_STATUS__:INCOMPLETE_ERROR")
+        viewModel.updateNotes("Some class notes")
+        viewModel.generate(StudyMode.SUMMARIZE)
+        advanceUntilIdle()
+
+        val result = viewModel.uiState.value as StudyUiState.Done
+        assertTrue(result.text.contains("Partial answer"))
+        assertTrue(result.text.contains("response may be incomplete"))
+    }
+
     private class FakeAiRepository : AiRepository {
         var response: Flow<String> = flowOf("Test response")
         var contextTokens = 2048

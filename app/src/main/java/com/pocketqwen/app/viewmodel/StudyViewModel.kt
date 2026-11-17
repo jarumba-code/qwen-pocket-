@@ -83,6 +83,7 @@ class StudyViewModel(
         generationJob = viewModelScope.launch {
             val output = StringBuilder()
             var contextLimitReached = false
+            var nativeGenerationIncomplete = false
             try {
                 val request = when (mode) {
                     StudyMode.SUMMARIZE ->
@@ -102,7 +103,7 @@ class StudyViewModel(
                 ).collect { chunk ->
                     when (chunk) {
                         CONTEXT_LIMIT_MARKER -> contextLimitReached = true
-                        INCOMPLETE_ERROR_MARKER -> Unit
+                        INCOMPLETE_ERROR_MARKER -> nativeGenerationIncomplete = true
                         else -> if (chunk.isNotEmpty() && !chunk.startsWith("[End of")) {
                             output.append(chunk)
                             _uiState.value = StudyUiState.Generating(mode, output.toString())
@@ -121,10 +122,14 @@ class StudyViewModel(
                         }
                     )
                 } else {
-                    val finalText = if (contextLimitReached) {
-                        "$result\n\nThe response may be incomplete because the model reached its context limit."
-                    } else {
-                        result
+                    val finalText = buildString {
+                        append(result)
+                        if (contextLimitReached) {
+                            append("\n\nThe response may be incomplete because the model reached its context limit.")
+                        }
+                        if (nativeGenerationIncomplete) {
+                            append("\n\nGeneration stopped unexpectedly. This response may be incomplete.")
+                        }
                     }
                     _uiState.value = StudyUiState.Done(mode, finalText)
                 }
