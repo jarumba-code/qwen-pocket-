@@ -1,9 +1,12 @@
 package com.pocketqwen.app.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.Shapes
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.Composable
 
 private fun accentFor(name: String): Color = when (name) {
     "RED" -> Color(0xFFC44747)
@@ -14,8 +17,16 @@ private fun accentFor(name: String): Color = when (name) {
     "BLACK" -> Color(0xFF333333)
     "PINK" -> Color(0xFFD65B9B)
     "PURPLE" -> Color(0xFF8054B8)
-    else -> Color(0xFF755B07)
+    else -> Color(0xFF8A6A3B)
 }
+
+private val EkipShapes = Shapes(
+    extraSmall = RoundedCornerShape(4.dp),
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(10.dp),
+    large = RoundedCornerShape(12.dp),
+    extraLarge = RoundedCornerShape(16.dp)
+)
 
 @Composable
 fun PocketQwenTheme(
@@ -39,5 +50,10 @@ fun PocketQwenTheme(
         secondary = primaryAccent,
         surfaceTint = primaryAccent
     )
-    MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        shapes = EkipShapes,
+        content = content
+    )
 }

@@ -1,16 +1,16 @@
 <resources>
-    <string name="app_name">EKIP</string>
+    <string name="app_name">Ekip Study Partner</string>
     <string name="what_can_i_help">What can I help you with?</string>
-    <string name="welcome_subtitle">EKIP is designed for private, on-device AI conversations using a local language model.</string>
+    <string name="welcome_subtitle">Paste your class notes for a summary or simple explanation, processed by the local model on this device.</string>
     <string name="suggestion_explain_title">Explain a difficult concept</string>
     <string name="suggestion_explain_desc">Get clear explanations of complex topics</string>
     <string name="suggestion_code_title">Help me write some code</string>
-    <string name="suggestion_code_desc">Write, review, and debug code snippets</string>
+    <string name="suggestion_code_desc">Work through a programming problem</string>
     <string name="suggestion_summarize_title">Summarize a long text</string>
-    <string name="suggestion_summarize_desc">Get concise summaries of lengthy content</string>
+    <string name="suggestion_summarize_desc">Get concise summaries of your notes</string>
     <string name="suggestion_brainstorm_title">Brainstorm ideas</string>
-    <string name="suggestion_brainstorm_desc">Generate creative ideas together</string>
-    <string name="placeholder_message">Message EKIP...</string>
+    <string name="suggestion_brainstorm_desc">Explore ideas and possible approaches</string>
+    <string name="placeholder_message">Paste your notes...</string>
     <string name="settings_title">Settings</string>
     <string name="appearance_title">Appearance</string>
     <string name="theme_light">Light</string>
@@ -24,7 +24,7 @@
     <string name="about_title">About EKIP</string>
     <string name="version">Version 1.1.0</string>
     <string name="privacy">Privacy</string>
-    <string name="privacy_desc">Local chat inference happens on your device.</string>
+    <string name="privacy_desc">Study notes are processed on your device by the local model.</string>
     <string name="no_conversations">No conversations yet</string>
     <string name="conversation_history">Conversation history</string>
     <string name="new_chat">New chat</string>

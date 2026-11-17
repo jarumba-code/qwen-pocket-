@@ -16,19 +16,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
 import com.pocketqwen.app.repository.AiRepository
-import com.pocketqwen.app.memory.LocalMemoryStore
 import com.pocketqwen.app.repository.NativeAiRepository
 import com.pocketqwen.app.settings.ThemeMode
 import com.pocketqwen.app.ui.theme.PocketQwenTheme
 import com.pocketqwen.app.ui.screens.MainScreen
-import com.pocketqwen.app.viewmodel.ChatViewModel
 import com.pocketqwen.app.viewmodel.SettingsViewModel
+import com.pocketqwen.app.viewmodel.StudyViewModel
 
-class ChatViewModelFactory(private val repository: AiRepository, private val memoryStore: LocalMemoryStore) : ViewModelProvider.Factory {
+class StudyViewModelFactory(
+    private val repository: AiRepository
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ChatViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(StudyViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ChatViewModel(repository, memoryStore = memoryStore) as T
+            return StudyViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: $modelClass")
     }
@@ -77,11 +78,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = scheme.background
                 ) {
-                    val chatViewModel: ChatViewModel = viewModel(
-                        factory = ChatViewModelFactory(repository, LocalMemoryStore(applicationContext))
+                    val studyViewModel: StudyViewModel = viewModel(
+                        factory = StudyViewModelFactory(repository)
                     )
                     MainScreen(
-                        chatViewModel = chatViewModel,
+                        studyViewModel = studyViewModel,
                         settingsViewModel = settingsViewModel,
                         modifier = Modifier.fillMaxSize()
                     )

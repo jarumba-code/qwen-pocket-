@@ -22,10 +22,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun WelcomeScreen(
@@ -37,28 +39,33 @@ fun WelcomeScreen(
     Column(
         modifier = modifier.fillMaxSize().imePadding()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 16.dp),
+            .padding(horizontal = 24.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.Start
     ) {
         Text(
-            text = "Welcome to EKIP",
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            text = "Ekip Study Partner",
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Normal,
+                fontSize = 30.sp,
+                lineHeight = 36.sp
+            ),
+            color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(Modifier.height(10.dp))
         Text(
-            text = "AI that feels closer to home.",
-            style = MaterialTheme.typography.titleMedium
+            text = "Clearer notes. Better understanding.",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "A lightweight AI assistant built around a local language model. Chat, learn, and work with AI directly on your phone, without sending prompts to a cloud AI service for inference.",
-            style = MaterialTheme.typography.bodyMedium,
+            text = "Paste your class notes to get a short summary or a simpler explanation. Your study prompts are processed by the local model on this phone.",
+            style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(24.dp))
         Text("What should we call you?", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(6.dp))
         OutlinedTextField(
@@ -76,7 +83,7 @@ fun WelcomeScreen(
         Spacer(Modifier.height(12.dp))
         Button(
             onClick = { onContinue(name.trim()) },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().height(52.dp)
         ) {
             Text("Get started")
         }
